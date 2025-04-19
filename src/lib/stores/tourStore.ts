@@ -24,62 +24,38 @@ export interface Notification {
 
 // Initial data
 const cities: City[] = [
-    { id: 'paris', name: 'Paris', country: 'France', imageUrl: '/images/paris.jpg' },
-    { id: 'barcelona', name: 'Barcelona', country: 'Spain', imageUrl: '/images/barcelona.jpg' },
-    { id: 'rome', name: 'Rome', country: 'Italy', imageUrl: '/images/rome.jpg' },
-    { id: 'berlin', name: 'Berlin', country: 'Germany', imageUrl: '/images/berlin.jpg' },
-    { id: 'tokyo', name: 'Tokyo', country: 'Japan', imageUrl: '/images/tokyo.jpg' }
+    { id: 'madrid', name: 'Madrid', country: 'Spain' },
+    { id: 'copenhagen', name: 'Copenhagen', country: 'Denmark' }
 ];
 
 const tours: Tour[] = [
-    { 
-        id: 'paris-french-1', 
-        cityId: 'paris', 
-        name: 'Parisian French Immersion', 
-        language: 'French',
-        description: 'Explore the charming streets of Paris while learning authentic French from locals. This tour covers essential phrases, cultural etiquette, and includes visits to iconic Parisian cafés where you can practice your skills.'
-    },
-    { 
-        id: 'paris-french-2', 
-        cityId: 'paris', 
-        name: 'French Art & Language', 
-        language: 'French',
-        description: 'Combine art appreciation with language learning as you visit the Louvre and Musée d\'Orsay. Learn vocabulary related to art and culture while admiring masterpieces.'
-    },
-    { 
-        id: 'barcelona-spanish-1', 
-        cityId: 'barcelona', 
-        name: 'Spanish in Barcelona', 
+    {
+        id: 'madrid-spanish-immersion',
+        cityId: 'madrid',
+        name: 'Madrid Spanish Immersion',
         language: 'Spanish',
-        description: 'Learn Spanish while exploring Barcelona\'s vibrant neighborhoods. This tour focuses on practical conversation skills and Catalan cultural insights.'
+        description: 'Immerse yourself in Spanish as you explore Madrid’s vibrant neighborhoods, local markets, and tapas bars. Practice conversational skills with native speakers and learn about Spanish culture firsthand.'
     },
-    { 
-        id: 'barcelona-catalan-1', 
-        cityId: 'barcelona', 
-        name: 'Catalan Basics', 
-        language: 'Catalan',
-        description: 'Discover the unique Catalan language with native speakers. This tour takes you through the Gothic Quarter while teaching you essential Catalan phrases and local traditions.'
+    {
+        id: 'madrid-art-culture',
+        cityId: 'madrid',
+        name: 'Art & Spanish in Madrid',
+        language: 'Spanish',
+        description: 'Combine art appreciation with language learning as you visit the Prado Museum and Reina Sofía. Learn vocabulary related to art and history while engaging with local guides.'
     },
-    { 
-        id: 'rome-italian-1', 
-        cityId: 'rome', 
-        name: 'Roman Italian Adventure', 
-        language: 'Italian',
-        description: 'Learn Italian while visiting ancient Roman sites. This tour combines history lessons with language practice, focusing on pronunciation and everyday conversation.'
+    {
+        id: 'copenhagen-danish-basics',
+        cityId: 'copenhagen',
+        name: 'Copenhagen Danish Basics',
+        language: 'Danish',
+        description: 'Learn fundamental Danish phrases while exploring Copenhagen’s iconic landmarks like Nyhavn and the Little Mermaid. Focus on greetings, ordering food, and basic conversation.'
     },
-    { 
-        id: 'berlin-german-1', 
-        cityId: 'berlin', 
-        name: 'Berlin German Basics', 
-        language: 'German',
-        description: 'Get comfortable with German language fundamentals while exploring Berlin\'s diverse neighborhoods. Perfect for beginners wanting to learn practical phrases.'
-    },
-    { 
-        id: 'tokyo-japanese-1', 
-        cityId: 'tokyo', 
-        name: 'Tokyo Japanese Essentials', 
-        language: 'Japanese',
-        description: 'Navigate Tokyo while learning essential Japanese phrases. This tour covers basic greetings, ordering food, and reading simple signs.'
+    {
+        id: 'copenhagen-hygge-language',
+        cityId: 'copenhagen',
+        name: 'Hygge & Language in Copenhagen',
+        language: 'Danish',
+        description: 'Experience the Danish concept of Hygge while practicing language skills in cozy cafés and historic neighborhoods. Learn vocabulary around comfort, community, and everyday life.'
     }
 ];
 
