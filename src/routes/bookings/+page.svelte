@@ -55,6 +55,18 @@
   let cancelError = '';
   let successMessage = '';
   
+  // Helper function to check if a booking is cancelled
+  function isBookingCancelled(booking: any): boolean {
+    return booking.cancelled_at != null;
+  }
+  
+  // Helper function to get booking status
+  function getBookingStatus(booking: any): string {
+    if (booking.cancelled_at) return 'cancelled';
+    if (booking.attended_at) return 'attended';
+    return 'confirmed';
+  }
+  
   // Function to handle booking cancellation
   async function handleCancelBooking(bookingId: string, tourName: string) {
     if (!confirm(`Are you sure you want to cancel your booking for ${tourName}?`)) {
@@ -75,10 +87,10 @@
       } else {
         successMessage = `Successfully cancelled your booking for ${tourName}`;
         
-        // Update the booking status in the list
+        // Update the booking in the list
         userBookings = userBookings.map(booking => {
           if (booking.id === bookingId) {
-            return { ...booking, status: 'cancelled' };
+            return { ...booking, cancelled_at: new Date().toISOString(), participants: 0 };
           }
           return booking;
         });
@@ -159,23 +171,23 @@
                 <td class="py-3 px-4">{formatDate(booking.schedules?.scheduled_date)}</td>
                 <td class="py-3 px-4">
                   <span class={`px-2 py-1 rounded-full text-xs font-medium
-                    ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                      booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                      booking.status === 'attended' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Pending'}
+                    ${getBookingStatus(booking) === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                      getBookingStatus(booking) === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                      getBookingStatus(booking) === 'attended' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {getBookingStatus(booking).charAt(0).toUpperCase() + getBookingStatus(booking).slice(1)}
                   </span>
                 </td>
                 <td class="py-3 px-4">
-                  {#if booking.status !== 'cancelled'}
+                  {#if !isBookingCancelled(booking)}
                     <button 
                       class="text-red-600 hover:text-red-800 mr-2 {isCancelling ? 'opacity-50 cursor-not-allowed' : ''}"
                       on:click={() => handleCancelBooking(booking.id, booking.schedules?.tours?.description?.name || booking.schedules?.tours?.name || 'this tour')}
                       disabled={isCancelling}
                     >
-                      {isCancelling ? 'Cancelling...' : booking.status === 'attended' ? 'Remove' : 'Cancel'}
+                      {isCancelling ? 'Cancelling...' : booking.attended_at ? 'Remove' : 'Cancel'}
                     </button>
                   {/if}
-                  {#if booking.status === 'attended'}
+                  {#if booking.attended_at}
                     <a 
                       href={`/tours/${booking.schedules?.tours?.id}/rate`} 
                       class="text-blue-600 hover:text-blue-800 ml-2"
