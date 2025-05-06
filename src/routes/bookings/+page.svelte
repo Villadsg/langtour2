@@ -180,7 +180,7 @@
                 <td class="py-3 px-4">
                   {#if !isBookingCancelled(booking)}
                     <button 
-                      class="text-red-600 hover:text-red-800 mr-2 {isCancelling ? 'opacity-50 cursor-not-allowed' : ''}"
+                      class="text-red-600 hover:text-red-800 mr-2 {isCancelling ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
                       on:click={() => handleCancelBooking(booking.id, booking.schedules?.tours?.description?.name || booking.schedules?.tours?.name || 'this tour')}
                       disabled={isCancelling}
                     >
