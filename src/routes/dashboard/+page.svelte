@@ -240,7 +240,7 @@
               </div>
               <div class="text-right">
                 <button 
-                  class="text-red-600 hover:text-red-800 {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="text-red-600 hover:text-red-800 cursor-pointer {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
                   on:click={() => handleDeleteTour(tour.id || tour.$id, tourData.name)}
                   disabled={isDeleting}
                 >
