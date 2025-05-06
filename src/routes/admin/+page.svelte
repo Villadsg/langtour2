@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { AppwriteService } from '$lib/appwriteService';
-    import type { Models } from 'appwrite';
+    import { SupabaseService } from '$lib/supabaseService';
     
-    interface AppwriteTour extends Models.Document {
+    interface Tour {
+        $id: string;
         name: string;
         cityId: string;
         language: string;
@@ -13,24 +13,24 @@
     }
     
     let isLoading = true;
-    let tours: AppwriteTour[] = [];
+    let tours: Tour[] = [];
     let error = '';
     
     onMount(async () => {
         try {
             // Check if user is logged in
-            const user = await AppwriteService.getAccount();
+            const user = await SupabaseService.getAccount();
             if (!user) {
                 // Redirect to login page if not implemented
                 // For now, we'll just show the tours
             }
             
-            // Fetch tours from Appwrite
-            const response = await AppwriteService.getAllTours();
+            // Fetch tours from Supabase
+            const response = await SupabaseService.getAllTours();
             
             // Process documents to extract tour data from JSON in description field
-            tours = response.documents.map(doc => {
-                let tourData: Partial<AppwriteTour> = {};
+            tours = response.data.map((doc: any) => {
+                let tourData: Partial<Tour> = {};
                 
                 // Parse the JSON from the description field
                 try {
@@ -41,15 +41,16 @@
                     console.error('Error parsing tour data:', parseError);
                 }
                 
-                // Create a combined object with Appwrite document properties and parsed tour data
+                // Create a combined object with document properties and parsed tour data
                 return {
-                    ...doc,
+                    $id: doc.$id,
                     name: tourData.name || '',
                     cityId: tourData.cityId || '',
                     language: tourData.language || '',
-                    description: tourData.description || ''
+                    description: tourData.description || '',
+                    imageUrl: doc.imageUrl
                 };
-            }) as AppwriteTour[];
+            }) as Tour[];
             
             isLoading = false;
         } catch (err: any) {
@@ -61,7 +62,7 @@
     const deleteTour = async (tourId: string) => {
         if (confirm('Are you sure you want to delete this tour?')) {
             try {
-                await AppwriteService.deleteTour(tourId);
+                await SupabaseService.deleteTour(tourId);
                 tours = tours.filter(tour => tour.$id !== tourId);
             } catch (err: any) {
                 error = err.message || 'Failed to delete tour';
@@ -73,7 +74,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Manage Tours</h1>
-        <a href="/admin/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <a href="/dashboard/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Create New Tour
         </a>
     </div>

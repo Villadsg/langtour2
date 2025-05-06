@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { AppwriteService, currentUser, isAdmin } from '$lib/appwriteService';
+  import { SupabaseService, currentUser, isAdmin } from '$lib/supabaseService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   let isLoading = true;
@@ -9,7 +9,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await AppwriteService.getAccount();
+      const user = await SupabaseService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in

@@ -1,17 +1,21 @@
 <script lang="ts">
-  import { currentUser, AppwriteService } from '$lib/appwriteService';
+  import { currentUser, SupabaseService } from '$lib/supabaseService';
   import { onMount } from 'svelte';
   
   let isMenuOpen = false;
   
   onMount(async () => {
     // Check if user is logged in on component mount
-    await AppwriteService.getAccount();
+    await SupabaseService.getAccount();
   });
   
-  const handleLogout = async () => {
-    await AppwriteService.logout();
-    window.location.href = '/';
+  const handleLogout = async function logout() {
+    try {
+      await SupabaseService.logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
   
   const toggleMenu = () => {
@@ -36,9 +40,12 @@
       <div class="hidden sm:ml-6 sm:flex sm:items-center">
         {#if $currentUser}
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">Hello, {$currentUser.name}</span>
-            <a href="/admin/create" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium">
-              Add Tour
+            <span class="text-sm text-gray-700">Hello, {$currentUser?.user_metadata?.name || $currentUser?.email}</span>
+            <a href="/dashboard" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+              Dashboard
+            </a>
+            <a href="/bookings" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+              Bookings
             </a>
             <button 
               on:click={handleLogout}
@@ -88,12 +95,18 @@
         {#if $currentUser}
           <div class="flex items-center px-4">
             <div class="ml-3">
-              <div class="text-base font-medium text-gray-800">{$currentUser.name}</div>
-              <div class="text-sm font-medium text-gray-500">{$currentUser.email}</div>
+              <div class="text-base font-medium text-gray-800">{$currentUser?.user_metadata?.name || $currentUser?.email}</div>
+              <div class="text-sm font-medium text-gray-500">{$currentUser?.email}</div>
             </div>
           </div>
           <div class="mt-3 space-y-1">
-            <a href="/admin/create" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+            <a href="/dashboard" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+              Dashboard
+            </a>
+            <a href="/bookings" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+              Your Bookings
+            </a>
+            <a href="/dashboard/create" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
               Add Tour
             </a>
             <button 

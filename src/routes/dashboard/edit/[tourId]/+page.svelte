@@ -2,9 +2,10 @@
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { SupabaseService, currentUser } from '$lib/supabaseService';
     import TourForm from '$lib/components/TourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
+    import NavBar from '$lib/components/NavBar.svelte';
     
     interface SupabaseTour extends Omit<Tour, 'id'> {
         $id: string;
@@ -20,16 +21,23 @@
     
     onMount(async () => {
         try {
-            // Fetch tour from Supabase
-            const response = await SupabaseService.getTour(tourId);
-            
-            if (!response || response.error) {
-                throw new Error(response?.error?.message || 'Failed to load tour');
+            // Check if user is logged in
+            const user = await SupabaseService.getAccount();
+            if (!user) {
+                // Redirect to login page if not logged in
+                goto('/login');
+                return;
             }
             
-            const doc = response.data;
-            if (!doc) {
-                throw new Error('Tour not found');
+            // Fetch tour from Supabase
+            const doc = await SupabaseService.getTour(tourId);
+            
+            // Check if the current user is the creator of this tour
+            const creatorId = await SupabaseService.getTourCreatorId(tourId);
+            if (creatorId !== user.id) {
+                error = "You don't have permission to edit this tour";
+                isLoading = false;
+                return;
             }
             
             // Parse the JSON from the description field
@@ -37,18 +45,8 @@
             try {
                 if (doc.description) {
                     if (typeof doc.description === 'string') {
-                        // Check if it looks like JSON (starts with { or [)
-                        if (doc.description.trim().startsWith('{') || doc.description.trim().startsWith('[')) {
-                            tourData = JSON.parse(doc.description);
-                        } else {
-                            // It's a plain string, create a simple object
-                            tourData = {
-                                name: doc.description.split('\n')[0] || 'Tour', // Use first line as name
-                                description: doc.description
-                            };
-                        }
-                    } else if (typeof doc.description === 'object') {
-                        // It's already an object
+                        tourData = JSON.parse(doc.description);
+                    } else {
                         tourData = doc.description;
                     }
                 }
@@ -82,8 +80,8 @@
             // Update tour in Supabase
             await SupabaseService.updateTour(tourId, tourData);
             
-            // Redirect to admin page
-            goto('/admin');
+            // Redirect to dashboard page
+            goto('/dashboard');
         } catch (err: any) {
             error = err.message || 'Failed to update tour';
             isSubmitting = false;
@@ -91,17 +89,19 @@
     };
     
     const handleCancel = () => {
-        goto('/admin');
+        goto('/dashboard');
     };
 </script>
 
+<NavBar />
+
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
-        <a href="/admin" class="text-blue-600 hover:underline inline-flex items-center">
+        <a href="/dashboard" class="text-blue-600 hover:underline inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
             </svg>
-            Back to Tours
+            Back to Dashboard
         </a>
     </div>
 
@@ -132,7 +132,10 @@
         />
     {:else}
         <div class="bg-red-100 p-8 rounded-lg text-center">
-            <p class="text-red-600">Tour not found. Please return to the admin page.</p>
+            <p class="text-red-600">Tour not found. Please return to the dashboard.</p>
+            <a href="/dashboard" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Back to Dashboard
+            </a>
         </div>
     {/if}
 </div>

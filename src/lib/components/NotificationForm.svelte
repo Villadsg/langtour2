@@ -1,6 +1,6 @@
 <script lang="ts">
     import { addNotification, getTourById } from '$lib/stores/tourStore';
-    import { AppwriteService } from '$lib/appwriteService';
+    import { SupabaseService } from '$lib/supabaseService';
     
     let { tourId, tourName = '' } = $props<{ tourId: string, tourName?: string }>();
     
@@ -28,8 +28,8 @@
         error = '';
         
         try {
-            // Save to Appwrite
-            await AppwriteService.saveNotification(tourId, email);
+            // Save to Supabase
+            await SupabaseService.saveNotification(tourId, email);
             
             // Also add to local store as backup
             addNotification(email, tourId);

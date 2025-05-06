@@ -1,19 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { AppwriteService, currentUser, userCreatedTours } from '$lib/appwriteService';
+  import { SupabaseService, currentUser, userCreatedTours } from '$lib/supabaseService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   let isLoading = true;
   let error = '';
-  let userBookings: any[] = [];
   let upcomingScheduledTours: any[] = [];
-  let activeTab = 'bookings'; // bookings, createdTours
+  
+  // State for tour deletion
+  let isDeleting = false;
+  let deleteError = '';
+  let deleteSuccess = '';
   
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await AppwriteService.getAccount();
+      const user = await SupabaseService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -21,13 +24,9 @@
         return;
       }
       
-      // Fetch user bookings
-      const bookingsResponse = await AppwriteService.getUserBookings(user.$id);
-      userBookings = bookingsResponse.documents;
-      
       // Fetch upcoming scheduled tours
-      const scheduledToursResponse = await AppwriteService.getUpcomingScheduledTours();
-      upcomingScheduledTours = scheduledToursResponse.documents;
+      const scheduledToursResponse = await SupabaseService.getUpcomingScheduledTours();
+      upcomingScheduledTours = scheduledToursResponse.documents || scheduledToursResponse;
       
       isLoading = false;
     } catch (err: any) {
@@ -36,11 +35,143 @@
     }
   });
   
-  // Function to format date
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Function to format date with error handling
+  function formatDate(dateString: string | null) {
+    if (!dateString) return 'No date';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date string:', dateString);
+        return 'Invalid date';
+      }
+      
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date error';
+    }
   }
+  
+  // State for cancellation
+  let isCancelling = false;
+  let cancelError = '';
+  let successMessage = '';
+  
+  // Function to handle schedule cancellation
+  // Function to get tour data from JSON in description
+  function getTourData(tourDoc: any) {
+    if (!tourDoc) return { name: 'Tour not found', description: '' };
+    
+    // First check if the tour has a direct name property
+    if (tourDoc.name) {
+      return {
+        name: tourDoc.name,
+        description: tourDoc.description || '',
+        language: tourDoc.language || '',
+        cityId: tourDoc.cityId || ''
+      };
+    }
+    
+    try {
+      if (tourDoc.description) {
+        if (typeof tourDoc.description === 'string') {
+          try {
+            // Try to parse as JSON
+            const parsedData = JSON.parse(tourDoc.description);
+            return {
+              name: parsedData.name || 'Unnamed Tour',
+              description: parsedData.description || '',
+              language: parsedData.language || '',
+              cityId: parsedData.cityId || ''
+            };
+          } catch (parseError) {
+            // If not valid JSON, use the description as is
+            console.log('Description is not valid JSON, using as plain text');
+            return {
+              name: tourDoc.description.split('\n')[0] || 'Unnamed Tour',
+              description: tourDoc.description
+            };
+          }
+        } else if (typeof tourDoc.description === 'object') {
+          // If it's already an object, return it with defaults
+          return {
+            name: tourDoc.description.name || 'Unnamed Tour',
+            description: tourDoc.description.description || '',
+            language: tourDoc.description.language || '',
+            cityId: tourDoc.description.cityId || ''
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error processing tour data:', error);
+    }
+    
+    // Fallback with sensible defaults
+    return { 
+      name: 'Unnamed Tour', 
+      description: 'No description available' 
+    };
+  }
+  
+  async function handleCancelSchedule(scheduleId: string, tourName: string) {
+    if (!confirm(`Are you sure you want to cancel the scheduled tour: ${tourName || 'Unknown Tour'}?`)) {
+      return; // User cancelled the operation
+    }
+    
+    isCancelling = true;
+    cancelError = '';
+    successMessage = '';
+    
+    try {
+      const result = await SupabaseService.cancelSchedule(scheduleId);
+      
+      if (result.error) {
+        cancelError = `Failed to cancel schedule: ${result.error?.message || 'Unknown error'}`;
+        console.error('Error cancelling schedule:', result.error);
+      } else {
+        successMessage = `Successfully cancelled the scheduled tour: ${tourName || 'Unknown Tour'}`;
+        
+        // Remove the cancelled schedule from the list
+        upcomingScheduledTours = upcomingScheduledTours.filter(s => s.id !== scheduleId);
+      }
+    } catch (err: any) {
+      cancelError = `An unexpected error occurred: ${err?.message || 'Unknown error'}`;
+      console.error('Exception in handleCancelSchedule:', err);
+    } finally {
+      isCancelling = false;
+    }
+  }
+  
+  // Function to handle tour deletion
+  async function handleDeleteTour(tourId: string, tourName: string) {
+    if (!confirm(`Are you sure you want to delete the tour "${tourName}"? This action cannot be undone.`)) {
+      return; // User cancelled the operation
+    }
+    
+    isDeleting = true;
+    deleteError = '';
+    deleteSuccess = '';
+    
+    try {
+      // Call the API to delete the tour
+      await SupabaseService.deleteTour(tourId);
+      
+      // Update the list of tours
+      userCreatedTours.update(tours => tours.filter(tour => (tour.id || tour.$id) !== tourId));
+      
+      deleteSuccess = `Successfully deleted tour: ${tourName}`;
+    } catch (err: any) {
+      deleteError = `Failed to delete tour: ${err?.message || 'Unknown error'}`;
+      console.error('Error deleting tour:', err);
+    } finally {
+      isDeleting = false;
+    }
+  }
+  
+
 </script>
 
 <NavBar />
@@ -59,175 +190,139 @@
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
     </div>
   {:else}
-    <div class="mb-6">
-      <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8">
-          <button 
-            class={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'bookings' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-            on:click={() => activeTab = 'bookings'}
-          >
-            Your Bookings
-          </button>
-          <button 
-            class={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'createdTours' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-            on:click={() => activeTab = 'createdTours'}
-          >
-            Your Created Tours
-          </button>
-        </nav>
-      </div>
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Created Tours</h2>
+      <a href="/dashboard/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Create New Tour
+      </a>
     </div>
     
-    {#if activeTab === 'bookings'}
-      <div>
-        <h2 class="text-xl font-semibold mb-4">Your Tour Bookings</h2>
-        
-        {#if userBookings.length === 0}
-          <div class="bg-gray-100 p-6 rounded-lg text-center">
-            <p class="text-gray-600">You haven't booked any tours yet.</p>
-            <a href="/" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Browse Tours
-            </a>
-          </div>
-        {:else}
-          <div class="overflow-x-auto">
-            <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-              <thead class="bg-gray-100 text-gray-700">
-                <tr>
-                  <th class="py-3 px-4 text-left">Tour</th>
-                  <th class="py-3 px-4 text-left">Date</th>
-                  <th class="py-3 px-4 text-left">Status</th>
-                  <th class="py-3 px-4 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
-                {#each userBookings as booking}
-                  <tr class="hover:bg-gray-50">
-                    <td class="py-3 px-4">
-                      <!-- We need to fetch the tour name based on the schedule -->
-                      <span>Loading...</span>
-                    </td>
-                    <td class="py-3 px-4">{formatDate(booking.bookedAt)}</td>
-                    <td class="py-3 px-4">
-                      <span class={`px-2 py-1 rounded-full text-xs font-medium
-                        ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                          booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                          booking.status === 'attended' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </span>
-                    </td>
-                    <td class="py-3 px-4">
-                      {#if booking.status === 'confirmed'}
-                        <button 
-                          class="text-red-600 hover:text-red-800 mr-2"
-                          on:click={() => {/* Cancel booking logic */}}
-                        >
-                          Cancel
-                        </button>
-                      {/if}
-                      {#if booking.status === 'attended'}
-                        <a 
-                          href={`/tours/${booking.tourId}/rate`} 
-                          class="text-blue-600 hover:text-blue-800"
-                        >
-                          Rate Tour
-                        </a>
-                      {/if}
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
-        {/if}
-      </div>
-    {:else if activeTab === 'createdTours'}
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold">Your Created Tours</h2>
-          <a href="/admin/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Create New Tour
-          </a>
-        </div>
-        
-        {#if $userCreatedTours.length === 0}
-          <div class="bg-gray-100 p-6 rounded-lg text-center">
-            <p class="text-gray-600">You haven't created any tours yet.</p>
-          </div>
-        {:else}
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {#each $userCreatedTours as tour}
-              {@const tourData = JSON.parse(tour.description)}
-              <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                {#if tour.imageUrl}
-                  <img src={tour.imageUrl} alt={tourData.name} class="w-full h-48 object-cover" />
-                {/if}
-                <div class="p-4">
-                  <h3 class="text-lg font-semibold mb-2">{tourData.name}</h3>
-                  <p class="text-gray-600 mb-4 line-clamp-2">{tourData.description}</p>
-                  <div class="flex justify-between">
-                    <a href={`/admin/edit/${tour.$id}`} class="text-blue-600 hover:text-blue-800">
-                      Edit Tour
-                    </a>
-                    <a href={`/dashboard/tours/${tour.$id}/schedule`} class="text-green-600 hover:text-green-800">
-                      Schedule Tour
-                    </a>
-                  </div>
-                </div>
-              </div>
-            {/each}
-          </div>
-        {/if}
-        
-        <div class="mt-8">
-          <h3 class="text-lg font-semibold mb-4">Scheduled Tours</h3>
-          
-          {#if upcomingScheduledTours.length === 0}
-            <div class="bg-gray-100 p-4 rounded-lg">
-              <p class="text-gray-600">No upcoming scheduled tours.</p>
-            </div>
-          {:else}
-            <div class="overflow-x-auto">
-              <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-                <thead class="bg-gray-100 text-gray-700">
-                  <tr>
-                    <th class="py-3 px-4 text-left">Tour</th>
-                    <th class="py-3 px-4 text-left">Date</th>
-                    <th class="py-3 px-4 text-left">Participants</th>
-                    <th class="py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  {#each upcomingScheduledTours as schedule}
-                    <tr class="hover:bg-gray-50">
-                      <td class="py-3 px-4">
-                        <!-- We need to fetch the tour name based on the tourId -->
-                        <span>Loading...</span>
-                      </td>
-                      <td class="py-3 px-4">{formatDate(schedule.scheduledDate)}</td>
-                      <td class="py-3 px-4">0 / {schedule.maxParticipants}</td>
-                      <td class="py-3 px-4">
-                        <a 
-                          href={`/dashboard/schedules/${schedule.$id}/manage`} 
-                          class="text-blue-600 hover:text-blue-800 mr-2"
-                        >
-                          Manage
-                        </a>
-                        <button 
-                          class="text-red-600 hover:text-red-800"
-                          on:click={() => {/* Cancel schedule logic */}}
-                        >
-                          Cancel
-                        </button>
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-          {/if}
-        </div>
+    {#if deleteError}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+        <p>{deleteError}</p>
+        <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => deleteError = ''}>
+          <span class="text-red-500 hover:text-red-700">×</span>
+        </button>
       </div>
     {/if}
+    
+    {#if deleteSuccess}
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+        <p>{deleteSuccess}</p>
+        <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => deleteSuccess = ''}>
+          <span class="text-green-500 hover:text-green-700">×</span>
+        </button>
+      </div>
+    {/if}
+        
+    {#if $userCreatedTours.length === 0}
+      <div class="bg-gray-100 p-6 rounded-lg text-center">
+        <p class="text-gray-600">You haven't created any tours yet.</p>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {#each $userCreatedTours as tour}
+          {@const tourData = getTourData(tour)}
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            {#if tour.imageUrl}
+              <img src={tour.imageUrl} alt={tourData.name} class="w-full h-48 object-cover" />
+            {/if}
+            <div class="p-4">
+              <h3 class="text-lg font-semibold mb-2">{tourData.name}</h3>
+              <p class="text-gray-600 mb-4 line-clamp-2">{tourData.description}</p>
+              <div class="flex justify-between mb-2">
+                <a href={`/dashboard/edit/${tour.id || tour.$id}`} class="text-blue-600 hover:text-blue-800">
+                  Edit Tour
+                </a>
+                <a href={`/dashboard/tours/${tour.id || tour.$id}/schedule`} class="text-green-600 hover:text-green-800">
+                  Schedule Tour
+                </a>
+              </div>
+              <div class="text-right">
+                <button 
+                  class="text-red-600 hover:text-red-800 {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
+                  on:click={() => handleDeleteTour(tour.id || tour.$id, tourData.name)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Tour'}
+                </button>
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
+        
+    <div class="mt-8">
+      <h3 class="text-lg font-semibold mb-4">Scheduled Tours</h3>
+      
+      {#if cancelError}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+          <p>{cancelError}</p>
+          <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => cancelError = ''}>
+            <span class="text-red-500 hover:text-red-700">×</span>
+          </button>
+        </div>
+      {/if}
+      
+      {#if successMessage}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+          <p>{successMessage}</p>
+          <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => successMessage = ''}>
+            <span class="text-green-500 hover:text-green-700">×</span>
+          </button>
+        </div>
+      {/if}
+      
+      {#if upcomingScheduledTours.length === 0}
+        <div class="bg-gray-100 p-4 rounded-lg">
+          <p class="text-gray-600">No upcoming scheduled tours.</p>
+        </div>
+      {:else}
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+            <thead class="bg-gray-100 text-gray-700">
+              <tr>
+                <th class="py-3 px-4 text-left">Tour</th>
+                <th class="py-3 px-4 text-left">Date</th>
+                <th class="py-3 px-4 text-left">Participants</th>
+                <th class="py-3 px-4 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {#each upcomingScheduledTours as schedule}
+                <tr class="hover:bg-gray-50">
+                  <td class="py-3 px-4">
+                    {#if schedule.tours}
+                      {@const tourData = getTourData(schedule.tours)}
+                      <span>{tourData.name}</span>
+                    {:else}
+                      <span class="text-gray-500">Unknown Tour</span>
+                    {/if}
+                  </td>
+                  <td class="py-3 px-4">{formatDate(schedule.scheduled_date)}</td>
+                  <td class="py-3 px-4">0 / {schedule.max_participants}</td>
+                  <td class="py-3 px-4">
+                    <a 
+                      href={`/dashboard/schedules/${schedule.id}/manage`} 
+                      class="text-blue-600 hover:text-blue-800 mr-2"
+                    >
+                      Manage
+                    </a>
+                    <button 
+                      class="text-red-600 hover:text-red-800 {isCancelling ? 'opacity-50 cursor-not-allowed' : ''}"
+                      on:click={() => handleCancelSchedule(schedule.id, schedule.tours ? getTourData(schedule.tours).name : 'Unknown Tour')}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? 'Cancelling...' : 'Cancel'}
+                    </button>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>

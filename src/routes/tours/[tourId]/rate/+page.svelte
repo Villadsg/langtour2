@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { AppwriteService, currentUser } from '$lib/appwriteService';
+  import { SupabaseService, currentUser } from '$lib/supabaseService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   const tourId = window.location.pathname.split('/')[2] || '';
@@ -13,6 +13,7 @@
   let tour: any = null;
   let canRate = false;
   let hasRated = false;
+  let showCommentSection = false; // Comment section is closed by default
   
   // Rating form data
   let languageLearningRating = 0;
@@ -23,7 +24,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await AppwriteService.getAccount();
+      const user = await SupabaseService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -32,14 +33,14 @@
       }
       
       // Fetch tour details
-      const tourResponse = await AppwriteService.getTour(tourId);
+      const tourResponse = await SupabaseService.getTour(tourId);
       tour = tourResponse;
       
       // Check if user has attended this tour
-      canRate = await AppwriteService.hasUserAttendedTour(user.$id, tourId);
+      canRate = await SupabaseService.hasUserAttendedTour(user.id, tourId);
       
       // Check if user has already rated this tour
-      hasRated = await AppwriteService.hasUserRatedTour(user.$id, tourId);
+      hasRated = await SupabaseService.hasUserRatedTour(user.id, tourId);
       
       if (!canRate) {
         error = 'You can only rate tours that you have attended.';
@@ -73,9 +74,9 @@
       }
       
       // Submit ratings
-      await AppwriteService.submitTourRatings(
+      await SupabaseService.submitTourRatings(
         tourId,
-        user.$id,
+        user.id,
         languageLearningRating,
         informativeRating,
         funRating,
@@ -96,8 +97,13 @@
     if (!tourDoc) return { name: '', description: '' };
     
     try {
-      if (tourDoc.description && typeof tourDoc.description === 'string') {
-        return JSON.parse(tourDoc.description);
+      if (tourDoc.description) {
+        if (typeof tourDoc.description === 'string') {
+          return JSON.parse(tourDoc.description);
+        } else {
+          // If it's already an object, return it directly
+          return tourDoc.description;
+        }
       }
     } catch (error) {
       console.error('Error parsing tour data:', error);
@@ -250,15 +256,34 @@
             </div>
           </div>
           
-          <div>
-            <label for="comment" class="block text-lg font-semibold mb-2">Additional Comments (Optional)</label>
-            <textarea
-              id="comment"
-              bind:value={comment}
-              rows="4"
-              placeholder="Share your experience with this tour..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
+          <div class="border rounded-md overflow-hidden">
+            <button 
+              type="button" 
+              class="w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 focus:outline-none" 
+              on:click={() => showCommentSection = !showCommentSection}
+            >
+              <span class="text-lg font-semibold">Additional Comments (Optional)</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                class={`h-5 w-5 transition-transform duration-200 ${showCommentSection ? 'transform rotate-180' : ''}`} 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            
+            {#if showCommentSection}
+              <div class="p-4 border-t">
+                <textarea
+                  id="comment"
+                  bind:value={comment}
+                  rows="4"
+                  placeholder="Share your experience with this tour..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                ></textarea>
+              </div>
+            {/if}
           </div>
           
           <div class="pt-2">

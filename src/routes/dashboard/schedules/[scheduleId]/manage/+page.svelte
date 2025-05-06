@@ -1,10 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { AppwriteService, currentUser } from '$lib/appwriteService';
+  import { SupabaseService, currentUser } from '$lib/supabaseService';
+  import { supabase } from '$lib/supabase';
   import NavBar from '$lib/components/NavBar.svelte';
   
-  const scheduleId = window.location.pathname.split('/')[3] || '';
+  // Get the schedule ID from the URL and ensure it's valid
+  let scheduleId = window.location.pathname.split('/')[3] || '';
+  if (scheduleId === 'undefined' || !scheduleId) {
+    console.error('Invalid schedule ID in URL path');
+    scheduleId = '';  // Set to empty string to prevent further errors
+  }
   
   let isLoading = true;
   let error = '';
@@ -16,7 +22,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await AppwriteService.getAccount();
+      const user = await SupabaseService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -24,20 +30,32 @@
         return;
       }
       
-      // Fetch schedule details
-      const scheduleResponse = await AppwriteService.getDocument(
-        AppwriteService.schedulesCollectionId,
-        scheduleId
-      );
-      schedule = scheduleResponse;
+      // Fetch schedule details using our new function specifically for getting a schedule by ID
+      const scheduleResponse = await SupabaseService.getScheduleById(scheduleId);
+      console.log('Schedule response:', scheduleResponse);
       
-      // Fetch tour details
-      const tourResponse = await AppwriteService.getTour(schedule.tourId);
-      tour = tourResponse;
+      if (!scheduleResponse || scheduleResponse.error) {
+        console.error('Error fetching schedule:', scheduleResponse?.error);
+        throw new Error('Schedule not found or error fetching schedule');
+      }
+      
+      // Get the schedule data directly
+      schedule = scheduleResponse.data;
+      
+      if (!schedule || !schedule.tour_id) {
+        throw new Error('Invalid schedule data or missing tour ID');
+      }
+      
+      // Fetch tour data
+      const tourResponse = await SupabaseService.getTour(schedule.tour_id);
+      if (!tourResponse || tourResponse.error) {
+        throw new Error('Tour not found or error fetching tour');
+      }
+      tour = tourResponse.data;
       
       // Fetch bookings for this schedule
-      const bookingsResponse = await AppwriteService.getBookingsForSchedule(scheduleId);
-      bookings = bookingsResponse.documents;
+      const bookingsResponse = await SupabaseService.getBookingsForSchedule(scheduleId);
+      bookings = bookingsResponse.data || [];
       
       isLoading = false;
     } catch (err: any) {
@@ -46,21 +64,43 @@
     }
   });
   
-  async function markAsAttended(bookingId: string) {
+  async function markAsAttended(bookingId: string, userName: string) {
     try {
       error = '';
       success = '';
       
-      // Mark booking as attended
-      await AppwriteService.markAsAttended(bookingId);
+      // Get booking details before marking as attended
+      const { data: bookingData } = await supabase
+        .from('bookings')
+        .select('*, schedules:schedule_id(tour_id)')
+        .eq('id', bookingId)
+        .single();
+      
+      if (!bookingData) {
+        throw new Error('Booking not found');
+      }
+      
+      // Mark booking as attended - this will trigger the database function to send the email
+      await SupabaseService.markAsAttended(bookingId);
+      
+      // Also update the booking status to 'attended'
+      await supabase
+        .from('bookings')
+        .update({ status: 'attended' })
+        .eq('id', bookingId);
       
       // Refresh bookings
-      const bookingsResponse = await AppwriteService.getBookingsForSchedule(scheduleId);
-      bookings = bookingsResponse.documents;
+      const bookingsResponse = await SupabaseService.getBookingsForSchedule(scheduleId);
+      bookings = bookingsResponse.data || [];
       
-      success = 'Participant marked as attended successfully!';
+      // Get the tour ID for the success message
+      const tourId = bookingData.schedules.tour_id;
+      
+      // Display success message
+      success = `${userName} has been marked as attended and can now rate this tour! An email notification has been sent with rating instructions.`;
     } catch (err: any) {
-      error = err.message || 'Failed to mark participant as attended';
+      error = err?.message || 'Failed to mark participant as attended';
+      console.error('Error marking participant as attended:', err);
     }
   }
   
@@ -72,17 +112,57 @@
   
   // Function to get tour data from JSON in description
   function getTourData(tourDoc: any) {
-    if (!tourDoc) return { name: '', description: '' };
+    if (!tourDoc) return { name: 'Tour not found', description: '' };
     
-    try {
-      if (tourDoc.description && typeof tourDoc.description === 'string') {
-        return JSON.parse(tourDoc.description);
-      }
-    } catch (error) {
-      console.error('Error parsing tour data:', error);
+    // First check if the tour has a direct name property
+    if (tourDoc.name) {
+      return {
+        name: tourDoc.name,
+        description: tourDoc.description || '',
+        language: tourDoc.language || '',
+        cityId: tourDoc.cityId || ''
+      };
     }
     
-    return { name: '', description: '' };
+    try {
+      if (tourDoc.description) {
+        if (typeof tourDoc.description === 'string') {
+          try {
+            // Try to parse as JSON
+            const parsedData = JSON.parse(tourDoc.description);
+            return {
+              name: parsedData.name || 'Unnamed Tour',
+              description: parsedData.description || '',
+              language: parsedData.language || '',
+              cityId: parsedData.cityId || ''
+            };
+          } catch (parseError) {
+            // If not valid JSON, use the description as is
+            console.log('Description is not valid JSON, using as plain text');
+            return {
+              name: tourDoc.description.split('\n')[0] || 'Unnamed Tour',
+              description: tourDoc.description
+            };
+          }
+        } else if (typeof tourDoc.description === 'object') {
+          // If it's already an object, return it with defaults
+          return {
+            name: tourDoc.description.name || 'Unnamed Tour',
+            description: tourDoc.description.description || '',
+            language: tourDoc.description.language || '',
+            cityId: tourDoc.description.cityId || ''
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error processing tour data:', error);
+    }
+    
+    // Fallback with sensible defaults
+    return { 
+      name: 'Unnamed Tour', 
+      description: 'No description available' 
+    };
   }
 </script>
 
@@ -156,7 +236,7 @@
                 <th class="py-3 px-4 text-left">Email</th>
                 <th class="py-3 px-4 text-left">Booked At</th>
                 <th class="py-3 px-4 text-left">Status</th>
-                <th class="py-3 px-4 text-left">Actions</th>
+                <th class="py-3 px-4 text-left">Attendance</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -164,20 +244,27 @@
                 <tr class="hover:bg-gray-50">
                   <td class="py-3 px-4">{booking.name}</td>
                   <td class="py-3 px-4">{booking.email}</td>
-                  <td class="py-3 px-4">{formatDate(booking.bookedAt)}</td>
+                  <td class="py-3 px-4">{formatDate(booking.created_at)}</td>
                   <td class="py-3 px-4">
                     <span class={`px-2 py-1 rounded-full text-xs font-medium
                       ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
                         booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
                         booking.status === 'attended' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                      {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Pending'}
                     </span>
                   </td>
                   <td class="py-3 px-4">
-                    {#if booking.status === 'confirmed'}
+                    {#if booking.attended || booking.status === 'attended'}
+                      <span class="text-green-600 text-xs font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Attended
+                      </span>
+                    {:else}
                       <button 
                         class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded"
-                        on:click={() => markAsAttended(booking.$id)}
+                        on:click={() => markAsAttended(booking.id, booking.name)}
                       >
                         Mark as Attended
                       </button>

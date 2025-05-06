@@ -2,13 +2,13 @@
     import { onMount } from 'svelte';
     import type { Tour } from '$lib/stores/tourStore';
     import { citiesStore } from '$lib/stores/tourStore';
-    import { AppwriteService } from '$lib/appwriteService';
+    import { SupabaseService } from '$lib/supabaseService';
 
     let { tour } = $props<{ tour: Tour }>();
     
     // Get the city information for this tour
     const city = $citiesStore.find(c => c.id === tour.cityId);
-    let averageRating = AppwriteService.getAverageRating(tour);
+    let averageRating = SupabaseService.getAverageRating(tour);
     
     // Initialize ratings
     let ratings = $state({
@@ -19,17 +19,40 @@
         count: 0
     });
     
+    // Initialize creator ratings
+    let creatorRatings = $state({
+        languageLearning: 0,
+        informative: 0,
+        fun: 0,
+        overall: 0,
+        count: 0
+    });
+    
+    // Store creator ID
+    let creatorId = $state<string | null>(null);
+    
     onMount(async () => {
         try {
             // Fetch multi-dimensional ratings if available
             if (tour.id) {
-                const tourRatings = await AppwriteService.getAverageTourRatings(tour.id);
+                const tourRatings = await SupabaseService.getAverageTourRatings(tour.id);
                 if (tourRatings) {
                     ratings = tourRatings;
                 }
+                
+                // Get creator ID
+                creatorId = await SupabaseService.getTourCreatorId(tour.id);
+                
+                // Fetch creator ratings if creator ID is available
+                if (creatorId) {
+                    const creatorAvgRatings = await SupabaseService.getCreatorAverageRatings(creatorId);
+                    if (creatorAvgRatings) {
+                        creatorRatings = creatorAvgRatings;
+                    }
+                }
             }
         } catch (error) {
-            console.error('Error fetching tour ratings:', error);
+            console.error('Error fetching ratings:', error);
         }
     });
     
@@ -107,7 +130,7 @@
                 </div>
                 
                 <!-- Fun Rating -->
-                <div class="flex items-center">
+                <div class="flex items-center mb-1.5">
                     <span class="text-xs font-medium text-gray-700 w-24">Fun:</span>
                     <div class="flex items-center space-x-1">
                         {#each Array(5) as _, i}
@@ -118,6 +141,29 @@
                     </div>
                     <span class="text-xs text-gray-600 ml-2">{ratings.fun.toFixed(1)}</span>
                 </div>
+                
+                <!-- Creator Rating -->
+                {#if creatorId && creatorRatings.count > 0}
+                    <div class="flex items-center">
+                        <span class="text-xs font-medium text-gray-700 w-24">Creator:</span>
+                        <div class="flex items-center space-x-1">
+                            {#each Array(5) as _, i}
+                                <svg class={`w-3 h-3 ${i < Math.round(creatorRatings.overall) ? getRatingColor(creatorRatings.overall) : 'text-gray-300'}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+                                    <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+                                </svg>
+                            {/each}
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs text-gray-600 ml-2">{creatorRatings.overall.toFixed(1)}</span>
+                            <span class="text-xs text-gray-500 ml-1">({creatorRatings.count})</span>
+                            <span class="ml-1" title="Average across all tours by this creator">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                {/if}
             </div>
         </div>
     </div>

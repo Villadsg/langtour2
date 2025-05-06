@@ -1,0 +1,301 @@
+<script lang="ts">
+    import { createEventDispatcher, onMount } from 'svelte';
+    import { MistralService } from '$lib/mistralService';
+    import type { Tour } from '$lib/stores/tourStore';
+    
+    export let tour = {
+        name: '',
+        cityId: '',
+        language: '',
+        description: '',
+        imageUrl: ''
+    };
+    
+    const dispatch = createEventDispatcher();
+    
+    // City options (same as in TourForm)
+    const cities = [
+        { id: 'copenhagen', name: 'Copenhagen', country: 'Denmark' },
+        { id: 'madrid', name: 'Madrid', country: 'Spain' }
+    ];
+    
+    // Language options (same as in TourForm)
+    const languages = ['Danish', 'Spanish', 'English', 'French', 'German', 'Italian'];
+    
+    // AI conversation state
+    let currentQuestion = '';
+    let userInput = '';
+    let messages: { role: 'ai' | 'user', content: string, feedback?: string }[] = [];
+    let isWaitingForResponse = false;
+    let isFormComplete = false;
+    let isSubmitting = false;
+    let suggestions: Record<string, string> = {};
+    let showingSuggestions = false;
+    let missingFields: string[] = [];
+    
+    // Parse tour information from user input and get AI suggestions for missing fields
+    const extractTourInfo = async (input: string): Promise<{ name: string, cityId: string, language: string, description: string }> => {
+        const result = { name: '', cityId: '', language: '', description: input };
+        
+        // Only try to extract explicit tour names (in quotes or after "name:")
+        // Don't use the first text in the description as the name
+        const nameRegex = /["']([^"']+)["']|name[:\s]+([^,.\n]+)/i;
+        const nameMatch = input.match(nameRegex);
+        if (nameMatch) {
+            result.name = (nameMatch[1] || nameMatch[2] || '').trim();
+        }
+        
+        // Check for city names in the input
+        for (const city of cities) {
+            if (input.toLowerCase().includes(city.name.toLowerCase())) {
+                result.cityId = city.id;
+                break;
+            }
+        }
+        
+        // Check for languages in the input
+        for (const lang of languages) {
+            if (input.toLowerCase().includes(lang.toLowerCase())) {
+                result.language = lang;
+                break;
+            }
+        }
+        
+        // Get AI suggestions for any missing fields
+        const missingFields = [];
+        if (!result.name) missingFields.push('name');
+        if (!result.cityId) missingFields.push('city');
+        if (!result.language) missingFields.push('language');
+        
+        if (missingFields.length > 0) {
+            const suggestions = await MistralService.generateSuggestions(input, missingFields);
+            
+            // Apply suggestions
+            if (suggestions.name && !result.name) {
+                result.name = suggestions.name;
+            }
+            
+            if (suggestions.city && !result.cityId) {
+                // Find the city ID from the name
+                const cityMatch = cities.find(c => 
+                    c.name.toLowerCase().includes(suggestions.city.toLowerCase()) || 
+                    suggestions.city.toLowerCase().includes(c.name.toLowerCase())
+                );
+                if (cityMatch) {
+                    result.cityId = cityMatch.id;
+                }
+            }
+            
+            if (suggestions.language && !result.language) {
+                // Find the exact language from our list
+                const langMatch = languages.find(l => 
+                    l.toLowerCase().includes(suggestions.language.toLowerCase()) || 
+                    suggestions.language.toLowerCase().includes(l.toLowerCase())
+                );
+                if (langMatch) {
+                    result.language = langMatch;
+                }
+            }
+        }
+        
+        return result;
+    };
+    
+    // Start the conversation with the AI
+    const startConversation = async () => {
+        // Use a direct, concise greeting message
+        const greeting = "Hello! Describe your language learning tour. I'll automatically fill in the form for you.";
+        messages = [{ role: 'ai', content: greeting }];
+    };
+    
+    // Handle user input submission
+    const handleSubmit = async () => {
+        if (!userInput.trim()) return;
+        
+        const userMessage = userInput;
+        userInput = '';
+        isWaitingForResponse = true;
+        
+        // Add user message to the conversation
+        messages = [...messages, { role: 'user', content: userMessage }];
+        
+        // First, correct spelling and grammar in the user's input
+        const correctedText = await MistralService.correctText(userMessage);
+        
+        // Extract tour information from the corrected text with AI assistance
+        const tourInfo = await extractTourInfo(correctedText);
+        
+        // Update tour data with extracted and AI-suggested information
+        tour.name = tourInfo.name || tour.name;
+        tour.cityId = tourInfo.cityId || tour.cityId;
+        tour.language = tourInfo.language || tour.language;
+        tour.description = tourInfo.description;
+        
+        // Skip the detailed analysis feedback to keep the experience simple
+        
+        // Show review of all information
+        const cityName = cities.find(c => c.id === tour.cityId)?.name || 'Not specified';
+        const languageName = tour.language || 'Not specified';
+        
+        // Create a simple confirmation message without detailed feedback
+        const reviewMessage = "I've filled in the form based on your description. Please review and make any changes before creating the tour.";
+        
+        setTimeout(() => {
+            messages = [...messages, { role: 'ai', content: reviewMessage }];
+            isFormComplete = true;
+            isWaitingForResponse = false;
+        }, 1000);
+        
+        isWaitingForResponse = false;
+    };
+    
+    // Handle form submission
+    const handleCreateTour = () => {
+        isSubmitting = true;
+        dispatch('submit', tour);
+    };
+    
+    // Handle cancel
+    const handleCancel = () => {
+        dispatch('cancel');
+    };
+    
+    // Start the conversation when the component mounts
+    onMount(() => {
+        startConversation();
+    });
+</script>
+
+<div class="bg-white shadow-md rounded-lg p-6">
+    <!-- AI conversation area -->
+    <div class="mb-6 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg">
+        {#each messages as message}
+            <div class="mb-4 {message.role === 'ai' ? 'text-left' : 'text-right'}">
+                <div class="inline-block max-w-3/4 p-3 rounded-lg {message.role === 'ai' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-800'}">
+                    {#if message.role === 'ai' && message.feedback}
+                        <div class="mb-2">
+                            {#if message.feedback === 'excellent'}
+                                <span class="text-green-600 font-bold">✓ Excellent!</span>
+                            {:else if message.feedback === 'good'}
+                                <span class="text-yellow-600 font-bold">⚠ Good</span>
+                            {:else if message.feedback === 'needs_improvement'}
+                                <span class="text-red-600 font-bold">✗ Needs Improvement</span>
+                            {/if}
+                        </div>
+                    {/if}
+                    <div class="whitespace-pre-line">{message.content}</div>
+                </div>
+            </div>
+        {/each}
+        
+        {#if isWaitingForResponse}
+            <div class="flex justify-start mb-4">
+                <div class="bg-blue-100 text-blue-800 p-3 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 bg-blue-600 rounded-full mr-1 animate-bounce"></div>
+                        <div class="w-2 h-2 bg-blue-600 rounded-full mr-1 animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+            </div>
+        {/if}
+    </div>
+    
+    {#if !isFormComplete}
+        <!-- User input area -->
+        <div class="mb-6">
+            <form on:submit|preventDefault={handleSubmit} class="flex">
+                <input
+                    type="text"
+                    bind:value={userInput}
+                    placeholder="Type your response..."
+                    class="flex-grow shadow appearance-none border rounded-l py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    disabled={isWaitingForResponse}
+                />
+                <button
+                    type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r focus:outline-none focus:shadow-outline"
+                    disabled={isWaitingForResponse || !userInput.trim()}
+                >
+                    Send
+                </button>
+            </form>
+        </div>
+    {:else}
+        <!-- Form review and edit area -->
+        <div class="mb-6 grid grid-cols-1 gap-4">
+            <div>
+                <label for="tour-name" class="block text-gray-700 text-sm font-bold mb-2">Tour Name</label>
+                <input
+                    id="tour-name"
+                    type="text"
+                    bind:value={tour.name}
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                />
+            </div>
+            
+            <div>
+                <label for="tour-city" class="block text-gray-700 text-sm font-bold mb-2">City</label>
+                <select
+                    id="tour-city"
+                    bind:value={tour.cityId}
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                >
+                    {#each cities as city}
+                        <option value={city.id}>{city.name}, {city.country}</option>
+                    {/each}
+                </select>
+            </div>
+            
+            <div>
+                <label for="tour-language" class="block text-gray-700 text-sm font-bold mb-2">Language</label>
+                <select
+                    id="tour-language"
+                    bind:value={tour.language}
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                >
+                    {#each languages as language}
+                        <option value={language}>{language}</option>
+                    {/each}
+                </select>
+            </div>
+            
+            <div>
+                <label for="tour-description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                <textarea
+                    id="tour-description"
+                    bind:value={tour.description}
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32"
+                ></textarea>
+            </div>
+        </div>
+    {/if}
+    
+    <!-- Action buttons -->
+    <div class="flex items-center justify-between">
+        <button
+            type="button"
+            on:click={handleCreateTour}
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
+            disabled={isSubmitting || !isFormComplete}
+        >
+            {#if isSubmitting}
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating...
+            {:else}
+                Create Tour
+            {/if}
+        </button>
+        <button
+            type="button"
+            on:click={handleCancel}
+            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={isSubmitting}
+        >
+            Cancel
+        </button>
+    </div>
+</div>

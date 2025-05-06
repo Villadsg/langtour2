@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { AppwriteService } from '$lib/appwriteService';
+    import { SupabaseService } from '$lib/supabaseService';
     
     export let tour = {
         name: '',
@@ -152,20 +152,20 @@
                 // Get current user if available for permissions
                 let userId = undefined;
                 try {
-                    const user = await AppwriteService.getAccount();
+                    const user = await SupabaseService.getAccount();
                     if (user) {
-                        userId = user.$id;
+                        userId = user.id;
                     }
                 } catch (err) {
                     // Continue without user ID
                 }
                 
-                // Upload the file to Appwrite storage
-                const uploadResult = await AppwriteService.uploadFile(selectedFile, userId);
+                // Upload the file to Supabase storage
+                const uploadResult = await SupabaseService.uploadFile(selectedFile, userId);
                 
                 // Set the image URL to the uploaded file URL
-                const fileId = uploadResult.$id;
-                const imageUrl = AppwriteService.getFilePreviewUrl(fileId);
+                const fileId = uploadResult.id;
+                const imageUrl = uploadResult.url;
                 tour.imageUrl = imageUrl;
                 
                 isUploading = false;

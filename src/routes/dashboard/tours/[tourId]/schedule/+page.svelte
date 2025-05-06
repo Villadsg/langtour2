@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { AppwriteService, currentUser } from '$lib/appwriteService';
+  import { SupabaseService, currentUser } from '$lib/supabaseService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   const tourId = window.location.pathname.split('/')[3] || '';
@@ -23,7 +23,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await AppwriteService.getAccount();
+      const user = await SupabaseService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -32,12 +32,12 @@
       }
       
       // Fetch tour details
-      const tourResponse = await AppwriteService.getTour(tourId);
+      const tourResponse = await SupabaseService.getTour(tourId);
       tour = tourResponse;
       
       // Fetch existing scheduled tours
-      const scheduledToursResponse = await AppwriteService.getScheduledTours(tourId);
-      scheduledTours = scheduledToursResponse.documents;
+      const scheduledToursResponse = await SupabaseService.getScheduledTours(tourId);
+      scheduledTours = scheduledToursResponse.data || [];
       
       isLoading = false;
     } catch (err: any) {
@@ -61,7 +61,7 @@
       const dateTime = new Date(`${scheduledDate}T${scheduledTime}`);
       
       // Schedule the tour
-      await AppwriteService.scheduleTour(
+      await SupabaseService.scheduleTour(
         tourId,
         dateTime,
         maxParticipants,
@@ -70,8 +70,8 @@
       );
       
       // Refresh the scheduled tours list
-      const scheduledToursResponse = await AppwriteService.getScheduledTours(tourId);
-      scheduledTours = scheduledToursResponse.documents;
+      const scheduledToursResponse = await SupabaseService.getScheduledTours(tourId);
+      scheduledTours = scheduledToursResponse.data || [];
       
       // Reset form
       scheduledDate = '';
@@ -99,8 +99,13 @@
     if (!tourDoc) return { name: '', description: '' };
     
     try {
-      if (tourDoc.description && typeof tourDoc.description === 'string') {
-        return JSON.parse(tourDoc.description);
+      if (tourDoc.description) {
+        if (typeof tourDoc.description === 'string') {
+          return JSON.parse(tourDoc.description);
+        } else {
+          // If it's already an object, return it directly
+          return tourDoc.description;
+        }
       }
     } catch (error) {
       console.error('Error parsing tour data:', error);

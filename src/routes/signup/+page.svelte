@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { AppwriteService } from '$lib/appwriteService';
+  import { SupabaseService } from '$lib/supabaseService';
   import { onMount } from 'svelte';
   
   let username = '';
@@ -17,7 +17,7 @@
 
   onMount(async () => {
     // Check if already logged in
-    const user = await AppwriteService.getAccount();
+    const user = await SupabaseService.getAccount();
     if (user) {
       goto('/');
     }
@@ -69,18 +69,31 @@
     return isValid;
   };
 
+  let signupSuccess = false;
+  let confirmationMessage = '';
+
   const signup = async () => {
     if (!validateForm()) return;
     
     try {
       loading = true;
-      await AppwriteService.createAccount(email, password, username);
-      // Login after successful signup
-      await AppwriteService.login(email, password);
-      goto('/');
+      const result = await SupabaseService.createAccount(email, password, username);
+      
+      // Check if signup was successful
+      if (result) {
+        signupSuccess = true;
+        confirmationMessage = 'Your account has been created! Please check your email to verify your account before logging in.';
+      }
     } catch (error: any) {
       console.error('Signup error:', error);
-      generalError = error.message || 'Signup failed. Please try again.';
+      
+      // If the error is about email confirmation, show a friendly message instead
+      if (error.message && error.message.includes('Email not confirmed')) {
+        signupSuccess = true;
+        confirmationMessage = 'Your account has been created! Please check your email to verify your account before logging in.';
+      } else {
+        generalError = error.message || 'Signup failed. Please try again.';
+      }
     } finally {
       loading = false;
     }
@@ -106,7 +119,12 @@
 
   <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
     <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      {#if generalError}
+      {#if signupSuccess}
+        <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <p class="font-medium">{confirmationMessage}</p>
+          <p class="mt-2 text-sm">You can <a href="/login" class="font-medium text-green-700 underline">login here</a> after confirming your email.</p>
+        </div>
+      {:else if generalError}
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {generalError}
         </div>

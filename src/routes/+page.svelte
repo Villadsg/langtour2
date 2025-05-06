@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { citiesStore, type Tour } from '$lib/stores/tourStore';
-	import { AppwriteService, currentUser, isAdmin } from '$lib/appwriteService';
+	import { SupabaseService, currentUser, isAdmin } from '$lib/supabaseService';
 	import TourCard from '$lib/components/TourCard.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
 	import { get } from 'svelte/store';
@@ -13,32 +13,48 @@
 	let isLoading = true;
 	let error = '';
 
-	// Fetch tours from Appwrite on component mount
+	// Fetch tours from Supabase on component mount
 	onMount(async () => {
 		try {
-			console.log('Attempting to fetch tours from Appwrite...');
-			const response = await AppwriteService.getAllTours();
-			console.log('Appwrite response:', response);
+			console.log('Attempting to fetch tours from Supabase...');
+			const response = await SupabaseService.getAllTours();
+			console.log('Supabase response:', response);
 			
-			// Map Appwrite documents to Tour objects, extracting data from JSON in description field
-			tours = response.documents.map(doc => {
+			// Map Supabase records to Tour objects, extracting data from JSON in description field
+			tours = response.data.map((doc: any) => {
 				let tourData: Partial<Tour> = {};
 				
-				// Parse the JSON from the description field
+				// Handle the description field which might be JSON or a plain string
 				try {
-					if (doc.description && typeof doc.description === 'string') {
-						tourData = JSON.parse(doc.description);
+					if (doc.description) {
+						if (typeof doc.description === 'string') {
+							// Check if it looks like JSON (starts with { or [)
+							if (doc.description.trim().startsWith('{') || doc.description.trim().startsWith('[')) {
+								tourData = JSON.parse(doc.description);
+							} else {
+								// It's a plain string, create a simple object with description
+								tourData = {
+									description: doc.description
+								};
+							}
+						} else if (typeof doc.description === 'object') {
+							// It's already an object
+							tourData = doc.description;
+						}
 					}
 				} catch (parseError) {
 					console.error('Error parsing tour data:', parseError);
 					// If parsing fails, use the description as is
-					tourData.description = doc.description || '';
+					tourData = {
+						name: 'Tour',
+						description: doc.description || ''
+					};
 				}
 				
 				return {
 					id: doc.$id,
 					cityId: tourData.cityId || '',
-					name: tourData.name || '',
+					name: doc.name || tourData.name || 'Tour',
 					language: tourData.language || '',
 					description: tourData.description || '',
 					imageUrl: doc.imageUrl
@@ -48,9 +64,9 @@
 			error = ''; // Clear any previous errors
 		} catch (err: any) {
 			const errorMessage = err.message || 'Unknown error';
-			error = `Failed to load tours from Appwrite: ${errorMessage}. Falling back to local data.`;
-			console.error('Error loading tours from Appwrite:', err);
-			// Fallback to local data if Appwrite fails
+			error = `Failed to load tours from Supabase: ${errorMessage}. Falling back to local data.`;
+			console.error('Error loading tours from Supabase:', err);
+			// Fallback to local data if Supabase fails
 			tours = get(toursStore);
 			isLoading = false;
 		}
@@ -81,9 +97,9 @@
 			<p class="text-gray-600">Explore language learning tours in Copenhagen and Madrid</p>
 		</div>
 		{#if $currentUser && $isAdmin}
-		<a href="/admin" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-			Manage Tours
-		</a>
+			<a href="/dashboard" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+				Manage Tours
+			</a>
 		{/if}
 	</div>
 	
