@@ -1,6 +1,16 @@
 // Mistral AI service for the tour creation form
 // This service handles the interaction with Mistral AI API
-import { PUBLIC_MISTRAL_API_KEY } from '$env/static/public';
+// Try to import from environment, but provide fallback for build process
+let MISTRAL_API_KEY: string;
+
+try {
+  // Import from SvelteKit environment
+  MISTRAL_API_KEY = import.meta.env.PUBLIC_MISTRAL_API_KEY || '';
+} catch (e) {
+  // Fallback for build process
+  MISTRAL_API_KEY = '';
+  console.warn('Mistral API key not found in environment variables');
+}
 
 // Define the response type from Mistral AI
 interface MistralResponse {
@@ -21,7 +31,7 @@ export const MistralService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PUBLIC_MISTRAL_API_KEY}`
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`
         },
         body: JSON.stringify({
           model: "mistral-medium",
@@ -66,7 +76,7 @@ Please suggest values for: ${fieldsPrompt}`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PUBLIC_MISTRAL_API_KEY}`
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`
         },
         body: JSON.stringify({
           model: "mistral-medium",
@@ -130,7 +140,7 @@ Please suggest values for: ${fieldsPrompt}`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PUBLIC_MISTRAL_API_KEY}`
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`
         },
         body: JSON.stringify({
           model: "mistral-medium",
@@ -197,7 +207,7 @@ Please suggest values for: ${fieldsPrompt}`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PUBLIC_MISTRAL_API_KEY}`
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`
         },
         body: JSON.stringify({
           model: "mistral-medium",

@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "sveltekit",
+  "env": {
+    "PUBLIC_MISTRAL_API_KEY": "@public_mistral_api_key"
+  }
+}
