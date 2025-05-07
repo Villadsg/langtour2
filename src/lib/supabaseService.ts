@@ -479,14 +479,14 @@ export const SupabaseService = {
   
   async cancelBooking(bookingId: string) {
     try {
-      // Instead of updating a status field, we'll add a cancelled_at timestamp
-      // This approach works even if there's no explicit status column
+      // Since there's no cancelled_at column, we'll use participants = -1 to indicate cancellation
+      // This approach works with the existing schema
       const { data, error } = await supabase
         .from('bookings')
         .update({ 
-          cancelled_at: new Date().toISOString(),
-          // Set participants to 0 to free up spots
-          participants: 0
+          // Set participants to -1 to indicate cancellation
+          // (Using negative value as a status indicator)
+          participants: -1
         })
         .eq('id', bookingId)
         .select()

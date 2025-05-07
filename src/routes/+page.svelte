@@ -90,8 +90,33 @@
 
 <NavBar />
 
+<!-- Site features information -->
+<div class="bg-gradient-to-r from-blue-50 to-white py-4 px-6 mb-8 rounded-lg shadow-sm border-l-4 border-blue-500">
+	<div class="container mx-auto">
+		<div class="flex flex-col lg:flex-row justify-center items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-16">
+			<div class="flex items-start max-w-lg">
+				<svg class="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+				</svg>
+				<div class="flex-1">
+					<span class="font-medium whitespace-normal">Discover cities or cafeterias through language learning</span>
+					<span class="block text-sm text-gray-600 mt-1">Explore new places while practicing languages with locals</span>
+				</div>
+			</div>
+			<div class="flex items-start max-w-lg">
+				<svg class="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+				</svg>
+				<div class="flex-1">
+					<span class="font-medium whitespace-normal">Create tours to become a language teacher on the move</span>
+					<span class="block text-sm text-gray-600 mt-1">Share your language skills and cultural knowledge with others</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="container mx-auto px-4 py-8">
-	<div class="flex justify-between items-center mb-4">
+	<div class="flex justify-between items-center mb-6">
 		<div>
 			<h1 class="text-3xl font-bold mb-2">Language Learning Tours</h1>
 			<p class="text-gray-600">Explore language learning tours in Copenhagen and Madrid</p>
@@ -102,6 +127,7 @@
 			</a>
 		{/if}
 	</div>
+	
 	
 	{#if error}
 		<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4" role="alert">

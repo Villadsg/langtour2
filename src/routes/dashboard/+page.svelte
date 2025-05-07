@@ -230,15 +230,13 @@
             <div class="p-4">
               <h3 class="text-lg font-semibold mb-2">{tourData.name}</h3>
               <p class="text-gray-600 mb-4 line-clamp-2">{tourData.description}</p>
-              <div class="flex justify-between mb-2">
+              <div class="flex space-x-4 justify-end mb-2">
                 <a href={`/dashboard/edit/${tour.id || tour.$id}`} class="text-blue-600 hover:text-blue-800">
                   Edit Tour
                 </a>
                 <a href={`/dashboard/tours/${tour.id || tour.$id}/schedule`} class="text-green-600 hover:text-green-800">
                   Schedule Tour
                 </a>
-              </div>
-              <div class="text-right">
                 <button 
                   class="text-red-600 hover:text-red-800 cursor-pointer {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
                   on:click={() => handleDeleteTour(tour.id || tour.$id, tourData.name)}

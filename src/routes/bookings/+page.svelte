@@ -57,14 +57,21 @@
   
   // Helper function to check if a booking is cancelled
   function isBookingCancelled(booking: any): boolean {
-    return booking.cancelled_at != null;
+    return booking.participants < 0;
   }
   
   // Helper function to get booking status
   function getBookingStatus(booking: any): string {
-    if (booking.cancelled_at) return 'cancelled';
+    if (booking.participants < 0) return 'cancelled';
     if (booking.attended_at) return 'attended';
     return 'confirmed';
+  }
+  
+  // Helper function to check if tour date has passed
+  function isTourPast(booking: any): boolean {
+    if (!booking.schedules?.scheduled_date) return false;
+    const tourDate = new Date(booking.schedules.scheduled_date);
+    return tourDate < new Date();
   }
   
   // Function to handle booking cancellation
@@ -90,7 +97,7 @@
         // Update the booking in the list
         userBookings = userBookings.map(booking => {
           if (booking.id === bookingId) {
-            return { ...booking, cancelled_at: new Date().toISOString(), participants: 0 };
+            return { ...booking, participants: -1 };
           }
           return booking;
         });
@@ -178,13 +185,13 @@
                   </span>
                 </td>
                 <td class="py-3 px-4">
-                  {#if !isBookingCancelled(booking)}
+                  {#if !isBookingCancelled(booking) && !booking.attended_at}
                     <button 
                       class="text-red-600 hover:text-red-800 mr-2 {isCancelling ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
                       on:click={() => handleCancelBooking(booking.id, booking.schedules?.tours?.description?.name || booking.schedules?.tours?.name || 'this tour')}
                       disabled={isCancelling}
                     >
-                      {isCancelling ? 'Cancelling...' : booking.attended_at ? 'Remove' : 'Cancel'}
+                      {isCancelling ? 'Cancelling...' : isTourPast(booking) ? 'Remove' : 'Cancel'}
                     </button>
                   {/if}
                   {#if booking.attended_at}

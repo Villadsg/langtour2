@@ -5,13 +5,7 @@
 </script>
 
 <div class="min-h-screen flex flex-col">
-	<header class="bg-blue-600 text-white shadow-md">
-		<div class="container mx-auto px-4 py-4">
-			<a href="/" class="text-2xl font-bold">LangTour</a>
-			<p class="text-blue-100 text-sm">Discover cities through language learning</p>
-		</div>
-	</header>
-
+	
 	<main class="flex-grow">
 		{@render children()}
 	</main>
