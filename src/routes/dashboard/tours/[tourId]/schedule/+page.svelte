@@ -117,33 +117,63 @@
     
     if (!tourDoc) return { name: '', description: '' };
     
-    // First check if the tour has a name property directly
-    if (tourDoc.name) {
-      return {
-        name: tourDoc.name,
-        description: tourDoc.description || '',
-        city: tourDoc.city || '',
-        languages: tourDoc.languages || []
-      };
+    // Handle the nested data structure from Supabase
+    if (tourDoc.data) {
+      console.log('Tour data from nested structure:', tourDoc.data);
+      
+      // If data contains description as an object with name
+      if (tourDoc.data.description && tourDoc.data.description.name) {
+        console.log('Found name in data.description:', tourDoc.data.description.name);
+        return tourDoc.data.description;
+      }
+      
+      // If data has name directly
+      if (tourDoc.data.name) {
+        return {
+          name: tourDoc.data.name,
+          description: tourDoc.data.description || '',
+          city: tourDoc.data.city || '',
+          languages: tourDoc.data.languages || []
+        };
+      }
     }
     
+    // Try to parse description if it exists
     try {
+      // Check if description exists in the main object
       if (tourDoc.description) {
-        console.log('Tour description:', tourDoc.description);
+        console.log('Tour description from main object:', tourDoc.description);
         if (typeof tourDoc.description === 'string') {
           const parsedData = JSON.parse(tourDoc.description);
-          console.log('Parsed tour data:', parsedData);
+          console.log('Parsed tour data from main object:', parsedData);
           return parsedData;
         } else {
           // If it's already an object, return it directly
           return tourDoc.description;
         }
       }
+      
+      // Check if description exists in the nested data object
+      if (tourDoc.data && tourDoc.data.description) {
+        console.log('Tour description from nested data:', tourDoc.data.description);
+        if (typeof tourDoc.data.description === 'string') {
+          const parsedData = JSON.parse(tourDoc.data.description);
+          console.log('Parsed tour data from nested data:', parsedData);
+          return parsedData;
+        } else {
+          // If it's already an object, return it directly
+          return tourDoc.data.description;
+        }
+      }
     } catch (error) {
       console.error('Error parsing tour data:', error);
     }
     
-    return { name: tourDoc.title || '', description: '' };
+    // Fallback to title or empty string
+    return { 
+      name: (tourDoc.data && tourDoc.data.title) || tourDoc.title || 'Unnamed Tour', 
+      description: '' 
+    };
   }
 </script>
 
