@@ -2,9 +2,12 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { SupabaseService, currentUser } from '$lib/supabaseService';
-  import NavBar from '$lib/components/NavBar.svelte';
+  import { page } from '$app/stores';
+
+  import DateTimePicker from '$lib/components/DateTimePicker.svelte';
   
-  const tourId = window.location.pathname.split('/')[3] || '';
+  // Get tourId from the page params instead of window.location
+  $: tourId = $page.params.tourId || '';
   
   let isLoading = true;
   let isSubmitting = false;
@@ -14,8 +17,20 @@
   let scheduledTours: any[] = [];
   
   // Form data
+  let selectedDate = new Date();
   let scheduledDate = '';
+  let selectedTime = '';
   let scheduledTime = '';
+  
+  // Update scheduledDate and scheduledTime when selectedDate or selectedTime changes
+  $: if (selectedDate) {
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    scheduledDate = `${year}-${month}-${day}`;
+  }
+  
+  $: scheduledTime = selectedTime;
   let maxParticipants = 10;
   let meetingPoint = '';
   let additionalInfo = '';
@@ -47,7 +62,7 @@
   });
   
   async function handleSubmit() {
-    if (!scheduledDate || !scheduledTime || !meetingPoint) {
+    if (!selectedDate || !selectedTime || !meetingPoint) {
       error = 'Please fill in all required fields';
       return;
     }
@@ -74,6 +89,8 @@
       scheduledTours = scheduledToursResponse.data || [];
       
       // Reset form
+      selectedDate = new Date();
+      selectedTime = '';
       scheduledDate = '';
       scheduledTime = '';
       maxParticipants = 10;
@@ -96,12 +113,27 @@
   
   // Function to get tour data from JSON in description
   function getTourData(tourDoc: any) {
+    console.log('Tour document:', tourDoc);
+    
     if (!tourDoc) return { name: '', description: '' };
+    
+    // First check if the tour has a name property directly
+    if (tourDoc.name) {
+      return {
+        name: tourDoc.name,
+        description: tourDoc.description || '',
+        city: tourDoc.city || '',
+        languages: tourDoc.languages || []
+      };
+    }
     
     try {
       if (tourDoc.description) {
+        console.log('Tour description:', tourDoc.description);
         if (typeof tourDoc.description === 'string') {
-          return JSON.parse(tourDoc.description);
+          const parsedData = JSON.parse(tourDoc.description);
+          console.log('Parsed tour data:', parsedData);
+          return parsedData;
         } else {
           // If it's already an object, return it directly
           return tourDoc.description;
@@ -111,11 +143,11 @@
       console.error('Error parsing tour data:', error);
     }
     
-    return { name: '', description: '' };
+    return { name: tourDoc.title || '', description: '' };
   }
 </script>
 
-<NavBar />
+
 
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
@@ -134,7 +166,7 @@
   {:else if tour}
     {@const tourData = getTourData(tour)}
     
-    <h1 class="text-3xl font-bold mb-2">Schedule Tour: {tourData.name}</h1>
+    <h1 class="text-3xl font-bold mb-6">Schedule: {tourData.name}</h1>
     
     {#if error}
       <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -154,71 +186,98 @@
           <h2 class="text-xl font-semibold mb-4">Schedule a New Tour Session</h2>
           
           <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-            <div>
-              <label for="scheduledDate" class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-              <input
-                type="date"
-                id="scheduledDate"
-                bind:value={scheduledDate}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
+            <DateTimePicker 
+              bind:selectedDate
+              bind:selectedTime
+              label="When will this tour take place?"
+              required={true}
+              minDate={new Date()}
+            />
+            
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
+              <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Tour Capacity
+              </h3>
+              <div>
+                <label for="maxParticipants" class="block text-sm font-medium text-gray-700 mb-1">Maximum Participants *</label>
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="maxParticipants"
+                    bind:value={maxParticipants}
+                    min="1"
+                    max="100"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
+                    <span class="text-sm">people</span>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div>
-              <label for="scheduledTime" class="block text-sm font-medium text-gray-700 mb-1">Time *</label>
-              <input
-                type="time"
-                id="scheduledTime"
-                bind:value={scheduledTime}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
+              <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Meeting Location
+              </h3>
+              <div>
+                <label for="meetingPoint" class="block text-sm font-medium text-gray-700 mb-1">Meeting Point *</label>
+                <input
+                  type="text"
+                  id="meetingPoint"
+                  bind:value={meetingPoint}
+                  placeholder="e.g., In front of City Hall, at the main entrance"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
             </div>
             
-            <div>
-              <label for="maxParticipants" class="block text-sm font-medium text-gray-700 mb-1">Maximum Participants *</label>
-              <input
-                type="number"
-                id="maxParticipants"
-                bind:value={maxParticipants}
-                min="1"
-                max="100"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            
-            <div>
-              <label for="meetingPoint" class="block text-sm font-medium text-gray-700 mb-1">Meeting Point *</label>
-              <input
-                type="text"
-                id="meetingPoint"
-                bind:value={meetingPoint}
-                placeholder="e.g., In front of City Hall"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            
-            <div>
-              <label for="additionalInfo" class="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
-              <textarea
-                id="additionalInfo"
-                bind:value={additionalInfo}
-                rows="4"
-                placeholder="Any additional details participants should know"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              ></textarea>
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
+              <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Additional Details
+              </h3>
+              <div>
+                <label for="additionalInfo" class="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
+                <textarea
+                  id="additionalInfo"
+                  bind:value={additionalInfo}
+                  rows="3"
+                  placeholder="Any additional details participants should know (what to bring, accessibility information, etc.)"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                ></textarea>
+              </div>
             </div>
             
             <div class="pt-2">
               <button
                 type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-200 flex items-center justify-center"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Scheduling...' : 'Schedule Tour'}
+                {#if isSubmitting}
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Scheduling...
+                {:else}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Schedule Tour
+                {/if}
               </button>
             </div>
           </form>

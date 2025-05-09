@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { SupabaseService, currentUser } from '$lib/supabaseService';
   import { supabase } from '$lib/supabase';
-  import NavBar from '$lib/components/NavBar.svelte';
+
   
   // Get the schedule ID from the URL and ensure it's valid
   let scheduleId = window.location.pathname.split('/')[3] || '';
@@ -166,7 +166,7 @@
   }
 </script>
 
-<NavBar />
+
 
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">

@@ -88,76 +88,90 @@
 		: tours;
 </script>
 
-<NavBar />
 
-<!-- Site features information -->
-<div class="bg-gradient-to-r from-blue-50 to-white py-4 px-6 mb-8 rounded-lg shadow-sm border-l-4 border-blue-500">
-	<div class="container mx-auto">
-		<div class="flex flex-col lg:flex-row justify-center items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-16">
-			<div class="flex items-start max-w-lg">
-				<svg class="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-				</svg>
-				<div class="flex-1">
-					<span class="font-medium whitespace-normal">Discover cities or cafeterias through language learning</span>
-					<span class="block text-sm text-gray-600 mt-1">Explore new places while practicing languages with locals</span>
+
+<!-- Hero section with gradient background - only visible when NOT logged in -->
+{#if !$currentUser}
+<div class="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-16">
+	<div class="container mx-auto px-6">
+		<div class="max-w-4xl mx-auto text-center">
+			<h1 class="text-4xl md:text-5xl font-semibold mb-4 leading-tight">Language Learning Tours</h1>
+			<p class="text-xl text-slate-200 mb-8">Explore cities and cultures through immersive language experiences</p>
+			
+			<!-- Feature highlights -->
+			<div class="grid md:grid-cols-2 gap-8 mt-12">
+				<div class="bg-white/10 backdrop-blur-sm p-6 rounded-sm border border-white/20">
+					<div class="flex items-center mb-4">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+						</svg>
+						<h3 class="text-lg font-medium">Discover Cities Through Language</h3>
+					</div>
+					<p class="text-slate-300 text-sm">Experience authentic cultural immersion while improving your language skills in real-world settings.</p>
+				</div>
+				
+				<div class="bg-white/10 backdrop-blur-sm p-6 rounded-sm border border-white/20">
+					<div class="flex items-center mb-4">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+						</svg>
+						<h3 class="text-lg font-medium">Become a Language Guide</h3>
+					</div>
+					<p class="text-slate-300 text-sm">Create your own language tours and share your expertise with others while earning income.</p>
 				</div>
 			</div>
-			<div class="flex items-start max-w-lg">
-				<svg class="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-				</svg>
-				<div class="flex-1">
-					<span class="font-medium whitespace-normal">Create tours to become a language teacher on the move</span>
-					<span class="block text-sm text-gray-600 mt-1">Share your language skills and cultural knowledge with others</span>
-				</div>
+			
+			<div class="mt-12">
+				<a href="/login" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 transition-colors duration-150 ease-in-out inline-block mx-2">Login</a>
+				<a href="/signup" class="bg-white text-indigo-700 font-medium py-3 px-6 transition-colors duration-150 ease-in-out inline-block mx-2 hover:bg-indigo-50">Sign Up</a>
 			</div>
 		</div>
 	</div>
 </div>
-<div class="container mx-auto px-4 py-8">
-	<div class="flex justify-between items-center mb-6">
+{/if}
+
+<div class="container mx-auto px-6 py-12">
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
 		<div>
-			<h1 class="text-3xl font-bold mb-2">Language Learning Tours</h1>
-			<p class="text-gray-600">Explore language learning tours in Copenhagen and Madrid</p>
+			<h2 class="text-2xl font-medium text-slate-800 mb-2">Available Tours</h2>
+			<p class="text-slate-600">Explore language learning experiences in cities worldwide</p>
 		</div>
 		{#if $currentUser && $isAdmin}
-			<a href="/dashboard" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+			<a href="/dashboard" class="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 transition-colors duration-150 ease-in-out">
 				Manage Tours
 			</a>
 		{/if}
 	</div>
 	
-	
 	{#if error}
-		<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4" role="alert">
+		<div class="bg-amber-50 border-l-4 border-amber-400 text-amber-800 px-6 py-4 mb-8" role="alert">
 			<div class="flex">
-				<div class="py-1">
-					<svg class="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-						<path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
+				<div class="flex-shrink-0">
+					<svg class="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
 					</svg>
 				</div>
-				<div>
-					<p class="font-bold">Connection Issue</p>
-					<p class="text-sm">{error}</p>
-					<p class="text-sm mt-2">Using local tour data instead. Tours created in the admin panel may not be visible.</p>
+				<div class="ml-3">
+					<p class="text-sm font-medium">Connection Issue</p>
+					<p class="text-sm mt-1">{error}</p>
+					<p class="text-sm mt-1">Using local tour data instead. Tours created in the admin panel may not be visible.</p>
 				</div>
 			</div>
 		</div>
 	{/if}
 
 	<!-- Search bar -->
-	<div class="mb-8">
-		<div class="relative">
-			<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-				<svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+	<div class="mb-10">
+		<div class="relative max-w-2xl mx-auto">
+			<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+				<svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
 				</svg>
 			</div>
 			<input 
 				type="text" 
 				bind:value={searchQuery}
-				class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500" 
+				class="block w-full p-3 pl-10 text-slate-700 border border-slate-300 bg-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-150 ease-in-out" 
 				placeholder="Search by city, language, or tour name..."
 			/>
 		</div>
@@ -170,8 +184,8 @@
 				<TourCard {tour} />
 			{/each}
 		{:else}
-			<div class="bg-gray-100 p-8 rounded-lg text-center">
-				<p class="text-gray-600">No tours found matching your search. Try a different search term.</p>
+			<div class="border border-slate-200 p-10 text-center bg-slate-50">
+				<p class="text-slate-600">No tours found matching your search. Try a different search term.</p>
 			</div>
 		{/if}
 	</div>

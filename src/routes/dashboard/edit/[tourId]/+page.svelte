@@ -5,7 +5,7 @@
     import { SupabaseService, currentUser } from '$lib/supabaseService';
     import TourForm from '$lib/components/TourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
-    import NavBar from '$lib/components/NavBar.svelte';
+
     
     interface SupabaseTour extends Omit<Tour, 'id'> {
         $id: string;
@@ -93,7 +93,6 @@
     };
 </script>
 
-<NavBar />
 
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">

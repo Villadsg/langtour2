@@ -3,17 +3,18 @@
   import { SupabaseService } from '$lib/supabaseService';
   import { onMount } from 'svelte';
   
-  let username = '';
   let email = '';
   let password = '';
   let confirmPassword = '';
   let loading = false;
   let generalError = '';
   
-  let usernameError = '';
   let emailError = '';
   let passwordError = '';
   let confirmPasswordError = '';
+  
+  // Auto-generate username from email
+  $: username = email ? email.split('@')[0] : '';
 
   onMount(async () => {
     // Check if already logged in
@@ -27,17 +28,10 @@
     let isValid = true;
     
     // Reset errors
-    usernameError = '';
     emailError = '';
     passwordError = '';
     confirmPasswordError = '';
     generalError = '';
-    
-    // Validate username
-    if (!username) {
-      usernameError = 'Username is required';
-      isValid = false;
-    }
     
     // Validate email
     if (!email) {
@@ -132,25 +126,6 @@
       
       <form class="space-y-6" on:submit|preventDefault={signup}>
         <div>
-          <label for="username" class="block text-sm font-medium text-gray-700">
-            Username
-          </label>
-          <div class="mt-1">
-            <input
-              id="username"
-              name="username"
-              type="text"
-              autocomplete="username"
-              bind:value={username}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-            {#if usernameError}
-              <p class="mt-1 text-sm text-red-600">{usernameError}</p>
-            {/if}
-          </div>
-        </div>
-
-        <div>
           <label for="email" class="block text-sm font-medium text-gray-700">
             Email address
           </label>
@@ -166,8 +141,13 @@
             {#if emailError}
               <p class="mt-1 text-sm text-red-600">{emailError}</p>
             {/if}
+            {#if email}
+              <p class="mt-1 text-sm text-gray-500">Your username will be: <strong>{username}</strong> (you can change this later)</p>
+            {/if}
           </div>
         </div>
+
+
 
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700">

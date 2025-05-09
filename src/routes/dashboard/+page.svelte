@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { SupabaseService, currentUser, userCreatedTours } from '$lib/supabaseService';
-  import NavBar from '$lib/components/NavBar.svelte';
+
   
   let isLoading = true;
   let error = '';
@@ -174,7 +174,7 @@
 
 </script>
 
-<NavBar />
+
 
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-3xl font-bold mb-6">Your Dashboard</h1>

@@ -77,6 +77,27 @@ export const SupabaseService = {
       });
       
       if (error) throw error;
+      
+      // The trigger we created will automatically create a public_profiles entry,
+      // but we'll make sure it exists here as a fallback
+      if (data.user) {
+        // Create or update the public profile
+        const { error: profileError } = await supabase
+          .from('public_profiles')
+          .upsert({
+            id: data.user.id,
+            username: name || email.split('@')[0],
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
+        
+        if (profileError) {
+          console.error('Error creating public profile:', profileError);
+          // We don't throw here as the account was created successfully
+        }
+      }
+      
       return data.user;
     } catch (error) {
       console.error('Error creating account:', error);
@@ -963,12 +984,104 @@ export const SupabaseService = {
   
   // User methods
   async getUserCreatedTours(userId: string) {
-    const { data, error } = await supabase
-      .from('tours')
-      .select('*')
-      .eq('creator_id', userId);
+    try {
+      const { data, error } = await supabase
+        .from('tours')
+        .select('*')
+        .eq('creator_id', userId);
+        
+      if (error) throw error;
+      return { data, error: null };
+    } catch (err) {
+      console.error('Error getting user created tours:', err);
+      return { data: [], error: err };
+    }
+  },
+  
+  async getUsernameById(userId: string): Promise<string | null> {
+    if (!userId) {
+      return null;
+    }
+    
+    try {
+      // Try to get the username from the public_profiles table first
+      try {
+        const { data, error } = await supabase
+          .from('public_profiles')
+          .select('username')
+          .eq('id', userId)
+          .single();
+        
+        if (!error && data?.username) {
+          return data.username;
+        }
+      } catch (profileErr) {
+        // Silently handle errors with public_profiles table
+        // This could happen if the table doesn't exist yet
+      }
       
-    if (error) throw error;
-    return { documents: data, data };
-  }
+      // If we couldn't get the username from public_profiles, try to get it from the user's metadata
+      // We can't access auth.users directly, but we can get the current user's metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // If this is the current user, we can use their metadata
+      if (user && user.id === userId) {
+        if (user.user_metadata?.name) {
+          return user.user_metadata.name;
+        } else if (user.email) {
+          return user.email.split('@')[0];
+        }
+      }
+      
+      // For now, we'll just use the fallback user ID format
+      // We don't have direct access to email information for other users
+      // The public_profiles table will be the primary way to get usernames once it's set up
+      
+      // Fall back to user ID format if all else fails
+      return `User ${userId.substring(0, 8)}`;
+    } catch (err) {
+      console.error('Exception in getUsernameById:', err);
+      // Fall back to user ID format if there's an exception
+      return `User ${userId.substring(0, 8)}`;
+    }
+  },
+  
+  async updateUserProfile(name: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('User not authenticated');
+      
+      // Update user metadata in auth.users
+      const { data, error } = await supabase.auth.updateUser({
+        data: { name }
+      });
+      
+      if (error) throw error;
+      
+      // Also update the username in public_profiles table
+      const { error: profileError } = await supabase
+        .from('public_profiles')
+        .upsert({
+          id: user.id,
+          username: name,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+      
+      if (profileError) {
+        console.error('Error updating public profile:', profileError);
+        throw profileError;
+      }
+      
+      // Update the current user store
+      currentUser.set(data.user);
+      
+      return data.user;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  },
 };

@@ -1,15 +1,34 @@
 // Mistral AI service for the tour creation form
 // This service handles the interaction with Mistral AI API
-// Try to import from environment, but provide fallback for build process
-let MISTRAL_API_KEY: string;
 
+// Store the API key securely
+let MISTRAL_API_KEY: string = '';
+
+// Load the API key from environment variables
 try {
-  // Import from SvelteKit environment
-  MISTRAL_API_KEY = import.meta.env.PUBLIC_MISTRAL_API_KEY || '';
+  // For testing only - try to use the environment variable from window.ENV
+  if (typeof window !== 'undefined' && (window as any).ENV && (window as any).ENV.PUBLIC_MISTRAL_API_KEY) {
+    MISTRAL_API_KEY = (window as any).ENV.PUBLIC_MISTRAL_API_KEY;
+    console.log('API key loaded from window.ENV');
+  }
+  // Standard SvelteKit approach for PUBLIC_ prefixed env vars
+  else if (import.meta.env && import.meta.env.PUBLIC_MISTRAL_API_KEY) {
+    MISTRAL_API_KEY = import.meta.env.PUBLIC_MISTRAL_API_KEY;
+    console.log('API key loaded from import.meta.env');
+  }
+  // Add additional debug logging to help troubleshoot
+  else {
+    console.log('Available environment variables:', Object.keys(import.meta.env).filter(key => key.startsWith('PUBLIC_')));
+  }
+
+  // Verify the API key is available
+  if (!MISTRAL_API_KEY) {
+    console.warn('Mistral API key is not available in environment variables.');
+    console.error('Please ensure PUBLIC_MISTRAL_API_KEY is defined in your .env file.');
+  }
 } catch (e) {
-  // Fallback for build process
-  MISTRAL_API_KEY = '';
-  console.warn('Mistral API key not found in environment variables');
+  console.error('Error loading Mistral API key:', e);
+  console.warn('Please check your environment configuration.');
 }
 
 // Define the response type from Mistral AI
@@ -18,15 +37,44 @@ interface MistralResponse {
   feedback?: string;
 }
 
+// Helper for rate limiting and retries
+const callWithRetry = async (apiCall: () => Promise<any>, maxRetries: number = 3, initialDelay: number = 1000): Promise<any> => {
+  let retries = 0;
+  let delay = initialDelay;
+  
+  while (true) {
+    try {
+      return await apiCall();
+    } catch (error: any) {
+      // Check if this is a rate limit error (429)
+      if (error.message && error.message.includes('429') && retries < maxRetries) {
+        console.log(`Rate limited, retrying in ${delay}ms (attempt ${retries + 1}/${maxRetries})...`);
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Exponential backoff
+        retries++;
+        delay *= 2;
+      } else {
+        // Either not a rate limit error or we've exceeded max retries
+        throw error;
+      }
+    }
+  }
+};
+
 export const MistralService = {
   // Function to correct spelling and grammar in text
   async correctText(text: string): Promise<string> {
+    return callWithRetry(async () => {
     try {
       const systemMessage = `You are a helpful text editor. 
       Correct any spelling mistakes and grammatical errors in the following text.
       Maintain the original meaning and style, but fix any issues with language.
       Only return the corrected text, with no explanations or comments.`;
       
+      // API request will be made with the configured API key
       const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -45,8 +93,24 @@ export const MistralService = {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Mistral API error: ${errorData.error?.message || 'Unknown error'}`);
+        // Log the error response status for debugging
+        console.error(`Mistral API error status: ${response.status}`);
+        let errorMessage = 'Unknown error';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || 'API error';
+        } catch (jsonError) {
+          // If the response is not JSON, get the text instead
+          try {
+            const errorText = await response.text();
+            errorMessage = `API returned non-JSON response: ${errorText.substring(0, 100)}`;
+          } catch (textError) {
+            errorMessage = `API error (${response.status})`;
+          }
+        }
+        
+        throw new Error(`Mistral API error: ${errorMessage}`);
       }
       
       const data = await response.json();
@@ -57,9 +121,11 @@ export const MistralService = {
       console.error('Error correcting text:', error);
       return text; // Return original text if correction fails
     }
+  }, 3, 500)
   },
   // Function to generate suggestions for missing tour information
   async generateSuggestions(description: string, missingFields: string[]): Promise<Record<string, string>> {
+    return callWithRetry(async () => {
     try {
       const systemMessage = `You are a helpful assistant for a language learning tour platform. 
       Based on the following tour description, suggest appropriate values for the missing fields. 
@@ -72,6 +138,7 @@ export const MistralService = {
 
 Please suggest values for: ${fieldsPrompt}`;
       
+      // API request will be made with the configured API key
       const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -90,8 +157,24 @@ Please suggest values for: ${fieldsPrompt}`;
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Mistral API error: ${errorData.error?.message || 'Unknown error'}`);
+        // Log the error response status for debugging
+        console.error(`Mistral API error status: ${response.status}`);
+        let errorMessage = 'Unknown error';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || 'API error';
+        } catch (jsonError) {
+          // If the response is not JSON, get the text instead
+          try {
+            const errorText = await response.text();
+            errorMessage = `API returned non-JSON response: ${errorText.substring(0, 100)}`;
+          } catch (textError) {
+            errorMessage = `API error (${response.status})`;
+          }
+        }
+        
+        throw new Error(`Mistral API error: ${errorMessage}`);
       }
       
       const data = await response.json();
@@ -123,9 +206,11 @@ Please suggest values for: ${fieldsPrompt}`;
       console.error('Error generating suggestions:', error);
       return {};
     }
+  }, 3, 500)
   },
   // Function to send a message to Mistral AI and get a response
   async sendMessage(message: string, context: string = ''): Promise<MistralResponse> {
+    return callWithRetry(async () => {
     try {
       // Create a simplified system message for a single-prompt tour creation
       let systemMessage = "Be concise and friendly. Your goal is to help the user create an engaging language tour. ";
@@ -136,6 +221,7 @@ Please suggest values for: ${fieldsPrompt}`;
         systemMessage = "Be concise and simply suggest improvements";
       }
       
+      // API request will be made with the configured API key
       const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -154,8 +240,24 @@ Please suggest values for: ${fieldsPrompt}`;
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Mistral API error: ${errorData.error?.message || 'Unknown error'}`); 
+        // Log the error response status for debugging
+        console.error(`Mistral API error status: ${response.status}`);
+        let errorMessage = 'Unknown error';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || 'API error';
+        } catch (jsonError) {
+          // If the response is not JSON, get the text instead
+          try {
+            const errorText = await response.text();
+            errorMessage = `API returned non-JSON response: ${errorText.substring(0, 100)}`;
+          } catch (textError) {
+            errorMessage = `API error (${response.status})`;
+          }
+        }
+        
+        throw new Error(`Mistral API error: ${errorMessage}`);
       }
       
       const data = await response.json();
@@ -179,18 +281,19 @@ Please suggest values for: ${fieldsPrompt}`;
       console.error('Error communicating with Mistral AI:', error);
       return { response: "Sorry, I encountered an error. Please try again." };
     }
+  }, 3, 500)
   },
-
   
   // Function to analyze a tour description and provide feedback
   async analyzeTourDescription(description: string): Promise<MistralResponse> {
-    try {
-      if (!description || description.trim().length === 0) {
-        return {
-          response: "Please provide a description for your tour.",
-          feedback: "empty"
-        };
-      }
+    return callWithRetry(async () => {
+      try {
+        if (!description || description.trim().length === 0) {
+          return {
+            response: "Please provide a description for your tour.",
+            feedback: "empty"
+          };
+        }
       
       // Create a system message for analyzing the description
       const systemMessage = `You are an expert tour guide and language teacher. 
@@ -203,6 +306,7 @@ Please suggest values for: ${fieldsPrompt}`;
       If the description is between 100-200 characters or lacks language learning keywords, suggest enhancements. Return 'good' as feedback.
       If the description is over 200 characters and includes language learning aspects, praise it. Return 'excellent' as feedback.`;
       
+      // API request will be made with the configured API key
       const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -221,8 +325,24 @@ Please suggest values for: ${fieldsPrompt}`;
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Mistral API error: ${errorData.error?.message || 'Unknown error'}`); 
+        // Log the error response status for debugging
+        console.error(`Mistral API error status: ${response.status}`);
+        let errorMessage = 'Unknown error';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || 'API error';
+        } catch (jsonError) {
+          // If the response is not JSON, get the text instead
+          try {
+            const errorText = await response.text();
+            errorMessage = `API returned non-JSON response: ${errorText.substring(0, 100)}`;
+          } catch (textError) {
+            errorMessage = `API error (${response.status})`;
+          }
+        }
+        
+        throw new Error(`Mistral API error: ${errorMessage}`);
       }
       
       const data = await response.json();
@@ -252,5 +372,6 @@ Please suggest values for: ${fieldsPrompt}`;
         feedback: "error"
       };
     }
+    }, 3, 500);
   }
 };
