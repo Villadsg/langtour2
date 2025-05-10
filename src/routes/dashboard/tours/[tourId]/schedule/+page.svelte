@@ -329,7 +329,7 @@
                   <div class="flex justify-between items-start">
                     <div>
                       <p class="font-medium">{formatDate(schedule.scheduledDate)}</p>
-                      <p class="text-sm text-gray-600 mt-1">Meeting point: {schedule.meetingPoint}</p>
+                      <p class="text-sm text-gray-600 mt-1">Meeting points: {schedule.meetingPoint}</p>
                       <p class="text-sm text-gray-600">Max participants: {schedule.maxParticipants}</p>
                       {#if schedule.additionalInfo}
                         <p class="text-sm text-gray-600 mt-2">{schedule.additionalInfo}</p>
