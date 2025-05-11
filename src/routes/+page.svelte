@@ -97,14 +97,14 @@
 
 <!-- Hero section with gradient background - only visible when NOT logged in -->
 {#if !$currentUser}
-<div class={`${gradients.hero} ${text.primary} py-16`}>
+<div class={`${gradients.hero} ${text.primary} py-10`}>
 	<div class="container mx-auto px-6">
 		<div class="max-w-4xl mx-auto text-center">
 			<h1 class={typography.heading.h1 + " mb-4"}>Language Learning Tours</h1>
-			<p class={`text-xl ${text.secondary} mb-8`}>Explore cities and cultures through immersive language experiences</p>
+			<p class={`text-xl ${text.secondary} mb-6`}>Explore cities and cultures through immersive language experiences</p>
 			
 			<!-- Feature highlights -->
-			<div class="grid md:grid-cols-2 gap-8 mt-12">
+			<div class="grid md:grid-cols-2 gap-6 mt-8">
 				<FeatureCard 
 					icon="<svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' /></svg>"
 					title="Discover Cities Through Language"
@@ -118,7 +118,7 @@
 				/>
 			</div>
 			
-			<div class="mt-12">
+			<div class="mt-8">
 				<a href="/login" class={components.button.primary + " inline-block mx-2"}>Login</a>
 				<a href="/signup" class={components.button.secondary + " inline-block mx-2"}>Sign Up</a>
 			</div>
@@ -128,7 +128,7 @@
 {/if}
 
 <Section variant="muted">
-	<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
 		<div>
 			<h2 class={`${typography.heading.h2} ${text.primary} mb-2`}>Available Tours</h2>
 			<p class={text.secondary}>Explore language learning experiences in cities worldwide</p>
@@ -158,7 +158,7 @@
 	{/if}
 
 	<!-- Search bar -->
-	<div class="mb-10">
+	<div class="mb-6">
 		<div class="relative max-w-2xl mx-auto">
 			<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
 				<svg class={`w-4 h-4 ${text.muted}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">

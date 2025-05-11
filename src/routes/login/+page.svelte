@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { SupabaseService } from '$lib/supabaseService';
   import { onMount } from 'svelte';
+  import { components, text, gradients } from '$lib/styles/DesignSystem.svelte';
   
   let email = '';
   let password = '';
@@ -73,25 +74,25 @@
   <title>Login - Language Learning Tours</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gray-50 flex flex-col pt-24 sm:px-6 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <h2 class="mt-4 text-center text-3xl font-extrabold ${text.primary}">
       Sign in to your account
     </h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
+    <p class="mt-2 text-center text-sm ${text.secondary}">
       Or
-      <a href="/signup" class="font-medium text-blue-600 hover:text-blue-500">
+      <a href="/signup" class="font-medium text-indigo-600 hover:text-indigo-500">
         create a new account
       </a>
     </p>
   </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+  <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white py-6 px-4 shadow sm:rounded-lg sm:px-8">
       {#if emailConfirmationNeeded}
-        <div class="mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
+        <div class="mb-4 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-3 rounded-md">
           <p class="font-medium">{generalError}</p>
-          <p class="mt-2 text-sm">Didn't receive the confirmation email? Check your spam folder or <button class="text-blue-700 underline font-medium" on:click={() => SupabaseService.resendConfirmationEmail(email)}>resend it</button>.</p>
+          <p class="mt-2 text-sm">Didn't receive the confirmation email? Check your spam folder or <button class="text-indigo-700 underline font-medium" on:click={() => SupabaseService.resendConfirmationEmail(email)}>resend it</button>.</p>
         </div>
       {:else if generalError}
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -99,9 +100,9 @@
         </div>
       {/if}
       
-      <form class="space-y-6" on:submit|preventDefault={login}>
+      <form class="space-y-4" on:submit|preventDefault={login}>
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">
+          <label for="email" class="block text-sm font-medium ${text.secondary}">
             Email address
           </label>
           <div class="mt-1">
@@ -120,7 +121,7 @@
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
+          <label for="password" class="block text-sm font-medium ${text.secondary}">
             Password
           </label>
           <div class="mt-1">
@@ -142,7 +143,7 @@
           <button
             type="submit"
             disabled={loading}
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
+            class={`${components.button.primary} w-full disabled:opacity-70 disabled:cursor-not-allowed`}
           >
             {#if loading}
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
