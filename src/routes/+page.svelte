@@ -10,7 +10,7 @@
 	import FeatureCard from '$lib/components/FeatureCard.svelte';
 	import Testimonial from '$lib/components/Testimonial.svelte';
 	import CallToAction from '$lib/components/CallToAction.svelte';
-	import { gradients, components, typography, spacing } from '$lib/styles/DesignSystem.svelte';
+	import { gradients, components, typography, spacing, text } from '$lib/styles/DesignSystem.svelte';
 
 	let tours: Tour[] = [];
 	let cities = $citiesStore;
@@ -97,11 +97,11 @@
 
 <!-- Hero section with gradient background - only visible when NOT logged in -->
 {#if !$currentUser}
-<div class={`${gradients.hero} text-white py-16`}>
+<div class={`${gradients.hero} ${text.primary} py-16`}>
 	<div class="container mx-auto px-6">
 		<div class="max-w-4xl mx-auto text-center">
 			<h1 class={typography.heading.h1 + " mb-4"}>Language Learning Tours</h1>
-			<p class="text-xl text-slate-200 mb-8">Explore cities and cultures through immersive language experiences</p>
+			<p class={`text-xl ${text.secondary} mb-8`}>Explore cities and cultures through immersive language experiences</p>
 			
 			<!-- Feature highlights -->
 			<div class="grid md:grid-cols-2 gap-8 mt-12">
@@ -130,8 +130,8 @@
 <Section variant="muted">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
 		<div>
-			<h2 class={typography.heading.h2 + " text-slate-800 mb-2"}>Available Tours</h2>
-			<p class="text-slate-600">Explore language learning experiences in cities worldwide</p>
+			<h2 class={`${typography.heading.h2} ${text.primary} mb-2`}>Available Tours</h2>
+			<p class={text.secondary}>Explore language learning experiences in cities worldwide</p>
 		</div>
 		{#if $currentUser && $isAdmin}
 			<a href="/dashboard" class={components.button.primary + " mt-4 md:mt-0 py-2 px-5"}>
@@ -161,7 +161,7 @@
 	<div class="mb-10">
 		<div class="relative max-w-2xl mx-auto">
 			<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-				<svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+				<svg class={`w-4 h-4 ${text.muted}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
 					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
 				</svg>
 			</div>
@@ -182,7 +182,7 @@
 			{/each}
 		{:else}
 			<div class="col-span-full border border-slate-200 p-10 text-center bg-white">
-				<p class="text-slate-600">No tours found matching your search. Try a different search term.</p>
+				<p class={text.secondary}>No tours found matching your search. Try a different search term.</p>
 			</div>
 		{/if}
 	</div>

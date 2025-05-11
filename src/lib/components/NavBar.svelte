@@ -1,5 +1,6 @@
 <script lang="ts">
   import { currentUser, SupabaseService } from '$lib/supabaseService';
+  import { navbar, text, components } from '$lib/styles/DesignSystem.svelte';
   import { onMount } from 'svelte';
   
   let isMenuOpen = false;
@@ -14,15 +15,15 @@
   };
 </script>
 
-<nav class="bg-slate-900 border-b border-slate-800 shadow-lg">
+<nav class={navbar.bg}>
   <div class="container mx-auto px-4">
     <div class="flex justify-between h-16">
       <div class="flex">
         <div class="flex-shrink-0 flex items-center">
-          <a href="/" class="text-xl font-semibold tracking-tight text-white">LangTour</a>
+          <a href="/" class={`text-xl font-semibold tracking-tight ${text.primary}`}>LangTour</a>
         </div>
         <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
-          <a href="/" class="border-indigo-500 text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+          <a href="/" class={`${navbar.link} ${navbar.activeLink} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
             Tours
           </a>
         </div>
@@ -31,23 +32,23 @@
       <div class="hidden sm:ml-6 sm:flex sm:items-center">
         {#if $currentUser}
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-slate-300">Hello, {$currentUser?.user_metadata?.name || $currentUser?.email}</span>
-            <a href="/dashboard" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-medium transition-colors duration-150 ease-in-out">
+            <span class={`text-sm ${text.muted}`}>Hello, {$currentUser?.user_metadata?.name || $currentUser?.email}</span>
+            <a href="/dashboard" class={components.button.primary}>
               Dashboard
             </a>
-            <a href="/bookings" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-medium transition-colors duration-150 ease-in-out">
+            <a href="/bookings" class={components.button.primary}>
               Bookings
             </a>
-            <a href="/profile" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 text-sm font-medium transition-colors duration-150 ease-in-out">
+            <a href="/profile" class={components.button.secondary}>
               Profile
             </a>
           </div>
         {:else}
           <div class="flex items-center space-x-4">
-            <a href="/login" class="text-slate-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors duration-150 ease-in-out">
+            <a href="/login" class={`${navbar.link} px-4 py-2 text-sm font-medium`}>
               Login
             </a>
-            <a href="/signup" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-medium transition-colors duration-150 ease-in-out">
+            <a href="/signup" class={components.button.primary}>
               Sign Up
             </a>
           </div>
@@ -73,9 +74,9 @@
 
   <!-- Mobile menu, show/hide based on menu state -->
   {#if isMenuOpen}
-    <div class="sm:hidden bg-slate-800">
+    <div class={`sm:hidden ${navbar.mobileBg}`}>
       <div class="pt-2 pb-3 space-y-1">
-        <a href="/" class="bg-slate-900 border-l-4 border-indigo-500 text-white block pl-3 pr-4 py-2 text-base font-medium">
+        <a href="/" class={`${navbar.link} ${navbar.activeLink} block pl-3 pr-4 py-2 text-base font-medium`}>
           Tours
         </a>
       </div>
@@ -83,30 +84,27 @@
         {#if $currentUser}
           <div class="flex items-center px-4">
             <div class="ml-3">
-              <div class="text-base font-medium text-white">{$currentUser?.user_metadata?.name || $currentUser?.email}</div>
-              <div class="text-sm font-medium text-slate-400">{$currentUser?.email}</div>
+              <div class={`text-base font-medium ${text.primary}`}>{$currentUser?.user_metadata?.name || $currentUser?.email}</div>
+              <div class={`text-sm font-medium ${text.muted}`}>{$currentUser?.email}</div>
             </div>
           </div>
           <div class="mt-3 space-y-1">
-            <a href="/dashboard" class="block px-4 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700">
+            <a href="/dashboard" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Dashboard
             </a>
-            <a href="/bookings" class="block px-4 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700">
+            <a href="/bookings" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Your Bookings
             </a>
-            <a href="/profile" class="block px-4 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700">
+            <a href="/profile" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Edit Profile
-            </a>
-            <a href="/dashboard/create" class="block px-4 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700">
-              Add Tour
             </a>
           </div>
         {:else}
           <div class="mt-3 space-y-1">
-            <a href="/login" class="block px-4 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700">
+            <a href="/login" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Login
             </a>
-            <a href="/signup" class="block px-4 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700">
+            <a href="/signup" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Sign Up
             </a>
           </div>

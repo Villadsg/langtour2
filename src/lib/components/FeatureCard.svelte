@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { components } from '$lib/styles/DesignSystem.svelte';
+  import { components, text } from '$lib/styles/DesignSystem.svelte';
   
   export let icon: string;
   export let title: string;
@@ -13,5 +13,5 @@
     </div>
     <h3 class="text-lg font-medium">{title}</h3>
   </div>
-  <p class="text-slate-300 text-sm">{description}</p>
+  <p class={`text-sm ${text.secondary}`}>{description}</p>
 </div>

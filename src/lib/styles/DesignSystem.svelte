@@ -35,10 +35,10 @@
 
   // Gradient backgrounds
   export const gradients = {
-    hero: 'bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900',
-    card: 'bg-gradient-to-br from-indigo-50 to-slate-50',
-    accent: 'bg-gradient-to-r from-indigo-600 to-indigo-700',
-    subtle: 'bg-gradient-to-r from-slate-50 to-white'
+    hero: 'bg-gradient-to-r from-gray-50 via-indigo-50 to-gray-50',
+    card: 'bg-gradient-to-br from-white to-gray-50',
+    accent: 'bg-gradient-to-r from-indigo-500 to-purple-500',
+    subtle: 'bg-gradient-to-r from-gray-50 to-white'
   };
 
   // Typography
@@ -57,6 +57,20 @@
     }
   };
 
+  export const text = {
+    primary: 'text-slate-800',
+    secondary: 'text-slate-600',
+    muted: 'text-slate-400',
+    inverse: 'text-white'
+  };
+
+  export const navbar = {
+    bg: 'bg-white border-b border-gray-200 shadow-sm',
+    link: 'text-slate-700 hover:text-indigo-600',
+    activeLink: 'border-b-2 border-indigo-500',
+    mobileBg: 'bg-white border-t border-gray-200'
+  };
+
   // Spacing
   export const spacing = {
     section: 'py-12',
@@ -71,26 +85,26 @@
   // Components
   export const components = {
     card: {
-      base: 'border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white',
+      base: 'border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white',
       highlight: 'border border-indigo-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white'
     },
     button: {
-      primary: 'bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 transition-colors duration-150 ease-in-out',
-      secondary: 'bg-white text-indigo-700 font-medium py-3 px-6 transition-colors duration-150 ease-in-out hover:bg-indigo-50',
-      outline: 'border border-indigo-600 text-indigo-700 hover:bg-indigo-50 font-medium py-3 px-6 transition-colors duration-150 ease-in-out'
+      primary: 'bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-6 transition-colors duration-150 ease-in-out rounded-md',
+      secondary: 'bg-white text-slate-700 border border-gray-300 font-medium py-3 px-6 transition-colors duration-150 ease-in-out hover:bg-gray-50 rounded-md',
+      outline: 'border border-indigo-500 text-indigo-600 hover:bg-gray-50 font-medium py-3 px-6 transition-colors duration-150 ease-in-out rounded-md'
     },
     tag: {
-      primary: 'inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm border border-indigo-100',
-      secondary: 'inline-block px-2.5 py-1 bg-slate-50 text-slate-700 text-sm border border-slate-100'
+      primary: 'inline-block px-2.5 py-1 bg-indigo-100 text-indigo-700 text-sm border border-indigo-200 rounded-md',
+      secondary: 'inline-block px-2.5 py-1 bg-gray-100 text-gray-700 text-sm border border-gray-200 rounded-md'
     },
     input: {
-      base: 'block w-full p-3 text-slate-700 border border-slate-300 bg-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-150 ease-in-out'
+      base: 'block w-full p-3 text-slate-700 border border-gray-300 bg-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-150 ease-in-out rounded-md'
     },
     section: {
       light: 'bg-white',
       dark: 'bg-slate-900 text-white',
       accent: 'bg-indigo-600 text-white',
-      muted: 'bg-slate-50'
+      muted: 'bg-gray-50'
     }
   };
 
