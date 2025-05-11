@@ -219,8 +219,33 @@ export const SupabaseService = {
   },
   
   async deleteTour(tourId: string) {
-    const { error } = await supabase.from('tours').delete().eq('id', tourId);
-    if (error) throw error;
+    try {
+      // First, check if the user has permission to delete this tour
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) throw new Error('User not authenticated');
+      
+      const userId = userData.user.id;
+      
+      // Use the SECURITY DEFINER function to safely delete the tour and all related records
+      // This completely bypasses RLS policies and avoids the infinite recursion issue
+      const { data, error } = await supabase
+        .rpc('delete_tour_safely', { 
+          p_tour_id: tourId,
+          p_user_id: userId
+        });
+      
+      if (error) throw error;
+      
+      // If data is false, it means the user didn't have permission
+      if (data === false) {
+        throw new Error('Permission denied: You cannot delete this tour');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting tour:', error);
+      throw error;
+    }
   },
   
   async getTour(tourId: string) {
