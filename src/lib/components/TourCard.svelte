@@ -115,27 +115,11 @@
                 <!-- Creator information -->
                 {#if creatorUsername}
                 <div class="mt-3 flex items-center text-sm text-slate-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    
                     <span>Created by {creatorUsername}</span>
                 </div>
                 {/if}
-                <div class="mt-4 flex items-center">
-                    <div class="flex items-center">
-                        <div class="flex items-center space-x-1 mr-2">
-                            {#each Array(5) as _, i}
-                                <svg class={`w-4 h-4 ${i < Math.round(ratings.overall) ? getRatingColor(ratings.overall) : 'text-slate-200'}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
-                                    <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
-                                </svg>
-                            {/each}
-                        </div>
-                        <span class="bg-indigo-50 text-indigo-700 text-xs font-medium px-2 py-0.5">{ratings.overall.toFixed(1)}</span>
-                        {#if ratings.count > 0}
-                            <span class="text-xs text-slate-500 ml-1.5">({ratings.count})</span>
-                        {/if}
-                    </div>
-                </div>
+               
                 <div class="mt-4">
                     <span class="text-indigo-600 text-sm font-medium hover:text-indigo-800 transition-colors duration-150">View details →</span>
                 </div>
@@ -212,7 +196,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span class="font-medium">Next tour: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
+                        <span class="font-medium">Next Time: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
                     </div>
                 {/if}
             </div>
