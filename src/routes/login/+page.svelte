@@ -74,14 +74,14 @@
   <title>Login - Language Learning Tours</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 flex flex-col pt-24 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-green-50 flex flex-col pt-24 sm:px-6 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
     <h2 class="mt-4 text-center text-3xl font-extrabold ${text.primary}">
       Sign in to your account
     </h2>
     <p class="mt-2 text-center text-sm ${text.secondary}">
       Or
-      <a href="/signup" class="font-medium text-indigo-600 hover:text-indigo-500">
+      <a href="/signup" class="font-medium text-green-600 hover:text-green-500">
         create a new account
       </a>
     </p>
@@ -90,9 +90,9 @@
   <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
     <div class="bg-white py-6 px-4 shadow sm:rounded-lg sm:px-8">
       {#if emailConfirmationNeeded}
-        <div class="mb-4 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-3 rounded-md">
+        <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
           <p class="font-medium">{generalError}</p>
-          <p class="mt-2 text-sm">Didn't receive the confirmation email? Check your spam folder or <button class="text-indigo-700 underline font-medium" on:click={() => SupabaseService.resendConfirmationEmail(email)}>resend it</button>.</p>
+          <p class="mt-2 text-sm">Didn't receive the confirmation email? Check your spam folder or <button class="text-green-700 underline font-medium" on:click={() => SupabaseService.resendConfirmationEmail(email)}>resend it</button>.</p>
         </div>
       {:else if generalError}
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -112,7 +112,7 @@
               type="email"
               autocomplete="email"
               bind:value={email}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
             />
             {#if emailError}
               <p class="mt-1 text-sm text-red-600">{emailError}</p>
@@ -131,7 +131,7 @@
               type="password"
               autocomplete="current-password"
               bind:value={password}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
             />
             {#if passwordError}
               <p class="mt-1 text-sm text-red-600">{passwordError}</p>
@@ -143,7 +143,7 @@
           <button
             type="submit"
             disabled={loading}
-            class={`${components.button.primary} w-full disabled:opacity-70 disabled:cursor-not-allowed`}
+            class={`${components.button.secondary} w-full disabled:opacity-70 disabled:cursor-not-allowed`}
           >
             {#if loading}
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

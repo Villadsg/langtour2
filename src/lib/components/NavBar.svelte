@@ -45,10 +45,10 @@
           </div>
         {:else}
           <div class="flex items-center space-x-4">
-            <a href="/login" class={`${navbar.link} px-4 py-2 text-sm font-medium`}>
+            <a href="/login" class={components.button.secondary}>
               Login
             </a>
-            <a href="/signup" class={components.button.primary}>
+            <a href="/signup" class={components.button.secondary}>
               Sign Up
             </a>
           </div>

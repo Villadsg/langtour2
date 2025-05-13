@@ -119,7 +119,7 @@
 			</div>
 			
 			<div class="mt-8">
-				<a href="/login" class={components.button.primary + " inline-block mx-2"}>Login</a>
+				<a href="/login" class={components.button.secondary + " inline-block mx-2"}>Login</a>
 				<a href="/signup" class={components.button.secondary + " inline-block mx-2"}>Sign Up</a>
 			</div>
 		</div>

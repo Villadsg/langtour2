@@ -104,7 +104,7 @@
     <h2 class="mt-4 text-center text-3xl font-extrabold ${text.primary}">
       Create your account
     </h2>
-    <p class="mt-2 text-center text-sm ${text.secondary}">
+    <p class="mt-2 text-center text-sm ${text.primary}">
       Or
       <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
         sign in to your existing account
@@ -192,7 +192,7 @@
           <button
             type="submit"
             disabled={loading}
-            class={`${components.button.primary} w-full disabled:opacity-70 disabled:cursor-not-allowed`}
+            class={`${components.button.secondary} w-full disabled:opacity-70 disabled:cursor-not-allowed`}
           >
             {#if loading}
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

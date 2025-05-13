@@ -3,20 +3,20 @@
   This component doesn't render anything but exports CSS variables and utility classes
 -->
 <script context="module">
-  // Color palette
+  // Color palette - Nature-inspired green theme for language learning tours
   export const colors = {
     primary: {
-      50: '#eef2ff',
-      100: '#e0e7ff',
-      200: '#c7d2fe',
-      300: '#a5b4fc',
-      400: '#818cf8',
-      500: '#6366f1',
-      600: '#4f46e5',
-      700: '#4338ca',
-      800: '#3730a3',
-      900: '#312e81',
-      950: '#1e1b4b',
+      50: '#f0fdf4',
+      100: '#dcfce7',
+      200: '#bbf7d0',
+      300: '#86efac',
+      400: '#4ade80',
+      500: '#22c55e',
+      600: '#16a34a',
+      700: '#15803d',
+      800: '#166534',
+      900: '#14532d',
+      950: '#052e16',
     },
     secondary: {
       50: '#f8fafc',
@@ -33,12 +33,12 @@
     }
   };
 
-  // Gradient backgrounds
+  // Gradient backgrounds - Nature-inspired
   export const gradients = {
-    hero: 'bg-gradient-to-r from-gray-50 via-indigo-50 to-gray-50',
-    card: 'bg-gradient-to-br from-white to-gray-50',
-    accent: 'bg-gradient-to-r from-indigo-500 to-purple-500',
-    subtle: 'bg-gradient-to-r from-gray-50 to-white'
+    hero: 'bg-gradient-to-r from-gray-50 via-green-50 to-gray-50',
+    card: 'bg-gradient-to-br from-white to-green-50',
+    accent: 'bg-gradient-to-r from-green-500 to-emerald-500',
+    subtle: 'bg-gradient-to-r from-green-50 to-white'
   };
 
   // Typography
@@ -66,8 +66,8 @@
 
   export const navbar = {
     bg: 'bg-white border-b border-gray-200 shadow-sm',
-    link: 'text-slate-700 hover:text-indigo-600',
-    activeLink: 'border-b-2 border-indigo-500',
+    link: 'text-slate-700 hover:text-green-600',
+    activeLink: 'border-b-2 border-green-500',
     mobileBg: 'bg-white border-t border-gray-200'
   };
 
@@ -86,25 +86,25 @@
   export const components = {
     card: {
       base: 'border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white',
-      highlight: 'border border-indigo-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white'
+      highlight: 'border border-green-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white'
     },
     button: {
-      primary: 'bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-6 transition-colors duration-150 ease-in-out rounded-md',
-      secondary: 'bg-white text-slate-700 border border-gray-300 font-medium py-3 px-6 transition-colors duration-150 ease-in-out hover:bg-gray-50 rounded-md',
-      outline: 'border border-indigo-500 text-indigo-600 hover:bg-gray-50 font-medium py-3 px-6 transition-colors duration-150 ease-in-out rounded-md'
+      primary: 'bg-green-500 hover:bg-green-600 text-white font-normal py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg shadow-sm',
+      secondary: 'bg-gray-100 text-slate-700 border border-gray-300 font-normal py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-gray-50 rounded-lg shadow-sm',
+      outline: 'border border-green-500 text-green-600 hover:bg-green-50 font-normal py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg shadow-sm'
     },
     tag: {
-      primary: 'inline-block px-2.5 py-1 bg-indigo-100 text-indigo-700 text-sm border border-indigo-200 rounded-md',
+      primary: 'inline-block px-2.5 py-1 bg-green-100 text-green-700 text-sm border border-green-200 rounded-md',
       secondary: 'inline-block px-2.5 py-1 bg-gray-100 text-gray-700 text-sm border border-gray-200 rounded-md'
     },
     input: {
-      base: 'block w-full p-3 text-slate-700 border border-gray-300 bg-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-150 ease-in-out rounded-md'
+      base: 'block w-full p-3 text-slate-700 border border-gray-300 bg-white focus:ring-green-500 focus:border-green-500 transition-colors duration-150 ease-in-out rounded-md'
     },
     section: {
       light: 'bg-white',
       dark: 'bg-slate-900 text-white',
-      accent: 'bg-indigo-600 text-white',
-      muted: 'bg-gray-50'
+      accent: 'bg-green-600 text-white',
+      muted: 'bg-green-50'
     }
   };
 
