@@ -1075,38 +1075,67 @@ export const SupabaseService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('User not authenticated');
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
       
-      // Update user metadata in auth.users
-      const { data, error } = await supabase.auth.updateUser({
+      // Update the auth.users table metadata
+      const { error: authUpdateError } = await supabase.auth.updateUser({
         data: { name }
       });
       
-      if (error) throw error;
-      
-      // Also update the username in public_profiles table
-      const { error: profileError } = await supabase
-        .from('public_profiles')
-        .upsert({
-          id: user.id,
-          username: name,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'id'
-        });
-      
-      if (profileError) {
-        console.error('Error updating public profile:', profileError);
-        throw profileError;
+      if (authUpdateError) {
+        throw authUpdateError;
       }
       
-      // Update the current user store
-      currentUser.set(data.user);
+      // Update the public_profiles table
+      const { error: profileUpdateError } = await supabase
+        .from('public_profiles')
+        .update({
+          username: name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
       
-      return data.user;
+      if (profileUpdateError) {
+        throw profileUpdateError;
+      }
+      
+      return { success: true };
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
     }
   },
+
+  // Get the next scheduled tour for a specific tour
+  async getNextScheduledTour(tourId: string) {
+    try {
+      if (!tourId || tourId === 'undefined') {
+        console.error('Invalid tour ID provided to getNextScheduledTour:', tourId);
+        return { data: null, error: null };
+      }
+      
+      const now = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('schedules')
+        .select('*')
+        .eq('tour_id', tourId)
+        .gt('scheduled_date', now)
+        .order('scheduled_date', { ascending: true })
+        .limit(1)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+        console.error('Error getting next scheduled tour:', error);
+        throw error;
+      }
+      
+      return { data: data || null, error: null };
+    } catch (err) {
+      console.error('Exception in getNextScheduledTour:', err);
+      return { data: null, error: err };
+    }
+  }
 };

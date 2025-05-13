@@ -81,7 +81,7 @@
     </h2>
     <p class="mt-2 text-center text-sm ${text.secondary}">
       Or
-      <a href="/signup" class="font-medium text-green-600 hover:text-green-500">
+      <a href="/signup" class="font-medium text-orange-600 hover:text-orange-500">
         create a new account
       </a>
     </p>

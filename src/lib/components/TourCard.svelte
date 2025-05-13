@@ -32,6 +32,27 @@
     let creatorId = $state<string | null>(null);
     let creatorUsername = $state<string | null>(null);
     
+    // Store next scheduled tour
+    let nextSchedule = $state<any | null>(null);
+    
+    // Format date to day of week
+    function formatDateToDayOfWeek(dateString: string): string {
+        const date = new Date(dateString);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        // Check if it's today or tomorrow
+        if (date.toDateString() === today.toDateString()) {
+            return 'today';
+        } else if (date.toDateString() === tomorrow.toDateString()) {
+            return 'tomorrow';
+        }
+        
+        // Otherwise return the day of the week
+        return date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    }
+    
     onMount(async () => {
         try {
             // Fetch multi-dimensional ratings if available
@@ -54,9 +75,15 @@
                     // Get creator username
                     creatorUsername = await SupabaseService.getUsernameById(creatorId);
                 }
+                
+                // Get next scheduled tour
+                const { data } = await SupabaseService.getNextScheduledTour(tour.id);
+                if (data) {
+                    nextSchedule = data;
+                }
             }
         } catch (error) {
-            console.error('Error fetching ratings:', error);
+            console.error('Error fetching tour data:', error);
         }
     });
     
@@ -76,6 +103,7 @@
             <!-- Left side: Tour information -->
             <div class="flex-1">
                 <h3 class="text-xl font-medium text-slate-800">{tour.name}</h3>
+                
                 <div class="flex items-center mt-3">
                     <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
                         {tour.language}
@@ -175,6 +203,16 @@
                                 </svg>
                             </span>
                         </div>
+                    </div>
+                {/if}
+                
+                <!-- Next scheduled tour badge -->
+                {#if nextSchedule}
+                    <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="font-medium">Next tour: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
                     </div>
                 {/if}
             </div>
