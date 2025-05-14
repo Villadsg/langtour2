@@ -1117,22 +1117,34 @@ export const SupabaseService = {
       }
       
       const now = new Date().toISOString();
+      console.log(`Fetching next scheduled tour for tourId: ${tourId}, after date: ${now}`);
       
+      // First check if the schedules table exists
+      const { error: tableCheckError } = await supabase
+        .from('schedules')
+        .select('count', { count: 'exact', head: true });
+        
+      if (tableCheckError) {
+        console.error('Error checking schedules table:', tableCheckError);
+        return { data: null, error: tableCheckError };
+      }
+      
+      // Now try to get the next scheduled tour
       const { data, error } = await supabase
         .from('schedules')
         .select('*')
         .eq('tour_id', tourId)
         .gt('scheduled_date', now)
         .order('scheduled_date', { ascending: true })
-        .limit(1)
-        .single();
+        .limit(1);
         
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+      if (error) {
         console.error('Error getting next scheduled tour:', error);
-        throw error;
+        return { data: null, error };
       }
       
-      return { data: data || null, error: null };
+      // Return the first item if available
+      return { data: data && data.length > 0 ? data[0] : null, error: null };
     } catch (err) {
       console.error('Exception in getNextScheduledTour:', err);
       return { data: null, error: err };

@@ -58,9 +58,9 @@
 				
 				return {
 					id: doc.$id,
-					cityId: tourData.cityId || '',
+					cityId: doc.cityId || tourData.cityId || '',
 					name: doc.name || tourData.name || 'Tour',
-					language: tourData.language || '',
+					language: doc.language || tourData.language || '',
 					description: tourData.description || '',
 					imageUrl: doc.imageUrl
 				};
@@ -131,13 +131,9 @@
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
 		<div>
 			<h2 class={`${typography.heading.h2} ${text.primary} mb-2`}>Available Tours</h2>
-			<p class={text.secondary}>Explore language learning experiences in cities worldwide</p>
+			<p class={text.secondary}>Learn a language while experiencing a city</p>
 		</div>
-		{#if $currentUser && $isAdmin}
-			<a href="/dashboard" class={components.button.primary + " mt-4 md:mt-0 py-2 px-5"}>
-				Manage Tours
-			</a>
-		{/if}
+		
 	</div>
 	
 	{#if error}

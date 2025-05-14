@@ -105,9 +105,7 @@
                 <h3 class="text-xl font-medium text-slate-800">{tour.name}</h3>
                 
                 <div class="flex items-center mt-3">
-                    <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
-                        {tour.language}
-                    </div>
+                    
                     {#if city}
                         <span class="text-slate-600 text-sm">{city.name}, {city.country}</span>
                     {/if}
@@ -117,7 +115,9 @@
                 <div class="mt-3 flex items-center text-sm text-slate-500">
                     
                     <span>Created by {creatorUsername}</span>
+                    
                 </div>
+                
                 {/if}
                
                 <div class="mt-4">
@@ -129,6 +129,7 @@
             <div class="mt-5 md:mt-0 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 md:min-w-[200px]">
                 <div class="text-xs font-medium text-slate-700 uppercase tracking-wider mb-3">Ratings</div>
                 <!-- Language Learning Rating -->
+                 
                 <div class="flex items-center mb-2">
                     <span class="text-xs font-medium text-slate-600 w-24">Language:</span>
                     <div class="flex items-center space-x-1">
@@ -189,7 +190,9 @@
                         </div>
                     </div>
                 {/if}
-                
+                <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
+                    {tour.language}
+                </div>
                 <!-- Next scheduled tour badge -->
                 {#if nextSchedule}
                     <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100 shadow-sm">
@@ -199,6 +202,8 @@
                         <span class="font-medium">Next Time: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
                     </div>
                 {/if}
+
+                
             </div>
         </div>
     </div>

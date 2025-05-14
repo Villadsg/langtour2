@@ -33,10 +33,10 @@
         {#if $currentUser}
           <div class="flex items-center space-x-4">
             <span class={`text-sm ${text.muted}`}>Hello, {$currentUser?.user_metadata?.name || $currentUser?.email}</span>
-            <a href="/dashboard" class={components.button.primary}>
-              Dashboard
+            <a href="/dashboard" class={components.button.secondary}>
+              Manage Tours
             </a>
-            <a href="/bookings" class={components.button.primary}>
+            <a href="/bookings" class={components.button.secondary}>
               Bookings
             </a>
             <a href="/profile" class={components.button.secondary}>
