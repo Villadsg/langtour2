@@ -252,7 +252,7 @@
     {/if}
         
     <div class="mt-8">
-      <h3 class="text-lg font-semibold mb-4">Scheduled Tours</h3>
+      <h3 class="text-lg font-semibold mb-4">All created schedules</h3>
       
       {#if cancelError}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">

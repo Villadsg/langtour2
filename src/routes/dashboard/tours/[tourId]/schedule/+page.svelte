@@ -105,10 +105,24 @@
     }
   }
   
-  // Function to format date
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Function to format date with error handling
+  function formatDate(dateString: string | null) {
+    if (!dateString) return 'No date';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date string:', dateString);
+        return 'Invalid date';
+      }
+      
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date error';
+    }
   }
   
   // Function to get tour data from JSON in description
@@ -328,16 +342,16 @@
                 <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                   <div class="flex justify-between items-start">
                     <div>
-                      <p class="font-medium">{formatDate(schedule.scheduledDate)}</p>
-                      <p class="text-sm text-gray-600 mt-1">Meeting points: {schedule.meetingPoint}</p>
-                      <p class="text-sm text-gray-600">Max participants: {schedule.maxParticipants}</p>
-                      {#if schedule.additionalInfo}
-                        <p class="text-sm text-gray-600 mt-2">{schedule.additionalInfo}</p>
+                      <p class="font-medium">{formatDate(schedule.scheduled_date)}</p>
+                      <p class="text-sm text-gray-600 mt-1">Meeting points: {schedule.meeting_point}</p>
+                      <p class="text-sm text-gray-600">Max participants: {schedule.max_participants}</p>
+                      {#if schedule.additional_info}
+                        <p class="text-sm text-gray-600 mt-2">{schedule.additional_info}</p>
                       {/if}
                     </div>
                     <div>
                       <a 
-                        href={`/dashboard/schedules/${schedule.$id}/manage`}
+                        href={`/dashboard/schedules/${schedule.id}/manage`}
                         class="text-blue-600 hover:text-blue-800 text-sm"
                       >
                         Manage

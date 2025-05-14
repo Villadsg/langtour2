@@ -4,7 +4,7 @@
     import { SupabaseService } from '$lib/supabaseService';
     import AITourForm from '$lib/components/AITourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
-    import NavBar from '$lib/components/NavBar.svelte';
+
     
     let isSubmitting = false;
     let error = '';
@@ -60,8 +60,6 @@
         }
     });
 </script>
-
-<NavBar />
 
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">

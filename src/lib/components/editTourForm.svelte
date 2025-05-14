@@ -104,12 +104,7 @@
         return result;
     };
     
-    // Start the conversation with the AI
-    const startConversation = async () => {
-        // Use a direct, concise greeting message
-        const greeting = "Hello! Describe your language learning tour. I'll automatically fill in the form for you.";
-        messages = [{ role: 'ai', content: greeting }];
-    };
+
     
     // Handle user input submission
     const handleSubmit = async () => {
@@ -163,46 +158,10 @@
         dispatch('cancel');
     };
     
-    // Start the conversation when the component mounts
-    onMount(() => {
-        startConversation();
-    });
 </script>
 
 <div class="bg-white shadow-md rounded-lg p-6">
-    <!-- AI conversation area -->
-    <div class="mb-6 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg">
-        {#each messages as message}
-            <div class="mb-4 {message.role === 'ai' ? 'text-left' : 'text-right'}">
-                <div class="inline-block max-w-3/4 p-3 rounded-lg {message.role === 'ai' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-800'}">
-                    {#if message.role === 'ai' && message.feedback}
-                        <div class="mb-2">
-                            {#if message.feedback === 'excellent'}
-                                <span class="text-green-600 font-bold">✓ Excellent!</span>
-                            {:else if message.feedback === 'good'}
-                                <span class="text-yellow-600 font-bold">⚠ Good</span>
-                            {:else if message.feedback === 'needs_improvement'}
-                                <span class="text-red-600 font-bold">✗ Needs Improvement</span>
-                            {/if}
-                        </div>
-                    {/if}
-                    <div class="whitespace-pre-line">{message.content}</div>
-                </div>
-            </div>
-        {/each}
-        
-        {#if isWaitingForResponse}
-            <div class="flex justify-start mb-4">
-                <div class="bg-blue-100 text-blue-800 p-3 rounded-lg">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-blue-600 rounded-full mr-1 animate-bounce"></div>
-                        <div class="w-2 h-2 bg-blue-600 rounded-full mr-1 animate-bounce" style="animation-delay: 0.2s"></div>
-                        <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-                    </div>
-                </div>
-            </div>
-        {/if}
-    </div>
+
     
     {#if !isFormComplete}
         <!-- User input area -->
@@ -289,7 +248,7 @@
                 </svg>
                 Creating...
             {:else}
-                Create Tour
+                Save Changes
             {/if}
         </button>
         <button

@@ -3,7 +3,7 @@
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
     import { SupabaseService, currentUser } from '$lib/supabaseService';
-    import TourForm from '$lib/components/TourForm.svelte';
+    import EditTourForm from '$lib/components/editTourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
 
     
@@ -30,7 +30,15 @@
             }
             
             // Fetch tour from Supabase
-            const doc = await SupabaseService.getTour(tourId);
+            const { data: doc, error: tourError } = await SupabaseService.getTour(tourId);
+            
+            if (tourError || !doc) {
+                error = typeof tourError === 'object' && tourError !== null && 'message' in tourError
+                    ? String(tourError.message)
+                    : 'Failed to load tour';
+                isLoading = false;
+                return;
+            }
             
             // Check if the current user is the creator of this tour
             const creatorId = await SupabaseService.getTourCreatorId(tourId);
@@ -117,7 +125,7 @@
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
     {:else if tour}
-        <TourForm 
+        <EditTourForm 
             tour={{
                 name: tour.name,
                 cityId: tour.cityId,
@@ -125,7 +133,6 @@
                 description: tour.description,
                 imageUrl: tour.imageUrl || ''
             }} 
-            isEditing={true} 
             on:submit={handleSubmit} 
             on:cancel={handleCancel} 
         />

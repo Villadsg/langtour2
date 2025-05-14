@@ -114,7 +114,7 @@
 
 
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Your Bookings</h1>
+  <h1 class="text-3xl font-bold mb-6">Your upcoming classes</h1>
   
   {#if error}
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">

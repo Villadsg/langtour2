@@ -28,7 +28,7 @@
         </div>
         <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
           <a href="/" class={`${navbar.link} ${navbar.activeLink} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
-            Tours
+            Book a tour
           </a>
         </div>
       </div>
@@ -37,11 +37,12 @@
         {#if $currentUser}
           <div class="flex items-center space-x-4">
             <span class={`text-sm ${text.muted}`}>Hello, {$currentUser?.user_metadata?.name || $currentUser?.email}</span>
-            <a href="/dashboard" class={components.button.secondary}>
-              Manage Tours
-            </a>
+           
             <a href="/bookings" class={components.button.secondary}>
-              Bookings
+              Your plans
+            </a>
+            <a href="/dashboard" class={components.button.secondary}>
+              Manage tours
             </a>
             <a href="/profile" class={components.button.secondary}>
               Profile
