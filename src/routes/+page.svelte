@@ -3,13 +3,11 @@
 	import { citiesStore, type Tour } from '$lib/stores/tourStore';
 	import { SupabaseService, currentUser, isAdmin } from '$lib/supabaseService';
 	import TourCard from '$lib/components/TourCard.svelte';
-	import NavBar from '$lib/components/NavBar.svelte';
 	import { get } from 'svelte/store';
 	import { toursStore } from '$lib/stores/tourStore';
 	import Section from '$lib/components/Section.svelte';
 	import FeatureCard from '$lib/components/FeatureCard.svelte';
-	import Testimonial from '$lib/components/Testimonial.svelte';
-	import CallToAction from '$lib/components/CallToAction.svelte';
+
 	import { gradients, components, typography, spacing, text } from '$lib/styles/DesignSystem.svelte';
 
 	let tours: Tour[] = [];
@@ -101,14 +99,14 @@
 	<div class="container mx-auto px-6">
 		<div class="max-w-4xl mx-auto text-center">
 			<h1 class={typography.heading.h1 + " mb-4"}>Language Learning Tours</h1>
-			<p class={`text-xl ${text.secondary} mb-6`}>Explore cities and cultures through immersive language experiences</p>
+			<p class={`text-xl ${text.secondary} mb-6`}>Explore cities and cultures through language learning</p>
 			
 			<!-- Feature highlights -->
 			<div class="grid md:grid-cols-2 gap-3 md:gap-6 mt-8">
 				<FeatureCard 
 					icon="<svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' /></svg>"
 					title="Discover Cities Through Language"
-					description="Experience authentic cultural immersion while improving your language skills in real-world settings."
+					description="Experience cultural immersion while improving your language skills"
 				/>
 				
 				<FeatureCard 
