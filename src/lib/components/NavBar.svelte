@@ -13,6 +13,10 @@
   const toggleMenu = () => {
     isMenuOpen = !isMenuOpen;
   };
+  
+  const closeMenu = () => {
+    isMenuOpen = false;
+  };
 </script>
 
 <nav class={navbar.bg}>
@@ -76,7 +80,7 @@
   {#if isMenuOpen}
     <div class={`sm:hidden ${navbar.mobileBg}`}>
       <div class="pt-2 pb-3 space-y-1">
-        <a href="/" class={`${navbar.link} ${navbar.activeLink} block pl-3 pr-4 py-2 text-base font-medium`}>
+        <a href="/" on:click={closeMenu} class={`block pl-3 pr-4 py-2 text-base font-medium ${navbar.activeLink}`}>
           Tours
         </a>
       </div>
@@ -89,22 +93,22 @@
             </div>
           </div>
           <div class="mt-3 space-y-1">
-            <a href="/dashboard" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
+            <a href="/dashboard" on:click={closeMenu} class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Dashboard
             </a>
-            <a href="/bookings" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
+            <a href="/bookings" on:click={closeMenu} class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Your Bookings
             </a>
-            <a href="/profile" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
+            <a href="/profile" on:click={closeMenu} class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Edit Profile
             </a>
           </div>
         {:else}
           <div class="mt-3 space-y-1">
-            <a href="/login" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
+            <a href="/login" on:click={closeMenu} class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Login
             </a>
-            <a href="/signup" class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
+            <a href="/signup" on:click={closeMenu} class={`${navbar.link} block px-4 py-2 text-base font-medium`}>
               Sign Up
             </a>
           </div>
