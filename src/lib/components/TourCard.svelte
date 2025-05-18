@@ -137,7 +137,40 @@
                     <h3 class="text-xl font-medium text-slate-800">{tour.name}</h3>
                     
                 </div>
-                
+                <div class="flex flex-wrap items-center gap-3 mb-2">
+                    <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
+                        {tour.language}
+                    </div>
+    
+    
+                    
+                    <!-- Tour Type Marker (moved next to heading) -->
+                    {#if tour.tourType === 'person'}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                        <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        Tour Guide
+                    </span>
+                {:else if tour.tourType === 'app'}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                        <svg class="h-4 w-4 mr-1 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="7" y="2" width="10" height="20" rx="2" />
+                            <circle cx="12" cy="18" r="1" />
+                        </svg>
+                        App-guide
+                    </span>
+                {:else}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                        <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        Tour Guide
+                    </span>
+                {/if}
+    
+            </div>
+
                 <div class="flex items-center mt-3 gap-3 mb-2">
                     
                     {#if city}
@@ -150,13 +183,11 @@
                 <!-- Creator information -->
                 {#if creatorUsername}
                 <div class="mt-3 flex items-center text-sm text-slate-500">
-                    <span>Created by {creatorUsername}</span>
+                    <span>Tour creator: {creatorUsername}</span>
                 </div>
                 {/if}
                
-                <div class="mt-4">
-                    <span class="text-indigo-600 text-sm font-medium hover:text-indigo-800 transition-colors duration-150">View details →</span>
-                </div>
+               
             </div>
             
             <!-- Right side: Ratings -->
@@ -224,39 +255,7 @@
                         </div>
                     </div>
                 {/if}
-                <div class="flex flex-wrap items-center gap-3 mb-2">
-                <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
-                    {tour.language}
-                </div>
-
-
                 
-                <!-- Tour Type Marker (moved next to heading) -->
-                {#if tour.tourType === 'person'}
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                    <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    Tour Guide
-                </span>
-            {:else if tour.tourType === 'app'}
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
-                    <svg class="h-4 w-4 mr-1 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="7" y="2" width="10" height="20" rx="2" />
-                        <circle cx="12" cy="18" r="1" />
-                    </svg>
-                    App-guide
-                </span>
-            {:else}
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                    <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    Tour Guide
-                </span>
-            {/if}
-
-        </div>
                 <!-- Next scheduled tour badge -->
                 {#if nextSchedule}
                     <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100 shadow-sm">
