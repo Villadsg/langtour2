@@ -60,7 +60,7 @@
         }
     });
 </script>
-
+    
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
         <a href="/dashboard" class="text-blue-600 hover:underline inline-flex items-center">

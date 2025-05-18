@@ -13,6 +13,8 @@
 	let tours: Tour[] = [];
 	let cities = $citiesStore;
 	let searchQuery = '';
+	// Tour type filter
+	let tourTypeFilter = 'all'; // 'all', 'person', or 'app'
 	let isLoading = true;
 	let error = '';
 
@@ -54,13 +56,27 @@
 					};
 				}
 				
+				// Extract tourType - first check if it's directly on the doc, then in tourData
+				const tourType = doc.tourType || tourData.tourType || 'person';
+				
+				// Log the first tour to help with debugging
+				if (doc.$id && doc.$id === response.data[0].$id) {
+					console.log('First tour data in +page.svelte:', { 
+						id: doc.$id, 
+						tourType, 
+						rawTourType: doc.tourType,
+						descriptionTourType: tourData.tourType
+					});
+				}
+				
 				return {
 					id: doc.$id,
 					cityId: doc.cityId || tourData.cityId || '',
 					name: doc.name || tourData.name || 'Tour',
 					language: doc.language || tourData.language || '',
 					description: tourData.description || '',
-					imageUrl: doc.imageUrl
+					imageUrl: doc.imageUrl,
+					tourType // Explicitly include tourType
 				};
 			});
 			isLoading = false;
@@ -75,20 +91,26 @@
 		}
 	});
 
-	// Filter tours based on search query
-	$: filteredTours = searchQuery && tours.length
+	// Filter tours based on search query and tour type
+	$: filteredTours = tours.length
 		? tours.filter(tour => {
 			// Find the city for this tour
 			const city = cities.find(c => c.id === tour.cityId);
-			// Match against city name, country, tour name, or language
-			return (
+			
+			// Apply search query filter if present
+			const matchesSearch = !searchQuery || (
 				city?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				city?.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				tour.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				tour.language.toLowerCase().includes(searchQuery.toLowerCase())
 			);
+			
+			// Apply tour type filter
+			const matchesTourType = tourTypeFilter === 'all' || tour.tourType === tourTypeFilter;
+			
+			return matchesSearch && matchesTourType;
 		})
-		: tours;
+		: [];
 </script>
 
 
@@ -151,25 +173,64 @@
 		</div>
 	{/if}
 
-	<!-- Search bar -->
+	<!-- Search and filter section -->
 	<div class="mb-6">
-		<div class="relative max-w-2xl mx-auto">
-			<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-				<svg class={`w-4 h-4 ${text.muted}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-				</svg>
+		<div class="max-w-4xl mx-auto">
+			<!-- Search bar -->
+			<div class="relative mb-4">
+				<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+					<svg class={`w-4 h-4 ${text.muted}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+						<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+					</svg>
+				</div>
+				<input 
+					type="text" 
+					bind:value={searchQuery}
+					class={components.input.base + " pl-10"}
+					placeholder="Search by city, language, or tour name..."
+				/>
 			</div>
-			<input 
-				type="text" 
-				bind:value={searchQuery}
-				class={components.input.base + " pl-10"}
-				placeholder="Search by city, language, or tour name..."
-			/>
+			
+			<!-- Tour type filter -->
+			<div class="flex justify-center items-center space-x-2">
+				<span class="text-sm text-gray-600">Filter by:</span>
+				
+				<!-- All tours -->
+				<button 
+					class={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+					on:click={() => tourTypeFilter = 'all'}
+				>
+					All Tours
+				</button>
+				
+				<!-- Tour Guide filter -->
+				<button 
+					class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'person' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+					on:click={() => tourTypeFilter = 'person'}
+				>
+					<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+					</svg>
+					Tour Guide
+				</button>
+				
+				<!-- App-guide filter -->
+				<button 
+					class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'app' ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}
+					on:click={() => tourTypeFilter = 'app'}
+				>
+					<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<rect x="7" y="2" width="10" height="20" rx="2" />
+						<circle cx="12" cy="18" r="1" />
+					</svg>
+					App-guide
+				</button>
+			</div>
 		</div>
 	</div>
 	
 	<!-- Tours list -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 		{#if filteredTours.length > 0}
 			{#each filteredTours as tour}
 				<TourCard {tour} />

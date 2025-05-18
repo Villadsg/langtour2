@@ -279,14 +279,27 @@ export const SupabaseService = {
       const description = typeof tour.description === 'string' 
         ? JSON.parse(tour.description) 
         : tour.description;
+      
+      // Ensure tourType is included and has a default value if missing
+      const tourType = description.tourType || 'person';
         
       return {
         $id: tour.id,
+        id: tour.id,
         description: JSON.stringify(description),
         imageUrl: tour.image_url,
+        tourType, // Explicitly include tourType at the top level
         ...description
       };
     });
+    
+    // Log the first tour to verify structure
+    if (transformedData.length > 0) {
+      console.log('Sample tour data:', { 
+        id: transformedData[0].id,
+        tourType: transformedData[0].tourType
+      });
+    }
     
     // Return in a format compatible with existing code
     return {

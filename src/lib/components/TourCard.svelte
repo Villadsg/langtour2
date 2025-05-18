@@ -6,6 +6,37 @@
 
     let { tour } = $props<{ tour: Tour }>();
     
+    // Debug tour data to see if tourType is present
+    console.log('Tour data in TourCard:', { 
+        id: tour.id, 
+        tourType: tour.tourType,
+        description: typeof tour.description === 'string' ? 'string' : 'object'
+    });
+    
+    // Ensure tourType is available - if not in tour object directly, try to extract from description
+    if (!tour.tourType && tour.description) {
+        try {
+            const descObj = typeof tour.description === 'string' 
+                ? JSON.parse(tour.description) 
+                : tour.description;
+            
+            if (descObj.tourType) {
+                tour.tourType = descObj.tourType;
+                console.log('Extracted tourType from description:', tour.tourType);
+            } else {
+                // Default to 'person' if not found
+                tour.tourType = 'person';
+                console.log('Using default tourType: person');
+            }
+        } catch (e) {
+            console.error('Error parsing tour description:', e);
+            tour.tourType = 'person'; // Default fallback
+        }
+    } else if (!tour.tourType) {
+        tour.tourType = 'person'; // Default fallback if no description
+        console.log('No description, using default tourType: person');
+    }
+    
     // Get the city information for this tour
     const city = $citiesStore.find(c => c.id === tour.cityId);
     let averageRating = SupabaseService.getAverageRating(tour);
@@ -97,27 +128,30 @@
     }
 </script>
 
-<a href="/tours/{tour.id}" class="block border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white mb-6">
-    <div class="p-6">
+<a href="/tours/{tour.id}" class="block border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white mb-6 w-full">
+    <div class="p-8">
         <div class="flex flex-col md:flex-row md:justify-between md:space-x-6">
             <!-- Left side: Tour information -->
             <div class="flex-1">
-                <h3 class="text-xl font-medium text-slate-800">{tour.name}</h3>
+                <div class="flex flex-wrap items-center gap-3 mb-2">
+                    <h3 class="text-xl font-medium text-slate-800">{tour.name}</h3>
+                    
+                </div>
                 
-                <div class="flex items-center mt-3">
+                <div class="flex items-center mt-3 gap-3 mb-2">
                     
                     {#if city}
                         <span class="text-slate-600 text-sm">{city.name}, {city.country}</span>
                     {/if}
+
                 </div>
+                <!-- Tour Type Marker moved next to heading -->
+                
                 <!-- Creator information -->
                 {#if creatorUsername}
                 <div class="mt-3 flex items-center text-sm text-slate-500">
-                    
                     <span>Created by {creatorUsername}</span>
-                    
                 </div>
-                
                 {/if}
                
                 <div class="mt-4">
@@ -190,9 +224,39 @@
                         </div>
                     </div>
                 {/if}
+                <div class="flex flex-wrap items-center gap-3 mb-2">
                 <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
                     {tour.language}
                 </div>
+
+
+                
+                <!-- Tour Type Marker (moved next to heading) -->
+                {#if tour.tourType === 'person'}
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                    <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Tour Guide
+                </span>
+            {:else if tour.tourType === 'app'}
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                    <svg class="h-4 w-4 mr-1 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <rect x="7" y="2" width="10" height="20" rx="2" />
+                        <circle cx="12" cy="18" r="1" />
+                    </svg>
+                    App-guide
+                </span>
+            {:else}
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                    <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Tour Guide
+                </span>
+            {/if}
+
+        </div>
                 <!-- Next scheduled tour badge -->
                 {#if nextSchedule}
                     <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100 shadow-sm">

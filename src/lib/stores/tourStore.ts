@@ -7,6 +7,7 @@ export interface Tour {
     language: string;
     description: string;
     imageUrl?: string;
+    tourType?: string;
 }
 
 export interface City {

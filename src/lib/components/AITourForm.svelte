@@ -8,7 +8,8 @@
         cityId: '',
         language: '',
         description: '',
-        imageUrl: ''
+        imageUrl: '',
+        tourType: ''
     };
     
     const dispatch = createEventDispatcher();
@@ -21,6 +22,12 @@
     
     // Language options (same as in TourForm)
     const languages = ['Danish', 'Spanish', 'English', 'French', 'German', 'Italian'];
+    
+    // Tour type options with display labels and values
+    const tourTypes = [
+        { value: 'person', label: 'Guided tour by a person' },
+        { value: 'app', label: 'Guided tour by the app' }
+    ];
     
     // AI conversation state
     let currentQuestion = '';
@@ -37,8 +44,8 @@
     let missingFields: string[] = [];
     
     // Parse tour information from user input and get AI suggestions for missing fields
-    const extractTourInfo = async (input: string): Promise<{ name: string, cityId: string, language: string, description: string }> => {
-        const result = { name: '', cityId: '', language: '', description: input };
+    const extractTourInfo = async (input: string): Promise<{ name: string, cityId: string, language: string, description: string, tourType: string }> => {
+        const result = { name: '', cityId: '', language: '', description: input, tourType: '' };
         
         // Only try to extract explicit tour names (in quotes or after "name:")
         // Don't use the first text in the description as the name
@@ -64,11 +71,25 @@
             }
         }
         
+        // Check for tour type in the input
+        if (input.toLowerCase().includes('guided tour by a person') || 
+            input.toLowerCase().includes('in person') || 
+            input.toLowerCase().includes('tour guide') || 
+            input.toLowerCase().includes('guided by person')) {
+            result.tourType = 'person';
+        } else if (input.toLowerCase().includes('guided tour by the app') || 
+                   input.toLowerCase().includes('app guided') || 
+                   input.toLowerCase().includes('self guided') || 
+                   input.toLowerCase().includes('digital guide')) {
+            result.tourType = 'app';
+        }
+        
         // Get AI suggestions for any missing fields
         const missingFields = [];
         if (!result.name) missingFields.push('name');
         if (!result.cityId) missingFields.push('city');
         if (!result.language) missingFields.push('language');
+        if (!result.tourType) missingFields.push('tourType');
         
         if (missingFields.length > 0) {
             const suggestions = await MistralService.generateSuggestions(input, missingFields);
@@ -133,6 +154,7 @@
         tour.cityId = tourInfo.cityId || tour.cityId;
         tour.language = tourInfo.language || tour.language;
         tour.description = tourInfo.description;
+        tour.tourType = tourInfo.tourType || tour.tourType;
         
         // Skip the detailed analysis feedback to keep the experience simple
         
@@ -271,6 +293,24 @@
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32"
                 ></textarea>
             </div>
+            
+            <div>
+                <label for="tour-type" class="block text-gray-700 text-sm font-bold mb-2">Tour Type <span class="text-red-500">*</span></label>
+                <select
+                    id="tour-type"
+                    bind:value={tour.tourType}
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    required
+                >
+                    <option value="" disabled>Select a tour type</option>
+                    {#each tourTypes as type}
+                        <option value={type.value}>{type.label}</option>
+                    {/each}
+                </select>
+                {#if isFormComplete && !tour.tourType}
+                    <p class="text-red-500 text-xs mt-1">Please select a tour type</p>
+                {/if}
+            </div>
         </div>
     {/if}
     
@@ -280,7 +320,7 @@
             type="button"
             on:click={handleCreateTour}
             class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
-            disabled={isSubmitting || !isFormComplete}
+            disabled={isSubmitting || !isFormComplete || !tour.tourType}
         >
             {#if isSubmitting}
                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
