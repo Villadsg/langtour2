@@ -254,7 +254,7 @@
     
     // Helper function to extract tour data from description JSON
     function getTourData(tourDoc: any) {
-        if (!tourDoc) return { name: '', description: '', language: '', cityId: '' };
+        if (!tourDoc) return { name: '', description: '', language: '', cityId: '', tourType: 'person' };
         
         let tourData: Partial<any> = {};
         try {
@@ -269,7 +269,8 @@
                             name: tourDoc.description.split('\n')[0] || 'Tour', // Use first line as name
                             description: tourDoc.description,
                             language: 'Unknown',
-                            cityId: ''
+                            cityId: '',
+                            tourType: 'person'
                         };
                     }
                 } else if (typeof tourDoc.description === 'object') {
@@ -284,16 +285,22 @@
                 name: 'Tour',
                 description: typeof tourDoc.description === 'string' ? tourDoc.description : 'No description available',
                 language: 'Unknown',
-                cityId: ''
+                cityId: '',
+                tourType: 'person'
             };
         }
+        
+        // Extract tourType from tour document or description
+        let tourType = tourDoc.tourType || tourData.tourType || 'person';
+        
         return {
             id: tourDoc.id,
             name: tourData.name || '',
             cityId: tourData.cityId || '',
             language: tourData.language || '',
             description: tourData.description || '',
-            imageUrl: tourDoc.imageUrl || ''
+            imageUrl: tourDoc.imageUrl || '',
+            tourType: tourType
         };
     }
 </script>
@@ -380,27 +387,47 @@
                         {:else if scheduledTours.length === 0}
                             <p class="text-gray-600 mb-3">No upcoming scheduled tours available.</p>
                             
-                            <div class="mt-4">
-                                <h4 class="text-md font-semibold mb-2">Get Notified</h4>
-                                <p class="text-gray-600 mb-3">Enter your email to be notified when this tour is scheduled:</p>
-                                <div class="flex flex-col gap-3 max-w-md">
-                                    <input 
-                                        type="email" 
-                                        bind:value={notificationEmail}
-                                        placeholder="Enter your email" 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <button 
-                                        on:click={handleNotifyMe}
-                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-auto"
-                                    >
-                                        Notify Me
-                                    </button>
+                            {@const tourData = getTourData(tour)}
+                            {#if tourData.tourType === 'app'}
+                                <div class="mt-4">
+                                    <h4 class="text-md font-semibold mb-2">App-Guided Tour</h4>
+                                    <p class="text-gray-600 mb-3">This tour is self-guided through our app. Start exploring at your convenience:</p>
+                                    <div class="flex flex-col gap-3 max-w-md">
+                                        <button 
+                                            on:click={() => goto(`/tours/${tourId}/start`)}
+                                            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded w-auto flex items-center justify-center gap-2"
+                                        >
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Start Tour
+                                        </button>
+                                    </div>
                                 </div>
-                                {#if notificationMessage}
-                                    <p class="mt-2 text-sm {notificationMessage.includes('Thank you') ? 'text-green-600' : 'text-red-600'}">{notificationMessage}</p>
-                                {/if}
-                            </div>
+                            {:else}
+                                <div class="mt-4">
+                                    <h4 class="text-md font-semibold mb-2">Get Notified</h4>
+                                    <p class="text-gray-600 mb-3">Enter your email to be notified when this tour is scheduled:</p>
+                                    <div class="flex flex-col gap-3 max-w-md">
+                                        <input 
+                                            type="email" 
+                                            bind:value={notificationEmail}
+                                            placeholder="Enter your email" 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <button 
+                                            on:click={handleNotifyMe}
+                                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-auto"
+                                        >
+                                            Notify Me
+                                        </button>
+                                    </div>
+                                    {#if notificationMessage}
+                                        <p class="mt-2 text-sm {notificationMessage.includes('Thank you') ? 'text-green-600' : 'text-red-600'}">{notificationMessage}</p>
+                                    {/if}
+                                </div>
+                            {/if}
                         {:else}
                             <div class="space-y-4">
                                 {#each scheduledTours as schedule}
