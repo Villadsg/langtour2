@@ -8,6 +8,7 @@ export interface Tour {
     description: string;
     imageUrl?: string;
     tourType?: string;
+    price?: number;
 }
 
 export interface City {

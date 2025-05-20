@@ -10,6 +10,8 @@
     interface SupabaseTour extends Omit<Tour, 'id'> {
         $id: string;
         imageUrl?: string;
+        tourType?: string;
+        price?: number;
     }
     
     const tourId = $page.params.tourId;
@@ -69,8 +71,17 @@
                 cityId: tourData.cityId || '',
                 language: tourData.language || '',
                 description: tourData.description || '',
-                imageUrl: doc.image_url
+                imageUrl: doc.image_url,
+                tourType: tourData.tourType || 'person', // Default to 'person' if not specified
+                price: typeof tourData.price === 'number' ? tourData.price : 0 // Default to 0 if not specified
             } as SupabaseTour;
+            
+            // Log the parsed tour data for debugging
+            console.log('Parsed tour data:', {
+                tourType: tour.tourType,
+                price: tour.price,
+                rawData: tourData
+            });
             
             isLoading = false;
         } catch (err: any) {
@@ -131,7 +142,9 @@
                 cityId: tour.cityId,
                 language: tour.language,
                 description: tour.description,
-                imageUrl: tour.imageUrl || ''
+                imageUrl: tour.imageUrl || '',
+                tourType: tour.tourType || 'person',
+                price: typeof tour.price === 'number' ? tour.price : 0
             }} 
             on:submit={handleSubmit} 
             on:cancel={handleCancel} 

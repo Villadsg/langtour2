@@ -9,7 +9,8 @@
         language: '',
         description: '',
         imageUrl: '',
-        tourType: ''
+        tourType: '',
+        price: 0
     };
     
     const dispatch = createEventDispatcher();
@@ -44,8 +45,8 @@
     let missingFields: string[] = [];
     
     // Parse tour information from user input and get AI suggestions for missing fields
-    const extractTourInfo = async (input: string): Promise<{ name: string, cityId: string, language: string, description: string, tourType: string }> => {
-        const result = { name: '', cityId: '', language: '', description: input, tourType: '' };
+    const extractTourInfo = async (input: string): Promise<{ name: string, cityId: string, language: string, description: string, tourType: string, price: number }> => {
+        const result = { name: '', cityId: '', language: '', description: input, tourType: '', price: 0 };
         
         // Only try to extract explicit tour names (in quotes or after "name:")
         // Don't use the first text in the description as the name
@@ -77,11 +78,20 @@
             input.toLowerCase().includes('tour guide') || 
             input.toLowerCase().includes('guided by person')) {
             result.tourType = 'person';
+            // Try to extract price information
+            const priceRegex = /(€|EUR|euro|price)[:\s]*([0-9]+)/i;
+            const priceMatch = input.match(priceRegex);
+            if (priceMatch && priceMatch[2]) {
+                result.price = parseInt(priceMatch[2], 10);
+            } else {
+                result.price = 25; // Default price if not specified
+            }
         } else if (input.toLowerCase().includes('guided tour by the app') || 
                    input.toLowerCase().includes('app guided') || 
                    input.toLowerCase().includes('self guided') || 
                    input.toLowerCase().includes('digital guide')) {
             result.tourType = 'app';
+            result.price = 0; // App-guided tours are free
         }
         
         // Get AI suggestions for any missing fields
@@ -155,6 +165,15 @@
         tour.language = tourInfo.language || tour.language;
         tour.description = tourInfo.description;
         tour.tourType = tourInfo.tourType || tour.tourType;
+        
+        // Set price based on tour type
+        if (tour.tourType === 'app') {
+            tour.price = 0;
+        } else if (tour.tourType === 'person' && tourInfo.price) {
+            tour.price = tourInfo.price;
+        } else if (tour.tourType === 'person' && !tour.price) {
+            tour.price = 25; // Default price for person-guided tours
+        }
         
         // Skip the detailed analysis feedback to keep the experience simple
         
@@ -311,6 +330,22 @@
                     <p class="text-red-500 text-xs mt-1">Please select a tour type</p>
                 {/if}
             </div>
+            
+            <!-- Price field - only shown for person-guided tours -->
+            {#if tour.tourType === 'person'}
+                <div>
+                    <label for="tour-price" class="block text-gray-700 text-sm font-bold mb-2">Price per Person (€) <span class="text-red-500">*</span></label>
+                    <input
+                        id="tour-price"
+                        type="number"
+                        min="0"
+                        step="1"
+                        bind:value={tour.price}
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required
+                    />
+                </div>
+            {/if}
         </div>
     {/if}
     

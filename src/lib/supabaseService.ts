@@ -164,6 +164,13 @@ export const SupabaseService = {
       
       const { imageUrl, ...tourDataToStore } = tourData;
       
+      // Ensure price is set based on tour type
+      if (tourDataToStore.tourType === 'app') {
+        tourDataToStore.price = 0;
+      } else if (tourDataToStore.tourType === 'person' && !tourDataToStore.price) {
+        tourDataToStore.price = 24; // Default price if not set
+      }
+      
       if (!userId) {
         const { data: { user } } = await supabase.auth.getUser();
         userId = user?.id;
@@ -276,20 +283,42 @@ export const SupabaseService = {
     
     // Transform data to match the expected format
     const transformedData = data.map(tour => {
-      const description = typeof tour.description === 'string' 
-        ? JSON.parse(tour.description) 
-        : tour.description;
+      let description;
+      try {
+        description = typeof tour.description === 'string' 
+          ? JSON.parse(tour.description) 
+          : tour.description;
+      } catch (e) {
+        console.error('Error parsing tour description:', e);
+        description = { description: tour.description || '' };
+      }
       
       // Ensure tourType is included and has a default value if missing
       const tourType = description.tourType || 'person';
+      
+      // Ensure price is set based on tour type
+      let price = description.price;
+      if (price === undefined) {
+        price = tourType === 'app' ? 0 : 0; // Default price is 0
+      }
+      
+      // Log the price data for debugging
+      console.log(`Tour ${tour.id} price data:`, {
+        tourName: description.name || 'Unknown',
+        descriptionPrice: description.price,
+        finalPrice: price
+      });
         
+      // First spread the description, then override with explicit values
+      // This ensures our explicit values take precedence
       return {
+        ...description,
         $id: tour.id,
         id: tour.id,
         description: JSON.stringify(description),
         imageUrl: tour.image_url,
         tourType, // Explicitly include tourType at the top level
-        ...description
+        price // Explicitly include price at the top level
       };
     });
     
@@ -297,7 +326,8 @@ export const SupabaseService = {
     if (transformedData.length > 0) {
       console.log('Sample tour data:', { 
         id: transformedData[0].id,
-        tourType: transformedData[0].tourType
+        tourType: transformedData[0].tourType,
+        price: transformedData[0].price
       });
     }
     

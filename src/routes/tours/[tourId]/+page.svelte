@@ -31,7 +31,9 @@
     let bookingMessage = '';
     let bookingSuccess = false;
     
-    const tourId = window.location.pathname.split('/').pop() || '';
+    import { page } from '$app/stores';
+    
+    const tourId = $page.params.tourId;
     
     onMount(async () => {
         try {
@@ -254,7 +256,7 @@
     
     // Helper function to extract tour data from description JSON
     function getTourData(tourDoc: any) {
-        if (!tourDoc) return { name: '', description: '', language: '', cityId: '', tourType: 'person' };
+        if (!tourDoc) return { name: '', description: '', language: '', cityId: '', tourType: 'person', price: 0 };
         
         let tourData: Partial<any> = {};
         try {
@@ -270,7 +272,8 @@
                             description: tourDoc.description,
                             language: 'Unknown',
                             cityId: '',
-                            tourType: 'person'
+                            tourType: 'person',
+                            price: 0 // Default price for person-guided tours
                         };
                     }
                 } else if (typeof tourDoc.description === 'object') {
@@ -286,12 +289,19 @@
                 description: typeof tourDoc.description === 'string' ? tourDoc.description : 'No description available',
                 language: 'Unknown',
                 cityId: '',
-                tourType: 'person'
+                tourType: 'person',
+                price:0 // Default price for person-guided tours
             };
         }
         
         // Extract tourType from tour document or description
         let tourType = tourDoc.tourType || tourData.tourType || 'person';
+        
+        // Set default price based on tour type if not present
+        let price = tourData.price;
+        if (price === undefined) {
+            price = tourType === 'app' ? 0 : 0;
+        }
         
         return {
             id: tourDoc.id,
@@ -300,7 +310,8 @@
             language: tourData.language || '',
             description: tourData.description || '',
             imageUrl: tourDoc.imageUrl || '',
-            tourType: tourType
+            tourType: tourType,
+            price: price
         };
     }
 </script>
@@ -333,7 +344,20 @@
                     <img src={tourData.imageUrl} alt={tourData.name} class="w-full h-96 object-cover rounded-lg" />
                 </div>
                 <div>
-                    <h1 class="text-3xl font-bold mb-2">{tourData.name}</h1>
+                    <div class="flex justify-between items-start mb-2">
+                        <h1 class="text-3xl font-bold">{tourData.name}</h1>
+                        <!-- Price tag -->
+                        <span class="bg-green-100 text-green-800 text-lg font-medium px-3 py-1 rounded-full flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {#if tourData.tourType === 'app'}
+                                Free
+                            {:else}
+                                €{tourData.price || 0}/person
+                            {/if}
+                        </span>
+                    </div>
                     
                     {#if citiesStore}
                         {#each $citiesStore as city}

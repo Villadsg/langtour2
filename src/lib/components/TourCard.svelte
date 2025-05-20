@@ -168,6 +168,16 @@
                         Tour Guide
                     </span>
                 {/if}
+
+                  <!-- Price tag -->
+                  <span class="ml-auto bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
+                       
+                    {#if tour.tourType === 'app'}
+                        Free
+                    {:else}
+                        €{tour.price || 0}/person
+                    {/if}
+                </span>
     
             </div>
 
@@ -177,6 +187,7 @@
                         <span class="text-slate-600 text-sm">{city.name}, {city.country}</span>
                     {/if}
 
+                   
                 </div>
                 <!-- Tour Type Marker moved next to heading -->
                 
@@ -184,6 +195,8 @@
                 {#if creatorUsername}
                 <div class="mt-3 flex items-center text-sm text-slate-500">
                     <span>Tour creator: {creatorUsername}</span>
+
+                   
                 </div>
                 {/if}
                

@@ -21,9 +21,7 @@
 	// Fetch tours from Supabase on component mount
 	onMount(async () => {
 		try {
-			console.log('Attempting to fetch tours from Supabase...');
 			const response = await SupabaseService.getAllTours();
-			console.log('Supabase response:', response);
 			
 			// Map Supabase records to Tour objects, extracting data from JSON in description field
 			tours = response.data.map((doc: any) => {
@@ -48,7 +46,7 @@
 						}
 					}
 				} catch (parseError) {
-					console.error('Error parsing tour data:', parseError);
+					console.error(`Error parsing tour data for tour ${doc.id}:`, parseError);
 					// If parsing fails, use the description as is
 					tourData = {
 						name: 'Tour',
@@ -59,16 +57,13 @@
 				// Extract tourType - first check if it's directly on the doc, then in tourData
 				const tourType = doc.tourType || tourData.tourType || 'person';
 				
-				// Log the first tour to help with debugging
-				if (doc.$id && doc.$id === response.data[0].$id) {
-					console.log('First tour data in +page.svelte:', { 
-						id: doc.$id, 
-						tourType, 
-						rawTourType: doc.tourType,
-						descriptionTourType: tourData.tourType
-					});
-				}
+				// Extract price based on tour type
+				let price = tourData.price;
 				
+				if (price === undefined) {
+					price = tourType === 'app' ? 0 : 0; // Default price is 0
+				}
+
 				return {
 					id: doc.$id,
 					cityId: doc.cityId || tourData.cityId || '',
@@ -76,7 +71,8 @@
 					language: doc.language || tourData.language || '',
 					description: tourData.description || '',
 					imageUrl: doc.imageUrl,
-					tourType // Explicitly include tourType
+					tourType, // Explicitly include tourType
+					price // Include price field
 				};
 			});
 			isLoading = false;
