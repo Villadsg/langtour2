@@ -5,6 +5,7 @@
   import { page } from '$app/stores';
 
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
+  import BasicMapPicker from '$lib/components/BasicMapPicker.svelte';
   
   // Get tourId from the page params instead of window.location
   $: tourId = $page.params.tourId || '';
@@ -274,14 +275,12 @@
               </h3>
               <div>
                 <label for="meetingPoint" class="block text-sm font-medium text-gray-700 mb-1">Meeting Point *</label>
-                <input
-                  type="text"
-                  id="meetingPoint"
+                <!-- Google Maps integration for meeting point selection - using BasicMapPicker with hardcoded API key -->
+                <BasicMapPicker 
                   bind:value={meetingPoint}
-                  placeholder="e.g., In front of City Hall, at the main entrance"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  required
+                  required={true}
                 />
+                <p class="mt-1 text-sm text-gray-500">Select a location on the map or search for an address</p>
               </div>
             </div>
             

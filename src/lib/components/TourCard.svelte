@@ -169,15 +169,7 @@
                     </span>
                 {/if}
 
-                  <!-- Price tag -->
-                  <span class="ml-auto bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
-                       
-                    {#if tour.tourType === 'app'}
-                        Free
-                    {:else}
-                        €{tour.price || 0}/person
-                    {/if}
-                </span>
+                 
     
             </div>
 
@@ -189,17 +181,30 @@
 
                    
                 </div>
-                <!-- Tour Type Marker moved next to heading -->
-                
-                <!-- Creator information -->
-                {#if creatorUsername}
-                <div class="mt-3 flex items-center text-sm text-slate-500">
-                    <span>Tour creator: {creatorUsername}</span>
-
-                   
-                </div>
-                {/if}
+        
+                  
                
+
+                 <!-- Next scheduled tour badge -->
+                 {#if nextSchedule}
+                 <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100 shadow-sm">
+                     
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                     </svg>
+                     <span class="font-medium">Next Time: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
+                 <!-- Price tag -->
+                 <span class="ml-auto bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
+                       
+                    {#if tour.tourType === 'app'}
+                        Free
+                    {:else}
+                        €{tour.price || 0}/person
+                    {/if}
+                </span>
+                    </div>
+             {/if}
+
                
             </div>
             
@@ -247,7 +252,7 @@
                 </div>
                 
                 <!-- Creator Rating -->
-                {#if creatorId && creatorRatings.count > 0}
+                {#if creatorId && creatorRatings.count >= 0}
                     <div class="flex items-center">
                         <span class="text-xs font-medium text-slate-600 w-24">Creator:</span>
                         <div class="flex items-center space-x-1">
@@ -269,15 +274,16 @@
                     </div>
                 {/if}
                 
-                <!-- Next scheduled tour badge -->
-                {#if nextSchedule}
-                    <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded border border-green-100 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span class="font-medium">Next Time: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
-                    </div>
+
+                <!-- Creator information -->
+                {#if creatorUsername}
+                <div class="mt-3 flex items-center text-sm text-slate-500">
+                    <span>Tour creator: {creatorUsername}</span>
+
+                   
+                </div>
                 {/if}
+             
 
                 
             </div>
