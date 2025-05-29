@@ -27,8 +27,11 @@
           <a href="/" class={`text-xl font-semibold tracking-tight ${text.primary}`}>LangTour</a>
         </div>
         <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
-          <a href="/" class={`${navbar.link} ${navbar.activeLink} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
+          <a href="/" class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
             Book a tour
+          </a>
+          <a href={$currentUser ? "/dashboard/create" : "/login?redirect=/dashboard/create"} class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
+            Create a tour
           </a>
         </div>
       </div>
@@ -81,8 +84,11 @@
   {#if isMenuOpen}
     <div class={`sm:hidden ${navbar.mobileBg}`}>
       <div class="py-2 space-y-1">
-        <a href="/" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium ${navbar.activeLink}`}>
+        <a href="/" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Tours
+        </a>
+        <a href={$currentUser ? "/dashboard/create" : "/login?redirect=/dashboard/create"} on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
+          Create a tour
         </a>
         
         {#if $currentUser}
