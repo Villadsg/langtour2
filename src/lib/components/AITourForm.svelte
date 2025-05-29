@@ -1,12 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { MistralService } from '$lib/mistralService';
+    import { GeminiService } from '$lib/geminiService';
     import type { Tour } from '$lib/stores/tourStore';
     
     export let tour = {
         name: '',
         cityId: '',
         language: '',
+        langDifficulty: '',
         description: '',
         imageUrl: '',
         tourType: '',
@@ -21,8 +22,25 @@
         { id: 'madrid', name: 'Madrid', country: 'Spain' }
     ];
     
-    // Language options (same as in TourForm)
+    // Language pair options (language to learn, prerequisite language)
+    const languagePairs = [
+        'Danish, English',
+        'Spanish, English',
+        'English, Spanish',
+        'French, English',
+        'Italian, English',
+        'German, English',
+        'Spanish, French',
+        'French, Spanish',
+        'Danish, Spanish',
+        'Spanish, Danish'
+    ];
+    
+    // Individual languages for extraction from text
     const languages = ['Danish', 'Spanish', 'English', 'French', 'German', 'Italian'];
+    
+    // Language difficulty levels
+    const difficultyLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
     
     // Tour type options with display labels and values
     const tourTypes = [
@@ -38,8 +56,8 @@
     let isFormComplete = false;
     let isSubmitting = false;
     
-    // If tour data is provided with non-empty values, immediately show the form view
-    $: isFormComplete = tour.name !== '' || tour.cityId !== '' || tour.language !== '' || tour.description !== '';
+    // Only show form when all required components have been collected
+    $: isFormComplete = false; // This will now be controlled exclusively by the conversation flow
     let suggestions: Record<string, string> = {};
     let showingSuggestions = false;
     let missingFields: string[] = [];
@@ -65,11 +83,52 @@
         }
         
         // Check for languages in the input
+        let primaryLanguage = '';
+        let secondaryLanguage = '';
+        
+        // First try to find the language to learn
         for (const lang of languages) {
-            if (input.toLowerCase().includes(lang.toLowerCase())) {
-                result.language = lang;
+            const learnRegex = new RegExp(`learn\\s+${lang}|${lang}\\s+learn|studying\\s+${lang}|${lang}\\s+course`, 'i');
+            if (learnRegex.test(input) || input.toLowerCase().includes(`learn ${lang.toLowerCase()}`)) {
+                primaryLanguage = lang;
                 break;
             }
+        }
+        
+        // If no primary language found, try to find any language mentioned
+        if (!primaryLanguage) {
+            for (const lang of languages) {
+                if (input.toLowerCase().includes(lang.toLowerCase())) {
+                    primaryLanguage = lang;
+                    break;
+                }
+            }
+        }
+        
+        // Try to find prerequisite language
+        const prerequisiteRegex = /prerequisite|fluent in|knowledge of|speaking|fluency/i;
+        if (prerequisiteRegex.test(input)) {
+            for (const lang of languages) {
+                if (primaryLanguage !== lang && input.toLowerCase().includes(lang.toLowerCase())) {
+                    secondaryLanguage = lang;
+                    break;
+                }
+            }
+        }
+        
+        // If we found both languages, create a pair
+        if (primaryLanguage && secondaryLanguage) {
+            result.language = `${primaryLanguage}, ${secondaryLanguage}`;
+        } else if (primaryLanguage) {
+            // If only primary language found, default to English as prerequisite if it's not the primary
+            result.language = primaryLanguage !== 'English' ? `${primaryLanguage}, English` : 'English, Spanish';
+        }
+        
+        // Check for difficulty level
+        const difficultyRegex = /\b(A1|A2|B1|B2|C1|C2)\b/i;
+        const difficultyMatch = input.match(difficultyRegex);
+        if (difficultyMatch) {
+            result.langDifficulty = difficultyMatch[0].toUpperCase();
         }
         
         // Check for tour type in the input
@@ -102,7 +161,7 @@
         if (!result.tourType) missingFields.push('tourType');
         
         if (missingFields.length > 0) {
-            const suggestions = await MistralService.generateSuggestions(input, missingFields);
+            const suggestions = await GeminiService.generateSuggestions(input, missingFields);
             
             // Apply suggestions
             if (suggestions.name && !result.name) {
@@ -127,7 +186,8 @@
                     suggestions.language.toLowerCase().includes(l.toLowerCase())
                 );
                 if (langMatch) {
-                    result.language = langMatch;
+                    // Default to English as prerequisite if it's not the primary
+                    result.language = langMatch !== 'English' ? `${langMatch}, English` : 'English, Spanish';
                 }
             }
         }
@@ -137,9 +197,62 @@
     
     // Start the conversation with the AI
     const startConversation = async () => {
-        // Use a direct, concise greeting message
-        const greeting = "Hello! Describe your language learning tour. I'll automatically fill in the form for you.";
+        // Use a simpler greeting as requested
+        const greeting = `Hello! Please describe your language learning tour plan, language difficulty and more.`;
         messages = [{ role: 'ai', content: greeting }];
+    };
+    
+    // Track conversation state
+    let conversationState = 'initial'; // initial, analyzing, asking_for_components, reviewing
+    let missingComponents: string[] = [];
+    let currentMissingComponent: string | null = null;
+    let tourDescriptionUpdated = false;
+    
+    // Define the essential components that need to be checked
+    const essentialComponents = [
+        'language_element', // A specific language learning element or vocabulary focus
+        'language_city_prerequisites', // Which language to learn, in which city, and prerequisites
+        'locations', // At least two specific spots to visit
+        'duration', // Expected tour duration
+        'difficulty_level' // Language difficulty level (A1, A2, B1, B2, C1, C2)
+    ];
+    
+    // Helper function to get a friendly prompt for each missing component
+    const getComponentPrompt = (component: string): string => {
+        switch(component) {
+            case 'language_element':
+                return 'What specific language learning element or vocabulary focus will this tour have?';
+            case 'language_city_prerequisites':
+                return 'Which language will be learned, in which city, and is there any prerequisite language knowledge needed?';
+            case 'locations':
+                return 'What are at least two specific spots that will be visited during this tour?';
+            case 'duration':
+                return 'What is the expected duration of this tour?';
+            case 'difficulty_level':
+                return 'Which language difficulty level is practiced? (A1, A2, B1, B2, C1, C2)';
+            default:
+                return 'Could you provide more details about your tour?';
+        }
+    };
+    
+    // Helper function to get descriptions for language levels
+    const getLevelDescription = (level: string): string => {
+        switch(level) {
+            case 'A1':
+                return 'Beginner (basic phrases and expressions)';
+            case 'A2':
+                return 'Elementary (familiar, everyday expressions)';
+            case 'B1':
+                return 'Intermediate (main points on familiar matters)';
+            case 'B2':
+                return 'Upper Intermediate (complex text, technical discussion)';
+            case 'C1':
+                return 'Advanced (complex, implicit meaning)';
+            case 'C2':
+                return 'Proficient (near-native fluency)';
+            default:
+                return '';
+        }
     };
     
     // Handle user input submission
@@ -154,43 +267,144 @@
         messages = [...messages, { role: 'user', content: userMessage }];
         
         // First, correct spelling and grammar in the user's input
-        const correctedText = await MistralService.correctText(userMessage);
+        const correctedText = await GeminiService.correctText(userMessage);
         
-        // Extract tour information from the corrected text with AI assistance
-        const tourInfo = await extractTourInfo(correctedText);
-        
-        // Update tour data with extracted and AI-suggested information
-        tour.name = tourInfo.name || tour.name;
-        tour.cityId = tourInfo.cityId || tour.cityId;
-        tour.language = tourInfo.language || tour.language;
-        tour.description = tourInfo.description;
-        tour.tourType = tourInfo.tourType || tour.tourType;
-        
-        // Set price based on tour type
-        if (tour.tourType === 'app') {
-            tour.price = 0;
-        } else if (tour.tourType === 'person' && tourInfo.price) {
-            tour.price = tourInfo.price;
-        } else if (tour.tourType === 'person' && !tour.price) {
-            tour.price = 25; // Default price for person-guided tours
+        if (conversationState === 'initial') {
+            // First message - we need to extract initial tour info and analyze for missing components
+            conversationState = 'analyzing';
+            
+            // Extract tour information from the corrected text with AI assistance
+            const tourInfo = await extractTourInfo(correctedText);
+            
+            // Update tour data with extracted and AI-suggested information
+            tour.name = tourInfo.name || tour.name;
+            tour.cityId = tourInfo.cityId || tour.cityId;
+            tour.language = tourInfo.language || tour.language;
+            tour.description = tourInfo.description;
+            tour.tourType = tourInfo.tourType || tour.tourType;
+            
+            // Set price based on tour type
+            if (tour.tourType === 'app') {
+                tour.price = 0;
+            } else if (tour.tourType === 'person' && tourInfo.price) {
+                tour.price = tourInfo.price;
+            } else if (tour.tourType === 'person' && !tour.price) {
+                tour.price = 25; // Default price for person-guided tours
+            }
+            
+            // Analyze the description to identify missing components
+            const analysis = await GeminiService.analyzeTourDescription(tour.description);
+            
+            // Check for missing components based on the essential components list
+            missingComponents = [];
+            
+            // Extract missing components from analysis response
+            if (analysis.response && analysis.response.includes('MISSING COMPONENTS')) {
+                const missingComponentsMatch = analysis.response.match(/MISSING COMPONENTS:\s*(.+?)(?=(\n|Feedback:))/s);
+                if (missingComponentsMatch && missingComponentsMatch[1]) {
+                    const missingText = missingComponentsMatch[1].toLowerCase();
+                    
+                    // Map the analysis text to our component identifiers
+                    if (missingText.includes('language learning element') || missingText.includes('vocabulary')) {
+                        missingComponents.push('language_element');
+                    }
+                    if (missingText.includes('language to learn') || missingText.includes('city') || missingText.includes('prerequisite')) {
+                        missingComponents.push('language_city_prerequisites');
+                    }
+                    if (missingText.includes('spots') || missingText.includes('locations')) {
+                        missingComponents.push('locations');
+                    }
+                    if (missingText.includes('duration')) {
+                        missingComponents.push('duration');
+                    }
+                    if (missingText.includes('difficulty level') || missingText.includes('a1') || missingText.includes('a2') || 
+                        missingText.includes('b1') || missingText.includes('b2') || missingText.includes('c1') || missingText.includes('c2')) {
+                        missingComponents.push('difficulty_level');
+                    }
+                }
+            }
+            
+            // If we have a difficulty level in the text but it's not set in the tour object, extract it
+            if (!tour.langDifficulty) {
+                const difficultyRegex = /\b(A1|A2|B1|B2|C1|C2)\b/i;
+                const difficultyMatch = tour.description.match(difficultyRegex);
+                if (difficultyMatch) {
+                    tour.langDifficulty = difficultyMatch[0].toUpperCase();
+                    // Remove difficulty level from missing components if it's now set
+                    missingComponents = missingComponents.filter(comp => comp !== 'difficulty_level');
+                }
+            }
+            
+            if (missingComponents.length > 0) {
+                // Move to asking for missing components one by one
+                conversationState = 'asking_for_components';
+                currentMissingComponent = missingComponents[0];
+                
+                // Ask for the first missing component with a specific prompt
+                const requestComponentMessage = `Thanks for the information! Let's add a few more details to make your tour complete.\n\n${getComponentPrompt(currentMissingComponent)}`;
+                
+                setTimeout(() => {
+                    messages = [...messages, { role: 'ai', content: requestComponentMessage }];
+                    isWaitingForResponse = false;
+                }, 1000);
+                return;
+            } else {
+                // If no missing components, move to reviewing
+                conversationState = 'reviewing';
+                isFormComplete = true;
+                
+                // Provide a summary of the tour
+                const summaryMessage = `Great! I've gathered all the information for your tour:\n\n${tour.name ? `Name: ${tour.name}\n` : ''}${tour.cityId ? `City: ${cities.find(c => c.id === tour.cityId)?.name || tour.cityId}\n` : ''}${tour.language ? `Language: ${tour.language}\n` : ''}\nYour description looks good! You can review and edit the details below before creating the tour.`;
+                
+                setTimeout(() => {
+                    messages = [...messages, { role: 'ai', content: summaryMessage }];
+                    isWaitingForResponse = false;
+                }, 1000);
+            }
         }
-        
-        // Skip the detailed analysis feedback to keep the experience simple
-        
-        // Show review of all information
-        const cityName = cities.find(c => c.id === tour.cityId)?.name || 'Not specified';
-        const languageName = tour.language || 'Not specified';
-        
-        // Create a simple confirmation message without detailed feedback
-        const reviewMessage = "I've filled in the form based on your description. Please review and make any changes before creating the tour.";
-        
-        setTimeout(() => {
-            messages = [...messages, { role: 'ai', content: reviewMessage }];
-            isFormComplete = true;
-            isWaitingForResponse = false;
-        }, 1000);
-        
-        isWaitingForResponse = false;
+        else if (conversationState === 'asking_for_components') {
+            // User is providing information about a missing component
+            // Update the description with this new information
+            tour.description += `\n\n${currentMissingComponent}: ${correctedText}`;
+            tourDescriptionUpdated = true;
+            
+            // Remove the current component from the missing list
+            missingComponents = missingComponents.filter(c => c !== currentMissingComponent);
+            
+            if (missingComponents.length > 0) {
+                // Move to the next missing component
+                currentMissingComponent = missingComponents[0];
+                
+                // Ask for the next missing component with a specific prompt
+                const requestNextComponentMessage = `Thank you! ${missingComponents.length > 1 ? 'We still need a few more details' : 'Just one more detail needed'}.\n\n${getComponentPrompt(currentMissingComponent)}`;
+                
+                setTimeout(() => {
+                    messages = [...messages, { role: 'ai', content: requestNextComponentMessage }];
+                    isWaitingForResponse = false;
+                }, 1000);
+            } else {
+                // All components have been provided
+                conversationState = 'reviewing';
+                isFormComplete = true;
+                
+                // Provide a summary of the tour with all the collected information
+                const summaryMessage = `Excellent! I have all the information needed for your tour:\n\n${tour.name ? `Name: ${tour.name}\n` : ''}${tour.cityId ? `City: ${cities.find(c => c.id === tour.cityId)?.name || tour.cityId}\n` : ''}${tour.language ? `Language: ${tour.language}\n` : ''}\nYour description is complete with all the necessary elements. You can review and edit the details below before creating the tour.`;
+                
+                setTimeout(() => {
+                    messages = [...messages, { role: 'ai', content: summaryMessage }];
+                    isWaitingForResponse = false;
+                }, 1000);
+            }
+        }
+        else if (conversationState === 'reviewing') {
+            // User is providing additional feedback or questions after the form is complete
+            const responseMessage = `I've noted your additional feedback. You can edit any of the tour details below before creating the tour.`;
+            
+            setTimeout(() => {
+                messages = [...messages, { role: 'ai', content: responseMessage }];
+                isWaitingForResponse = false;
+            }, 1000);
+        }
     };
     
     // Handle form submission
@@ -245,28 +459,28 @@
         {/if}
     </div>
     
-    {#if !isFormComplete}
-        <!-- User input area -->
-        <div class="mb-6">
-            <form on:submit|preventDefault={handleSubmit} class="flex">
-                <input
-                    type="text"
-                    bind:value={userInput}
-                    placeholder="Type your response..."
-                    class="flex-grow shadow appearance-none border rounded-l py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    disabled={isWaitingForResponse}
-                />
-                <button
-                    type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r focus:outline-none focus:shadow-outline"
-                    disabled={isWaitingForResponse || !userInput.trim()}
-                >
-                    Send
-                </button>
-            </form>
-        </div>
-    {:else}
-        <!-- Form review and edit area -->
+    <!-- User input area - always visible -->
+    <div class="mb-6">
+        <form on:submit|preventDefault={handleSubmit} class="flex">
+            <input
+                type="text"
+                bind:value={userInput}
+                placeholder="Type your response..."
+                class="flex-grow shadow appearance-none border rounded-l py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                disabled={isWaitingForResponse}
+            />
+            <button
+                type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r focus:outline-none focus:shadow-outline"
+                disabled={isWaitingForResponse || !userInput.trim()}
+            >
+                Send
+            </button>
+        </form>
+    </div>
+    
+    {#if isFormComplete}
+        <!-- Form review and edit area - only visible when all components collected -->
         <div class="mb-6 grid grid-cols-1 gap-4">
             <div>
                 <label for="tour-name" class="block text-gray-700 text-sm font-bold mb-2">Tour Name</label>
@@ -292,14 +506,29 @@
             </div>
             
             <div>
-                <label for="tour-language" class="block text-gray-700 text-sm font-bold mb-2">Language</label>
+                <label for="tour-language" class="block text-gray-700 text-sm font-bold mb-2">Language Pair (Learn, Prerequisite)</label>
                 <select
                     id="tour-language"
                     bind:value={tour.language}
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 >
-                    {#each languages as language}
-                        <option value={language}>{language}</option>
+                    <option value="" disabled>Select language pair</option>
+                    {#each languagePairs as langPair}
+                        <option value={langPair}>{langPair.split(',')[0]} (learn) with {langPair.split(',')[1].trim()} (prerequisite)</option>
+                    {/each}
+                </select>
+            </div>
+            
+            <div>
+                <label for="tour-difficulty" class="block text-gray-700 text-sm font-bold mb-2">Language Difficulty Level</label>
+                <select
+                    id="tour-difficulty"
+                    bind:value={tour.langDifficulty}
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                >
+                    <option value="" disabled>Select difficulty level</option>
+                    {#each difficultyLevels as level}
+                        <option value={level}>{level} - {getLevelDescription(level)}</option>
                     {/each}
                 </select>
             </div>

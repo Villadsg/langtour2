@@ -30,7 +30,7 @@
           <a href="/" class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
             Book a tour
           </a>
-          <a href={$currentUser ? "/dashboard/create" : "/login?redirect=/dashboard/create"} class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
+          <a href="/dashboard/create" class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
             Create a tour
           </a>
         </div>
@@ -87,7 +87,7 @@
         <a href="/" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Tours
         </a>
-        <a href={$currentUser ? "/dashboard/create" : "/login?redirect=/dashboard/create"} on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
+        <a href="/dashboard/create" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Create a tour
         </a>
         

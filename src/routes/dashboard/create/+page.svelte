@@ -47,18 +47,8 @@
         goto('/dashboard');
     };
     
-    onMount(async () => {
-        // Check if user is logged in
-        try {
-            const user = await SupabaseService.getAccount();
-            if (!user) {
-                // Redirect to login page if not logged in
-                goto('/login');
-            }
-        } catch (err) {
-            goto('/login');
-        }
-    });
+    // No longer checking login status on mount to allow non-logged-in users to view the page
+    // They will only be redirected when they try to submit the form
 </script>
     
 <div class="container mx-auto px-4 py-8">

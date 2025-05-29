@@ -5,6 +5,7 @@ export interface Tour {
     cityId: string;
     name: string;
     language: string;
+    langDifficulty?: string;
     description: string;
     imageUrl?: string;
     tourType?: string;
