@@ -65,6 +65,208 @@ const callWithRetry = async (apiCall: () => Promise<any>, maxRetries: number = 3
 };
 
 export const GeminiService = {
+  // Function to generate a contextual follow-up question based on missing information
+  async generateFollowUpQuestion(currentDescription: string, providedInfo: {
+    name?: string,
+    cityId?: string,
+    language?: string,
+    langDifficulty?: string,
+    tourType?: string,
+    cityAvailable?: boolean
+  }): Promise<string> {
+    return callWithRetry(async () => {
+      try {
+        // Prepare a comprehensive prompt that includes what we have and what we need
+        const prompt = `You are a helpful assistant for a language tour creation platform. I need you to generate ONE follow-up question to gather missing information for a language learning tour.
+
+A complete language tour description should include:
+• A specific vocabulary focus or language learning element
+• Which language to learn and in which language it is taught
+• At least one specific spot to visit during the tour
+• Expected tour duration
+• Language difficulty level (A1, A2, B1, B2, C1, C2)
+
+Here's what the user has told us so far: "${currentDescription}"
+
+The user has also provided these specific details:
+${providedInfo.name ? `• Tour name: ${providedInfo.name}` : '• Tour name: Not provided yet'}
+${providedInfo.cityId || providedInfo.cityAvailable ? `• City: ${providedInfo.cityId || 'Will be selected on map'}` : '• City: Not provided yet'}
+${providedInfo.language ? `• Language pair: ${providedInfo.language}` : '• Language pair: Not provided yet'}
+${providedInfo.langDifficulty ? `• Difficulty level: ${providedInfo.langDifficulty}` : '• Difficulty level: Not provided yet'}
+${providedInfo.tourType ? `• Tour type: ${providedInfo.tourType}` : '• Tour type: Not provided yet'}
+
+Based on this information, ask ONE natural, conversational follow-up question to get the MOST IMPORTANT missing information. Do not ask about multiple things at once. Focus on only the most critical missing element. Be specific and friendly.
+
+Reply with just the question text, without any additional explanation or preamble.`;
+        
+        // API request to Gemini using v1beta and gemini-2.0-flash model
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt }
+                ]
+              }
+            ]
+          })
+        });
+        
+        if (!response.ok) {
+          console.error(`Gemini API error status: ${response.status}`);
+          let errorMessage = 'Unknown error';
+          
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error?.message || 'API error';
+          } catch (jsonError) {
+            try {
+              const errorText = await response.text();
+              errorMessage = `API returned non-JSON response: ${errorText.substring(0, 100)}`;
+            } catch (textError) {
+              errorMessage = `API error (${response.status})`;
+            }
+          }
+          
+          throw new Error(`Gemini API error: ${errorMessage}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle the response format
+        let aiResponse = '';
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+          const parts = data.candidates[0].content.parts;
+          if (parts && parts.length > 0) {
+            aiResponse = parts[0].text || '';
+          }
+        }
+        
+        // If no valid response, return a default question
+        if (!aiResponse) {
+          console.error('Unexpected Gemini API response format:', data);
+          
+          // Return a default question based on missing info
+          if (!providedInfo.language) {
+            return 'Which language would you like to learn during this tour, and in what language would you prefer the tour to be taught?';
+          } else if (!providedInfo.cityId) {
+            return 'In which city would you like this tour to take place?';
+          } else if (!providedInfo.langDifficulty) {
+            return 'What language difficulty level is this tour designed for (A1, A2, B1, B2, C1, C2)?';
+          } else {
+            return 'Could you tell me more about the specific vocabulary or language elements that will be taught on this tour?';
+          }
+        }
+        
+        return aiResponse;
+      } catch (error) {
+        console.error('Error generating follow-up question:', error);
+        return 'Could you provide more details about your language learning tour?';
+      }
+    }, 3, 500);
+  },
+  
+  // Function to create a cohesive description from collected information
+  async createCohesiveDescription(collectedInfo: {
+    name?: string,
+    cityId?: string,
+    language?: string,
+    langDifficulty?: string,
+    tourType?: string,
+    userResponses: string[]
+  }): Promise<string> {
+    return callWithRetry(async () => {
+      try {
+        // Join all user responses with clear separators
+        const userInput = collectedInfo.userResponses.join('\n\n');
+        
+        const prompt = `You are a helpful assistant for a language tour creation platform. Based on the following information, craft a cohesive, natural-sounding tour description that highlights all the important aspects of this language learning tour.
+
+Here's the information collected from the user's responses:
+"${userInput}"
+
+Additional details provided:
+${collectedInfo.name ? `• Tour name: ${collectedInfo.name}` : ''}
+${collectedInfo.cityId ? `• City: ${collectedInfo.cityId}` : ''}
+${collectedInfo.language ? `• Language pair: ${collectedInfo.language}` : ''}
+${collectedInfo.langDifficulty ? `• Difficulty level: ${collectedInfo.langDifficulty}` : ''}
+${collectedInfo.tourType ? `• Tour type: ${collectedInfo.tourType}` : ''}
+
+Make sure the description includes:
+• The language being learned and in which language the tour is conducted
+• The city/location of the tour
+• Specific vocabulary focus or language elements taught
+• At least one specific spot or location that will be visited
+• Expected duration of the tour
+• Language difficulty level
+
+Write a flowing, engaging paragraph (or two) that reads naturally, as if written by a professional tour guide. Avoid bullet points or listing format. Keep the description informative but concise, around 100-150 words.
+
+Description:`;
+        
+        // API request to Gemini using v1beta and gemini-2.0-flash model
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt }
+                ]
+              }
+            ]
+          })
+        });
+        
+        if (!response.ok) {
+          console.error(`Gemini API error status: ${response.status}`);
+          let errorMessage = 'Unknown error';
+          
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error?.message || 'API error';
+          } catch (jsonError) {
+            try {
+              const errorText = await response.text();
+              errorMessage = `API returned non-JSON response: ${errorText.substring(0, 100)}`;
+            } catch (textError) {
+              errorMessage = `API error (${response.status})`;
+            }
+          }
+          
+          throw new Error(`Gemini API error: ${errorMessage}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle the response format
+        let aiResponse = '';
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+          const parts = data.candidates[0].content.parts;
+          if (parts && parts.length > 0) {
+            aiResponse = parts[0].text || '';
+          }
+        }
+        
+        if (!aiResponse) {
+          console.error('Unexpected Gemini API response format:', data);
+          return userInput; // Return the original input if we can't generate a cohesive description
+        }
+        
+        return aiResponse;
+      } catch (error) {
+        console.error('Error creating cohesive description:', error);
+        return collectedInfo.userResponses.join('\n\n'); // Return original inputs on error
+      }
+    }, 3, 500);
+  },
   // Function to correct spelling and grammar in text
   async correctText(text: string): Promise<string> {
     return callWithRetry(async () => {

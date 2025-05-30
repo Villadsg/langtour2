@@ -9,6 +9,7 @@
   let mapContainer: HTMLElement;
   let searchInput: HTMLInputElement;
   let mapLoaded = false;
+  let displayAddress = ''; // New variable to store the formatted address for display
   
   // Direct API key reference - this is a temporary solution
   const API_KEY = 'AIzaSyCQ-BDUQSi8rItD-t6_AV2wW67KKDIFv0w';
@@ -89,22 +90,33 @@
         map.setCenter(place.geometry.location);
         marker.setPosition(place.geometry.location);
         
-        // Update the value
-        value = place.formatted_address || '';
+        // Store coordinates as the value
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        value = `${lat},${lng}`;
+        
+        // Update the display address
+        displayAddress = place.formatted_address || '';
+        searchInput.value = displayAddress;
       });
       
       // Handle map clicks
       map.addListener('click', (e: any) => {
         marker.setPosition(e.latLng);
         
-        // Reverse geocode
+        // Store coordinates immediately
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        value = `${lat},${lng}`;
+        
+        // Reverse geocode to get the address for display
         const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode(
           { location: e.latLng },
           (results: any[], status: string) => {
             if (status === 'OK' && results[0]) {
-              value = results[0].formatted_address;
-              searchInput.value = results[0].formatted_address;
+              displayAddress = results[0].formatted_address;
+              searchInput.value = displayAddress;
             }
           }
         );
@@ -114,31 +126,90 @@
       marker.addListener('dragend', () => {
         const position = marker.getPosition();
         
-        // Reverse geocode
+        // Store coordinates immediately
+        const lat = position.lat();
+        const lng = position.lng();
+        value = `${lat},${lng}`;
+        
+        // Reverse geocode to get the address for display
         const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode(
           { location: position },
           (results: any[], status: string) => {
             if (status === 'OK' && results[0]) {
-              value = results[0].formatted_address;
-              searchInput.value = results[0].formatted_address;
+              displayAddress = results[0].formatted_address;
+              searchInput.value = displayAddress;
             }
           }
         );
       });
       
-      // If we have an initial value, geocode it
+      // If we have an initial value, try to parse it as coordinates
       if (value) {
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode(
-          { address: value },
-          (results: any[], status: string) => {
-            if (status === 'OK' && results[0]) {
-              map.setCenter(results[0].geometry.location);
-              marker.setPosition(results[0].geometry.location);
-            }
+        // Check if value is in the format "lat,lng"
+        const coords = value.split(',');
+        if (coords.length === 2) {
+          const lat = parseFloat(coords[0]);
+          const lng = parseFloat(coords[1]);
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            const latLng = new window.google.maps.LatLng(lat, lng);
+            map.setCenter(latLng);
+            marker.setPosition(latLng);
+            
+            // Reverse geocode to get the address
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode(
+              { location: latLng },
+              (results: any[], status: string) => {
+                if (status === 'OK' && results[0]) {
+                  displayAddress = results[0].formatted_address;
+                  searchInput.value = displayAddress;
+                }
+              }
+            );
+          } else {
+            // If not valid coordinates, treat as address
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode(
+              { address: value },
+              (results: any[], status: string) => {
+                if (status === 'OK' && results[0]) {
+                  map.setCenter(results[0].geometry.location);
+                  marker.setPosition(results[0].geometry.location);
+                  
+                  // Update value with coordinates
+                  const lat = results[0].geometry.location.lat();
+                  const lng = results[0].geometry.location.lng();
+                  value = `${lat},${lng}`;
+                  
+                  displayAddress = results[0].formatted_address;
+                  searchInput.value = displayAddress;
+                }
+              }
+            );
           }
-        );
+        } else {
+          // If not in coordinate format, treat as address
+          const geocoder = new window.google.maps.Geocoder();
+          geocoder.geocode(
+            { address: value },
+            (results: any[], status: string) => {
+              if (status === 'OK' && results[0]) {
+                map.setCenter(results[0].geometry.location);
+                marker.setPosition(results[0].geometry.location);
+                
+                // Update value with coordinates
+                const lat = results[0].geometry.location.lat();
+                const lng = results[0].geometry.location.lng();
+                value = `${lat},${lng}`;
+                
+                displayAddress = results[0].formatted_address;
+                searchInput.value = displayAddress;
+              }
+            }
+          );
+        }
       }
       
       mapLoaded = true;
@@ -157,8 +228,6 @@
     <input
       type="text"
       bind:this={searchInput}
-      value={value}
-      on:input={(e) => value = e.currentTarget.value}
       placeholder="Search for a location"
       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
       {required}
