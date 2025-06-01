@@ -18,7 +18,7 @@
 				<div>
 					<h3 class="text-lg font-medium mb-4">LangTour</h3>
 					<p class="text-slate-400 text-sm leading-relaxed">
-						Connecting language learners with authentic cultural experiences through immersive guided tours.
+						Langauge learning in the wild
 					</p>
 				</div>
 				
