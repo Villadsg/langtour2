@@ -8,6 +8,20 @@
     
     let isSubmitting = false;
     let error = '';
+    let isLoading = true;
+    
+    // Initialize authentication state on mount
+    onMount(async () => {
+        try {
+            // Just check if we can access Supabase, but don't redirect yet
+            await SupabaseService.getAccount();
+            isLoading = false;
+        } catch (err) {
+            // Don't redirect or show error on initial load
+            // Just mark that loading is complete
+            isLoading = false;
+        }
+    });
     
     const handleSubmit = async (event: { detail: Partial<Tour> }) => {
         const tourData = event.detail;
@@ -46,9 +60,6 @@
     const handleCancel = () => {
         goto('/dashboard');
     };
-    
-    // No longer checking login status on mount to allow non-logged-in users to view the page
-    // They will only be redirected when they try to submit the form
 </script>
     
 <div class="container mx-auto px-4 py-8">
@@ -70,7 +81,11 @@
             </div>
         {/if}
         
-        {#if isSubmitting}
+        {#if isLoading}
+            <div class="flex justify-center items-center h-64">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        {:else if isSubmitting}
             <div class="flex justify-center items-center h-64">
                 <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
