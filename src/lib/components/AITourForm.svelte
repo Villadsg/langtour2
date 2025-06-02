@@ -204,7 +204,7 @@
         requiredInfo.location = true;
         
         // Use a greeting that acknowledges the map picker
-        const greeting = `Hello! Please describe your language learning tour plan, target language, difficulty level (A1-C2), and other details.`;
+        const greeting = `Hello! Please describe your language learning tour plan, target language, difficulty level (A1-C2), and other details. You can later decide when to schedule the tour`;
         messages = [{ role: 'ai', content: greeting }];
     };
     

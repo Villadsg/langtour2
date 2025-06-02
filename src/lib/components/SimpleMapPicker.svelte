@@ -9,7 +9,7 @@
   let mapContainer: HTMLElement;
   let searchInput: HTMLInputElement;
   let mapLoaded = false;
-  let displayAddress = ''; // New variable to store the formatted address for display
+  let displayAddress = ''; // Variable to store the formatted address for display
   
   // Direct API key reference - this is a temporary solution
   const API_KEY = 'AIzaSyCQ-BDUQSi8rItD-t6_AV2wW67KKDIFv0w';
@@ -26,7 +26,8 @@
   onMount(() => {
     // Create and append the script
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMap`;
+    script.id = 'google-maps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMap&loading=async`;
     script.async = true;
     script.defer = true;
     
@@ -52,10 +53,10 @@
     if (!mapContainer) return;
     
     try {
-      // Default location (New York City)
+      // Default location (will be used as fallback)
       const defaultLocation = { lat: 40.7128, lng: -74.0060 };
       
-      // Create the map
+      // Create the map with initial default location
       const map = new window.google.maps.Map(mapContainer, {
         center: defaultLocation,
         zoom: 13,
@@ -64,14 +65,56 @@
         fullscreenControl: false
       });
       
-      // Create a marker
-      const marker = new window.google.maps.Marker({
+      // Create a marker (using standard Marker for compatibility)
+      let marker = new window.google.maps.Marker({
         position: defaultLocation,
         map: map,
         draggable: true
       });
       
-      // Initialize the search box
+      // Try to get user's current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            // Success callback - user allowed location access
+            const userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            
+            // Update map and marker to user's location
+            map.setCenter(userLocation);
+            marker.setPosition(userLocation);
+            
+            // Store coordinates as the value
+            value = `${userLocation.lat},${userLocation.lng}`;
+            
+            // Reverse geocode to get the address for display
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode(
+              { location: userLocation },
+              (results: any[], status: string) => {
+                if (status === 'OK' && results[0]) {
+                  displayAddress = results[0].formatted_address;
+                  searchInput.value = displayAddress;
+                }
+              }
+            );
+          },
+          (error) => {
+            // Error callback - user denied location or other error
+            console.log('Geolocation error:', error.message);
+            // Continue with default location (already set)
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          }
+        );
+      }
+      
+      // Initialize the search box with Autocomplete
       const autocomplete = new window.google.maps.places.Autocomplete(searchInput);
       
       // We'll skip setting bounds as it's causing TypeScript errors
@@ -220,16 +263,16 @@
 </script>
 
 <svelte:head>
-  <!-- Add any additional styles or scripts here -->
+  <!-- Google Maps API is loaded dynamically in onMount -->
 </svelte:head>
 
 <div class="map-picker">
-  <div class="mb-2">
+  <div class="relative mb-4">
     <input
-      type="text"
       bind:this={searchInput}
+      type="text"
       placeholder="Search for a location"
-      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+      class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       {required}
     />
   </div>
