@@ -1,0 +1,33 @@
+Language Tour Conversation: german_business_tour
+Recorded: 2025-06-04T11:05:59.350Z
+
+[DEBUG]: Manual capture found 7 total message containers in order
+
+[DEBUG]: Capturing AI message 0: Hello! Please describe your la...
+
+[AI]: Hello! Please describe your language learning tour plan, target language, difficulty level (A1-C2), and other details. You can later decide when to schedule the tour
+
+[DEBUG]: Capturing user message 1: I want to create a German lang...
+
+[USER]: I want to create a German language tour in Berlin focused on business vocabulary. The tour will be taught in English and is suitable for intermediate (B1) learners. It will include visits to the business district and practice ordering in restaurants.
+
+[DEBUG]: Capturing AI message 2: Okay, great! Roughly, how long...
+
+[AI]: Okay, great! Roughly, how long will the "Berlin Business Booster" tour last?
+
+[DEBUG]: Capturing user message 3: Yes, the tour will be called "...
+
+[USER]: Yes, the tour will be called "Business German in Berlin" and will focus on formal business greetings, restaurant vocabulary, and numbers.
+
+[DEBUG]: Capturing AI message 4: Okay, great! To help me nail d...
+
+[AI]: Okay, great! To help me nail down the details, about how long will the "Berlin Business Booster" tour be?
+
+[DEBUG]: Capturing user message 5: The tour will teach vocabulary...
+
+[USER]: The tour will teach vocabulary like "Guten Tag", "Auf Wiedersehen", "die Rechnung, bitte", and business meeting terminology.
+
+[DEBUG]: Capturing AI message 6: Okay, great! To make sure we'r...
+
+[AI]: Okay, great! To make sure we're setting the right expectations for participants, about how long should people expect the tour to last?
+

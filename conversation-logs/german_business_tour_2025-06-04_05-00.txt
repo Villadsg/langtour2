@@ -1,0 +1,31 @@
+Language Tour Conversation: german_business_tour
+Recorded: 2025-06-04T11:00:00.387Z
+
+[DEBUG]: Chat container found: no
+
+[DEBUG]: Found 22 divs in total
+
+[DEBUG]: Found 0 potential chat containers
+
+[DEBUG]: Creating Supabase client with provided credentials
+
+[DEBUG]: Gemini API key loaded from import.meta.env
+
+[DEBUG]: Map initialized
+
+[DEBUG]: Manual capture found 3 user messages and 4 AI messages
+
+[USER-FINAL]: I want to create a German language tour in Berlin focused on business vocabulary. The tour will be taught in English and is suitable for intermediate (B1) learners. It will include visits to the business district and practice ordering in restaurants.
+
+[USER-FINAL]: Yes, the tour will be called "Business German in Berlin" and will focus on formal business greetings, restaurant vocabulary, and numbers.
+
+[USER-FINAL]: The tour will teach vocabulary like "Guten Tag", "Auf Wiedersehen", "die Rechnung, bitte", and business meeting terminology.
+
+[AI-FINAL]: Hello! Please describe your language learning tour plan, target language, difficulty level (A1-C2), and other details. You can later decide when to schedule the tour
+
+[AI-FINAL]: Great! About how long do you envision the "Berlin Business Deutsch" tour lasting?
+
+[AI-FINAL]: Great! About how long do you envision the "Business German in Berlin" tour lasting?
+
+[AI-FINAL]: Okay, great! And roughly how long will the "Berlin Business Deutsch" tour be – about a half-day, a full day, or something else?
+

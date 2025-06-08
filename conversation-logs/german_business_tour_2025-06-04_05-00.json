@@ -1,0 +1,72 @@
+[
+  {
+    "role": "debug",
+    "text": "Chat container found: no",
+    "timestamp": "2025-06-04T10:59:41.874Z"
+  },
+  {
+    "role": "debug",
+    "text": "Found 22 divs in total",
+    "timestamp": "2025-06-04T10:59:41.879Z"
+  },
+  {
+    "role": "debug",
+    "text": "Found 0 potential chat containers",
+    "timestamp": "2025-06-04T10:59:41.880Z"
+  },
+  {
+    "role": "debug",
+    "text": "Creating Supabase client with provided credentials",
+    "timestamp": "2025-06-04T10:59:42.000Z"
+  },
+  {
+    "role": "debug",
+    "text": "Gemini API key loaded from import.meta.env",
+    "timestamp": "2025-06-04T10:59:42.004Z"
+  },
+  {
+    "role": "debug",
+    "text": "Map initialized",
+    "timestamp": "2025-06-04T10:59:42.950Z"
+  },
+  {
+    "role": "debug",
+    "text": "Manual capture found 3 user messages and 4 AI messages",
+    "timestamp": "2025-06-04T10:59:59.361Z"
+  },
+  {
+    "role": "user-final",
+    "text": "I want to create a German language tour in Berlin focused on business vocabulary. The tour will be taught in English and is suitable for intermediate (B1) learners. It will include visits to the business district and practice ordering in restaurants.",
+    "timestamp": "2025-06-04T10:59:59.363Z"
+  },
+  {
+    "role": "user-final",
+    "text": "Yes, the tour will be called \"Business German in Berlin\" and will focus on formal business greetings, restaurant vocabulary, and numbers.",
+    "timestamp": "2025-06-04T10:59:59.364Z"
+  },
+  {
+    "role": "user-final",
+    "text": "The tour will teach vocabulary like \"Guten Tag\", \"Auf Wiedersehen\", \"die Rechnung, bitte\", and business meeting terminology.",
+    "timestamp": "2025-06-04T10:59:59.365Z"
+  },
+  {
+    "role": "ai-final",
+    "text": "Hello! Please describe your language learning tour plan, target language, difficulty level (A1-C2), and other details. You can later decide when to schedule the tour",
+    "timestamp": "2025-06-04T10:59:59.367Z"
+  },
+  {
+    "role": "ai-final",
+    "text": "Great! About how long do you envision the \"Berlin Business Deutsch\" tour lasting?",
+    "timestamp": "2025-06-04T10:59:59.375Z"
+  },
+  {
+    "role": "ai-final",
+    "text": "Great! About how long do you envision the \"Business German in Berlin\" tour lasting?",
+    "timestamp": "2025-06-04T10:59:59.376Z"
+  },
+  {
+    "role": "ai-final",
+    "text": "Okay, great! And roughly how long will the \"Berlin Business Deutsch\" tour be – about a half-day, a full day, or something else?",
+    "timestamp": "2025-06-04T10:59:59.380Z"
+  }
+]

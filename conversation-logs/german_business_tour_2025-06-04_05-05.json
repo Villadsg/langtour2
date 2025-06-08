@@ -1,0 +1,77 @@
+[
+  {
+    "role": "debug",
+    "text": "Manual capture found 7 total message containers in order",
+    "timestamp": "2025-06-04T11:05:58.313Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing AI message 0: Hello! Please describe your la...",
+    "timestamp": "2025-06-04T11:05:58.319Z"
+  },
+  {
+    "role": "ai",
+    "text": "Hello! Please describe your language learning tour plan, target language, difficulty level (A1-C2), and other details. You can later decide when to schedule the tour",
+    "timestamp": "2025-06-04T11:05:58.320Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing user message 1: I want to create a German lang...",
+    "timestamp": "2025-06-04T11:05:58.321Z"
+  },
+  {
+    "role": "user",
+    "text": "I want to create a German language tour in Berlin focused on business vocabulary. The tour will be taught in English and is suitable for intermediate (B1) learners. It will include visits to the business district and practice ordering in restaurants.",
+    "timestamp": "2025-06-04T11:05:58.323Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing AI message 2: Okay, great! Roughly, how long...",
+    "timestamp": "2025-06-04T11:05:58.324Z"
+  },
+  {
+    "role": "ai",
+    "text": "Okay, great! Roughly, how long will the \"Berlin Business Booster\" tour last?",
+    "timestamp": "2025-06-04T11:05:58.326Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing user message 3: Yes, the tour will be called \"...",
+    "timestamp": "2025-06-04T11:05:58.327Z"
+  },
+  {
+    "role": "user",
+    "text": "Yes, the tour will be called \"Business German in Berlin\" and will focus on formal business greetings, restaurant vocabulary, and numbers.",
+    "timestamp": "2025-06-04T11:05:58.328Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing AI message 4: Okay, great! To help me nail d...",
+    "timestamp": "2025-06-04T11:05:58.329Z"
+  },
+  {
+    "role": "ai",
+    "text": "Okay, great! To help me nail down the details, about how long will the \"Berlin Business Booster\" tour be?",
+    "timestamp": "2025-06-04T11:05:58.329Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing user message 5: The tour will teach vocabulary...",
+    "timestamp": "2025-06-04T11:05:58.330Z"
+  },
+  {
+    "role": "user",
+    "text": "The tour will teach vocabulary like \"Guten Tag\", \"Auf Wiedersehen\", \"die Rechnung, bitte\", and business meeting terminology.",
+    "timestamp": "2025-06-04T11:05:58.332Z"
+  },
+  {
+    "role": "debug",
+    "text": "Capturing AI message 6: Okay, great! To make sure we'r...",
+    "timestamp": "2025-06-04T11:05:58.333Z"
+  },
+  {
+    "role": "ai",
+    "text": "Okay, great! To make sure we're setting the right expectations for participants, about how long should people expect the tour to last?",
+    "timestamp": "2025-06-04T11:05:58.334Z"
+  }
+]
