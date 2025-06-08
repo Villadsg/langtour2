@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { MistralService } from '$lib/mistralService';
+    import { GeminiService } from '$lib/geminiService';
     import type { Tour } from '$lib/stores/tourStore';
     
     export let tour = {
@@ -102,32 +102,43 @@
         if (!result.tourType) missingFields.push('tourType');
         
         if (missingFields.length > 0) {
-            const suggestions = await MistralService.generateSuggestions(input, missingFields);
-            
-            // Apply suggestions
-            if (suggestions.name && !result.name) {
-                result.name = suggestions.name;
-            }
-            
-            if (suggestions.city && !result.cityId) {
-                // Find the city ID from the name
-                const cityMatch = cities.find(c => 
-                    c.name.toLowerCase().includes(suggestions.city.toLowerCase()) || 
-                    suggestions.city.toLowerCase().includes(c.name.toLowerCase())
-                );
-                if (cityMatch) {
-                    result.cityId = cityMatch.id;
-                }
-            }
-            
-            if (suggestions.language && !result.language) {
-                // Find the exact language from our list
-                const langMatch = languages.find(l => 
-                    l.toLowerCase().includes(suggestions.language.toLowerCase()) || 
-                    suggestions.language.toLowerCase().includes(l.toLowerCase())
-                );
-                if (langMatch) {
-                    result.language = langMatch;
+            for (const field of missingFields) {
+                try {
+                    if (field === 'name' && !result.name) {
+                        const prompt = `Based on the following tour description, suggest a concise tour name. Description: "${input}". Respond with only the suggested name.`;
+                        const suggestedName = await GeminiService.getResponse(prompt);
+                        if (suggestedName && suggestedName.trim()) result.name = suggestedName.trim();
+                    } else if (field === 'city' && !result.cityId) {
+                        const prompt = `From the description "${input}", identify the primary city or location. Respond with only the city name.`;
+                        const suggestedCityName = await GeminiService.getResponse(prompt);
+                        if (suggestedCityName && suggestedCityName.trim()) {
+                            const cityMatch = cities.find(c => 
+                                c.name.toLowerCase().includes(suggestedCityName.trim().toLowerCase()) || 
+                                suggestedCityName.trim().toLowerCase().includes(c.name.toLowerCase())
+                            );
+                            if (cityMatch) result.cityId = cityMatch.id;
+                        }
+                    } else if (field === 'language' && !result.language) {
+                        const prompt = `From the description "${input}", identify the main language being taught or used. Respond with only the language name.`;
+                        const suggestedLangName = await GeminiService.getResponse(prompt);
+                        if (suggestedLangName && suggestedLangName.trim()) {
+                            const langMatch = languages.find(l => 
+                                l.toLowerCase().includes(suggestedLangName.trim().toLowerCase()) || 
+                                suggestedLangName.trim().toLowerCase().includes(l.toLowerCase())
+                            );
+                            if (langMatch) result.language = langMatch;
+                        }
+                    } else if (field === 'tourType' && !result.tourType) {
+                        const prompt = `Based on the description "${input}", is this a tour guided by a person or an app? Respond with only "person" or "app".`;
+                        const suggestedTourType = await GeminiService.getResponse(prompt);
+                        if (suggestedTourType && suggestedTourType.trim().toLowerCase() === 'person') {
+                            result.tourType = 'person';
+                        } else if (suggestedTourType && suggestedTourType.trim().toLowerCase() === 'app') {
+                            result.tourType = 'app';
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error getting suggestion for ${field} from Gemini:`, error);
                 }
             }
         }
@@ -148,11 +159,8 @@
         // Add user message to the conversation
         messages = [...messages, { role: 'user', content: userMessage }];
         
-        // First, correct spelling and grammar in the user's input
-        const correctedText = await MistralService.correctText(userMessage);
-        
-        // Extract tour information from the corrected text with AI assistance
-        const tourInfo = await extractTourInfo(correctedText);
+        // Extract tour information from the user's input with AI assistance
+        const tourInfo = await extractTourInfo(userMessage);
         
         // Update tour data with extracted and AI-suggested information
         tour.name = tourInfo.name || tour.name;
