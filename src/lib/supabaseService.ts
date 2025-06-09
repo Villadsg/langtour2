@@ -382,7 +382,7 @@ export const SupabaseService = {
   },
   
   // Schedule methods
-  async scheduleTour(tourId: string, scheduledDate: Date, maxParticipants: number, meetingPoint: string, additionalInfo: string = '') {
+  async scheduleTour(tourId: string, scheduledDate: Date, maxParticipants: number, meetingPoint: string, additionalInfo: string = '', price: number = 0) {
     const { data, error } = await supabase
       .from('schedules')
       .insert({
@@ -390,7 +390,8 @@ export const SupabaseService = {
         scheduled_date: scheduledDate.toISOString(),
         max_participants: maxParticipants,
         meeting_point: meetingPoint,
-        additional_info: additionalInfo
+        additional_info: additionalInfo,
+        price: price
       })
       .select()
       .single();

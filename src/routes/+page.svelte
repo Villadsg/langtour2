@@ -65,14 +65,16 @@
 				}
 
 				return {
-					id: doc.$id,
-					cityId: doc.cityId || tourData.cityId || '',
-					name: doc.name || tourData.name || 'Tour',
-					language: doc.language || tourData.language || '',
+					id: doc.id, // Use doc.id directly as per Supabase response structure
+					cityId: tourData.cityId || '', // Prefer tourData for consistency from JSON
+					name: tourData.name || 'Tour',
+					languageTaught: tourData.languageTaught || '', // Correctly map languageTaught
+					instructionLanguage: tourData.instructionLanguage || '', // Add instructionLanguage
+					langDifficulty: tourData.langDifficulty || '', // Add langDifficulty
 					description: tourData.description || '',
-					imageUrl: doc.imageUrl,
-					tourType, // Explicitly include tourType
-					price // Include price field
+					imageUrl: doc.image_url, // Supabase typically uses snake_case for columns
+					tourType: tourType, // tourType is already correctly extracted
+					price: price // price is already correctly extracted
 				};
 			});
 			isLoading = false;
@@ -98,7 +100,7 @@
 				city?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				city?.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				tour.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				tour.language.toLowerCase().includes(searchQuery.toLowerCase())
+				tour.languageTaught.toLowerCase().includes(searchQuery.toLowerCase())
 			);
 			
 			// Apply tour type filter

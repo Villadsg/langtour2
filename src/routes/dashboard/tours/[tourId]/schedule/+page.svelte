@@ -35,6 +35,7 @@
   let maxParticipants = 10;
   let meetingPoint = '';
   let additionalInfo = '';
+  let price = 0;
   
   onMount(async () => {
     try {
@@ -82,7 +83,8 @@
         dateTime,
         maxParticipants,
         meetingPoint,
-        additionalInfo
+        additionalInfo,
+        price
       );
       
       // Refresh the scheduled tours list
@@ -97,6 +99,7 @@
       maxParticipants = 10;
       meetingPoint = '';
       additionalInfo = '';
+      price = 0;
       
       success = 'Tour scheduled successfully!';
     } catch (err: any) {
@@ -291,14 +294,27 @@
                 </svg>
                 Additional Details
               </h3>
-              <div>
+              <div class="mb-4">
+                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price (in USD)</label>
+                <input
+                  type="number"
+                  id="price"
+                  bind:value={price}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div class="mb-4">
                 <label for="additionalInfo" class="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
                 <textarea
                   id="additionalInfo"
                   bind:value={additionalInfo}
-                  rows="3"
-                  placeholder="Any additional details participants should know (what to bring, accessibility information, etc.)"
+                  placeholder="Any additional details participants should know..."
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  rows="3"
                 ></textarea>
               </div>
             </div>
@@ -340,13 +356,14 @@
               {#each scheduledTours as schedule}
                 <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                   <div class="flex justify-between items-start">
-                    <div>
-                      <p class="font-medium">{formatDate(schedule.scheduled_date)}</p>
-                      <p class="text-sm text-gray-600 mt-1">Meeting points: {schedule.meeting_point}</p>
-                      <p class="text-sm text-gray-600">Max participants: {schedule.max_participants}</p>
-                      {#if schedule.additional_info}
-                        <p class="text-sm text-gray-600 mt-2">{schedule.additional_info}</p>
-                      {/if}
+                    <div class="text-sm text-gray-600 mt-1">
+                  <p><strong>Date:</strong> {formatDate(schedule.scheduled_date)}</p>
+                  <p><strong>Meeting Point:</strong> {schedule.meeting_point}</p>
+                  <p><strong>Max Participants:</strong> {schedule.max_participants}</p>
+                  <p><strong>Price:</strong> ${schedule.price ? schedule.price.toFixed(2) : '0.00'}</p>
+                  {#if schedule.additional_info}
+                    <p><strong>Additional Info:</strong> {schedule.additional_info}</p>
+                  {/if}
                     </div>
                     <div>
                       <a 

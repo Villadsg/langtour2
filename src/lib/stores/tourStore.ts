@@ -4,7 +4,8 @@ export interface Tour {
     id: string;
     cityId: string;
     name: string;
-    language: string;
+    languageTaught: string;
+    instructionLanguage: string;
     langDifficulty?: string;
     description: string;
     imageUrl?: string;

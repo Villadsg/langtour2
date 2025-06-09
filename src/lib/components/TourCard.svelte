@@ -10,7 +10,8 @@
     console.log('Tour data in TourCard:', { 
         id: tour.id, 
         tourType: tour.tourType,
-        description: typeof tour.description === 'string' ? 'string' : 'object'
+        description: typeof tour.description === 'string' ? 'string' : 'object',
+        languageTaught: tour.languageTaught
     });
     
     // Ensure tourType is available - if not in tour object directly, try to extract from description
@@ -139,7 +140,7 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-3 mb-2">
                     <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
-                        {tour.language}
+                        {tour.languageTaught || 'Not specified'}
                     </div>
     
     
@@ -182,13 +183,15 @@
                    
                 </div>
         
-                <!-- Price tag - always visible -->
+                <!-- Price tag - updated logic -->
                 <div class="mt-4 flex items-center justify-between">
                     <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
                         {#if tour.tourType === 'app'}
                             Free
+                        {:else if nextSchedule && nextSchedule.price !== null && nextSchedule.price !== undefined}
+                            €{nextSchedule.price.toFixed(2)}/person
                         {:else}
-                            €{tour.price || 0}/person
+                            Price available when scheduled
                         {/if}
                     </span>
                 </div>
