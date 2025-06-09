@@ -144,7 +144,8 @@
                 description: tour.description,
                 imageUrl: tour.imageUrl || '',
                 tourType: tour.tourType || 'person',
-                price: typeof tour.price === 'number' ? tour.price : 0
+                price: typeof tour.price === 'number' ? tour.price : 0,
+                id: $page.params.tourId // Use tourId from page params
             }} 
             on:submit={handleSubmit} 
             on:cancel={handleCancel} 

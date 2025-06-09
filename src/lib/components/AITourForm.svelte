@@ -7,11 +7,13 @@
     export let tour = {
         name: '',
         cityId: '',
-        language: '',
+        languageTaught: '', 
+        instructionLanguage: '', 
         langDifficulty: '',
         description: '',
         imageUrl: '',
-        tourType: ''
+        tourType: 'person', 
+        price: 24 
     };
     
     const dispatch = createEventDispatcher();
@@ -22,19 +24,8 @@
         { id: 'madrid', name: 'Madrid', country: 'Spain' }
     ];
     
-    // Language pair options (language to learn, prerequisite language)
-    const languagePairs = [
-        'Danish, English',
-        'Spanish, English',
-        'English, Spanish',
-        'French, English',
-        'Italian, English',
-        'German, English',
-        'Spanish, French',
-        'French, Spanish',
-        'Danish, Spanish',
-        'Spanish, Danish'
-    ];
+    // Available languages
+    const allLanguages = ['English', 'Spanish', 'German', 'French', 'Italian', 'Danish'];
     
     // Language difficulty levels
     const difficultyLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -61,7 +52,7 @@
     // Start the conversation
     onMount(() => {
         messages = [
-            { role: 'ai', content: "What's the name of your tour?" }
+            { role: 'ai', content: "What's the name of the tour?" }
         ];
     });
     
@@ -108,8 +99,8 @@
         return '';
     };
 
-    // Extract language pair from user input using Gemini
-    const extractLanguagePair = async (input: string): Promise<string | null> => {
+    // Extract languages from user input using Gemini
+    const extractLanguages = async (input: string): Promise<{languageTaught: string, instructionLanguage: string} | null> => {
         try {
             const prompt = `From the following text, identify the language to be learned and the language of instruction. Format the response as "LanguageLearned, LanguageOfInstruction". For example, if the text is "I want to teach people German, and I'll speak English", respond with "German, English". If you cannot clearly determine both, respond with "unknown". Text: "${input}"`;
             const extractedPair = await GeminiService.getResponse(prompt);
@@ -118,21 +109,24 @@
                 return null;
             }
 
-            // Normalize Gemini's response for matching (e.g., trim, capitalize parts)
+            // Process Gemini's response
             const parts = extractedPair.split(',').map(p => p.trim());
             if (parts.length === 2) {
-                const normalizedPair = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(', ');
-                // Check if this normalized pair exists in our predefined list
-                const foundPair = languagePairs.find(lp => lp.toLowerCase() === normalizedPair.toLowerCase());
-                if (foundPair) return foundPair;
-
-                // Fallback: Check if Gemini's direct output (trimmed) is in the list
-                const directMatch = languagePairs.find(lp => lp.toLowerCase() === extractedPair.trim().toLowerCase());
-                if (directMatch) return directMatch;
+                // Normalize language names (capitalize first letter)
+                const languageTaught = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+                const instructionLanguage = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+                
+                // Validate that both are recognized languages
+                const isValidLanguageTaught = allLanguages.some(lang => lang.toLowerCase() === languageTaught.toLowerCase());
+                const isValidInstructionLanguage = allLanguages.some(lang => lang.toLowerCase() === instructionLanguage.toLowerCase());
+                
+                if (isValidLanguageTaught && isValidInstructionLanguage) {
+                    return { languageTaught, instructionLanguage };
+                }
             }
-            return null; // No match found or format incorrect
+            return null; // Invalid format or unrecognized languages
         } catch (error) {
-            console.error('Error extracting language pair:', error);
+            console.error('Error extracting languages:', error);
             return null;
         }
     };
@@ -151,6 +145,34 @@
         }
     };
     
+        // Check if the answer has enough clarity to proceed
+    const checkClarity = async (description: string): Promise<boolean> => {
+        try {
+            const prompt = `Is the user certain about the answer and is the answer good enough? Answer with only 'yes' or 'no'. Description: "${description}"`;
+            const response = await GeminiService.getResponse(prompt);
+            return response.trim().toLowerCase() === 'yes';
+        } catch (error) {
+            console.error('Error checking clarity:', error);
+            return true; // Default to true in case of API errors to avoid blocking the flow
+        }
+    };
+    
+    // Get clarification from Gemini
+    const getClarification = async (description: string, context: string): Promise<string> => {
+        try {
+            const prompt = `The user is trying to provide ${context} for a language tour, but their answer might be unclear or uncertain. 
+            Their response was: "${description}"
+            
+            Please provide a helpful clarifying question or suggestion to help them provide a more certain and clear response. 
+            Keep your response friendly, specific, and under 50 words.`;
+            
+            return await GeminiService.getResponse(prompt);
+        } catch (error) {
+            console.error('Error getting clarification:', error);
+            return `Could you please provide more specific information about the ${context}?`;
+        }
+    };
+
     // Handle user input submission
     const handleSubmit = async () => {
         if (!userInput.trim() || isWaitingForResponse) return;
@@ -164,52 +186,82 @@
         try {
             if (!collectedName) {
                 const name = await extractTourName(userMessage);
-                if (name && name.trim() !== '') { // Check if name is not null and not empty
-                    tour.name = name;
-                    collectedName = true;
-                    messages = [...messages, { role: 'ai', content: "Great! Which language will be learned, and which language will be used for instruction? For example, 'Learn German, instruction in English'." }];
+                if (name && name.trim() !== '') {
+                    // Check clarity before accepting the name
+                    const isClear = await checkClarity(name);
+                    if (isClear) {
+                        tour.name = name;
+                        collectedName = true;
+                        messages = [...messages, { role: 'ai', content: "Great! Which language will be learned, and which language will be used for instruction? For example, 'Learn German, instruction in English'." }];
+                    } else {
+                        // Get clarification if name isn't clear
+                        const clarification = await getClarification(userMessage, "tour name");
+                        messages = [...messages, { role: 'ai', content: clarification }];
+                    }
                 } else {
                     tour.name = ''; // Clear any previous potentially bad name
                     messages = [...messages, { role: 'ai', content: "That doesn't seem like a valid tour name. Could you please provide a clear name for your tour?" }];
                 }
             } else if (!collectedLanguagePair) {
-                const extractedPair = await extractLanguagePair(userMessage);
-                if (extractedPair) {
-                    tour.language = extractedPair;
-                    collectedLanguagePair = true;
-                    messages = [...messages, { role: 'ai', content: "Understood. Now, what language difficulty level? (A1, A2, B1, B2, C1, or C2)" }];
+                const extractedLanguages = await extractLanguages(userMessage);
+                if (extractedLanguages) {
+                    // Check clarity before accepting languages
+                    const isClear = await checkClarity(`Learning ${extractedLanguages.languageTaught}, taught in ${extractedLanguages.instructionLanguage}`);
+                    if (isClear) {
+                        tour.languageTaught = extractedLanguages.languageTaught;
+                        tour.instructionLanguage = extractedLanguages.instructionLanguage;
+                        collectedLanguagePair = true;
+                        messages = [...messages, { role: 'ai', content: `Great! So the tour will teach ${tour.languageTaught} with instructions in ${tour.instructionLanguage}. Now, what language difficulty level? (A1, A2, B1, B2, C1, or C2)` }];
+                    } else {
+                        // Get clarification if languages aren't clear
+                        const clarification = await getClarification(userMessage, "languages");
+                        messages = [...messages, { role: 'ai', content: clarification }];
+                    }
                 } else {
-                    tour.language = ''; // Clear any previous attempt
-                    messages = [...messages, { role: 'ai', content: "I couldn't quite determine the language pair from that. Could you please state it as 'Learn X, taught in Y', or choose from the options later?" }];
+                    tour.languageTaught = '';
+                    tour.instructionLanguage = '';
+                    messages = [...messages, { role: 'ai', content: "I couldn't determine which language will be taught and which language will be used for instruction. Could you please state it clearly? For example: 'I'll teach Spanish with instructions in English'." }];
                 }
             } else if (!collectedDifficulty) {
                 const difficulty = extractDifficulty(userMessage);
                 if (difficulty) {
-                    tour.langDifficulty = difficulty;
-                    collectedDifficulty = true;
-                    messages = [...messages, { role: 'ai', content: "Great! Now please provide a brief description of where the tour will go to" }];
+                    // Check clarity before accepting difficulty level
+                    const isClear = await checkClarity(difficulty);
+                    if (isClear) {
+                        tour.langDifficulty = difficulty;
+                        collectedDifficulty = true;
+                        messages = [...messages, { role: 'ai', content: "Great! Now please provide a brief description of where the tour will go to and why it's special" }];
+                    } else {
+                        // Get clarification if difficulty isn't clear
+                        const clarification = await getClarification(userMessage, "difficulty level");
+                        messages = [...messages, { role: 'ai', content: clarification }];
+                    }
                 } else {
                     messages = [...messages, { role: 'ai', content: "Please choose a difficulty level: A1, A2, B1, B2, C1, or C2" }];
                 }
             } else if (!collectedDescription) {
-                const descriptionInput = userMessage.trim();
-                if (descriptionInput) {
-                    const hasSpecificPlace = await checkDescriptionForPlace(descriptionInput);
-                    if (hasSpecificPlace) {
-                        tour.description = descriptionInput;
+                // Check if description mentions a place
+                const hasPlaceReference = await checkDescriptionForPlace(userMessage);
+                if (hasPlaceReference) {
+                    // Check clarity before accepting description
+                    const isClear = await checkClarity(userMessage);
+                    if (isClear) {
+                        tour.description = userMessage;
                         collectedDescription = true;
                         isFormComplete = true;
-                        messages = [...messages, { role: 'ai', content: "Excellent! Here's a summary. Please review and fill out any remaining details below to complete your tour." }];
+                        messages = [...messages, { role: 'ai', content: "Thank you! I've collected all the information needed. Please review your tour details below and make any necessary changes." }];
                     } else {
-                        messages = [...messages, { role: 'ai', content: "Your description is helpful, but could you please mention at least one specific place, landmark, or address that will be part of the tour? This helps potential participants understand the tour better." }];
+                        // Get clarification if description isn't clear
+                        const clarification = await getClarification(userMessage, "tour description");
+                        messages = [...messages, { role: 'ai', content: clarification }];
                     }
                 } else {
-                    messages = [...messages, { role: 'ai', content: "Please provide a brief description of your tour." }];
+                    messages = [...messages, { role: 'ai', content: "Your description should mention at least one specific place or landmark. This helps learners know where your tour will go. Please try again." }];
                 }
             }
         } catch (error) {
-            console.error('Error processing input:', error);
-            messages = [...messages, { role: 'ai', content: "Sorry, I had trouble understanding. Could you try again?" }];
+            console.error('Error processing user input:', error);
+            messages = [...messages, { role: 'ai', content: "Sorry, I'm having trouble processing that. Could you try again?" }];
         } finally {
             isWaitingForResponse = false;
         }
@@ -293,11 +345,20 @@
                 <input type="text" id="tour-name" bind:value={tour.name} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div>
-                <label for="tour-language-pair" class="block text-gray-700 text-sm font-bold mb-2">Language Pair (Learned, Taught In)</label>
-                <select id="tour-language-pair" bind:value={tour.language} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    <option value="">Select language pair</option>
-                    {#each languagePairs as lp}
-                        <option value={lp}>{lp}</option>
+                <label for="tour-language-taught" class="block text-gray-700 text-sm font-bold mb-2">Language Taught</label>
+                <select id="tour-language-taught" bind:value={tour.languageTaught} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select language taught</option>
+                    {#each allLanguages as lang}
+                        <option value={lang}>{lang}</option>
+                    {/each}
+                </select>
+            </div>
+            <div>
+                <label for="tour-instruction-language" class="block text-gray-700 text-sm font-bold mb-2">Instruction Language</label>
+                <select id="tour-instruction-language" bind:value={tour.instructionLanguage} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select instruction language</option>
+                    {#each allLanguages as lang}
+                        <option value={lang}>{lang}</option>
                     {/each}
                 </select>
             </div>
