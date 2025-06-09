@@ -45,9 +45,13 @@
     
     // Track what we've collected
     let collectedName = false;
-    let collectedLanguagePair = false; // Added for language pair
+    let collectedLanguagePair = false;
     let collectedDifficulty = false;
     let collectedDescription = false;
+    
+    // Track confirmation states
+    let awaitingNameConfirmation = false;
+    let pendingName = '';
     
     // Start the conversation
     onMount(() => {
@@ -157,6 +161,27 @@
         }
     };
     
+    // Check if the user is confirming their previous input
+    const checkConfirmation = async (input: string): Promise<boolean> => {
+        try {
+            const normalizedInput = input.trim().toLowerCase();
+            // Direct check for common confirmation phrases
+            if (['yes', 'yeah', 'yep', 'correct', 'confirm', 'that is correct', 'that is right', 'that\'s right'].includes(normalizedInput)) {
+                return true;
+            }
+            
+            // Use Gemini for more complex confirmations
+            const prompt = `Is the user confirming or agreeing to something in their message? Answer with only 'yes' or 'no'. Message: "${input}"`;
+            const response = await GeminiService.getResponse(prompt);
+            return response.trim().toLowerCase() === 'yes';
+        } catch (error) {
+            console.error('Error checking confirmation:', error);
+            // In case of API error, check for basic confirmation words
+            const normalizedInput = input.trim().toLowerCase();
+            return normalizedInput.includes('yes') || normalizedInput.includes('yeah') || normalizedInput.includes('correct');
+        }
+    };
+    
     // Get clarification from Gemini
     const getClarification = async (description: string, context: string): Promise<string> => {
         try {
@@ -184,7 +209,23 @@
         isWaitingForResponse = true;
         
         try {
-            if (!collectedName) {
+            if (awaitingNameConfirmation) {
+                // Check if the user is confirming their previous name input
+                const isConfirming = await checkConfirmation(userMessage);
+                if (isConfirming) {
+                    // User confirmed the name, so accept it
+                    tour.name = pendingName;
+                    collectedName = true;
+                    awaitingNameConfirmation = false;
+                    pendingName = '';
+                    messages = [...messages, { role: 'ai', content: "Great! Which language will be learned, and which language will be used for instruction? For example, 'Learn German, instruction in English'." }];
+                } else {
+                    // User didn't confirm, ask for a new name
+                    awaitingNameConfirmation = false;
+                    pendingName = '';
+                    messages = [...messages, { role: 'ai', content: "Let's try again. What would you like to name your tour?" }];
+                }
+            } else if (!collectedName) {
                 const name = await extractTourName(userMessage);
                 if (name && name.trim() !== '') {
                     // Check clarity before accepting the name
@@ -194,9 +235,10 @@
                         collectedName = true;
                         messages = [...messages, { role: 'ai', content: "Great! Which language will be learned, and which language will be used for instruction? For example, 'Learn German, instruction in English'." }];
                     } else {
-                        // Get clarification if name isn't clear
-                        const clarification = await getClarification(userMessage, "tour name");
-                        messages = [...messages, { role: 'ai', content: clarification }];
+                        // Store the name for potential confirmation
+                        pendingName = name;
+                        awaitingNameConfirmation = true;
+                        messages = [...messages, { role: 'ai', content: `"${name}" seems unusual for a tour name. Is this definitely the name you want to use? Please confirm with yes or no.` }];
                     }
                 } else {
                     tour.name = ''; // Clear any previous potentially bad name
