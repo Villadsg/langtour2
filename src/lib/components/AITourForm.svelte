@@ -149,10 +149,12 @@
         }
     };
     
-        // Check if the answer has enough clarity to proceed
-    const checkClarity = async (description: string): Promise<boolean> => {
+        // Check if the answer has enough clarity to proceed, given the previous question
+    const checkClarity = async (question: string, answer: string): Promise<boolean> => {
         try {
-            const prompt = `Is the user certain about the answer and is the answer good enough? Answer with only 'yes' or 'no'. Description: "${description}"`;
+            const prompt = `A user was asked: "${question}"
+Their answer was: "${answer}"
+Is the answer clear, specific, and sufficient for the question? Reply only with 'yes' or 'no'.`;
             const response = await GeminiService.getResponse(prompt);
             return response.trim().toLowerCase() === 'yes';
         } catch (error) {
@@ -182,15 +184,13 @@
         }
     };
     
-    // Get clarification from Gemini
-    const getClarification = async (description: string, context: string): Promise<string> => {
+    // Get clarification from Gemini, given the previous question
+    const getClarification = async (question: string, answer: string, context: string): Promise<string> => {
         try {
-            const prompt = `The user is trying to provide ${context} for a language tour, but their answer might be unclear or uncertain. 
-            Their response was: "${description}"
-            
-            Please provide a helpful clarifying question or suggestion to help them provide a more certain and clear response. 
-            Keep your response friendly, specific, and under 50 words.`;
-            
+            const prompt = `A user was asked: "${question}"
+Their answer was: "${answer}"
+The context is: ${context} for a language tour.
+Please provide a helpful clarifying question or suggestion to help them provide a more certain and clear response. Keep your response friendly, specific, and under 50 words.`;
             return await GeminiService.getResponse(prompt);
         } catch (error) {
             console.error('Error getting clarification:', error);
@@ -198,7 +198,11 @@
         }
     };
 
+
     // Handle user input submission
+    // Track the last AI question for clarity/clarification context
+    let lastAIQuestion = "What's the name of the tour?";
+
     const handleSubmit = async () => {
         if (!userInput.trim() || isWaitingForResponse) return;
         
@@ -207,6 +211,10 @@
         
         messages = [...messages, { role: 'user', content: userMessage }];
         isWaitingForResponse = true;
+        
+        // Find the last AI message to use as the previous question
+        const lastAImsg = [...messages].reverse().find(m => m.role === 'ai');
+        if (lastAImsg) lastAIQuestion = lastAImsg.content;
         
         try {
             if (awaitingNameConfirmation) {
@@ -229,7 +237,7 @@
                 const name = await extractTourName(userMessage);
                 if (name && name.trim() !== '') {
                     // Check clarity before accepting the name
-                    const isClear = await checkClarity(name);
+                    const isClear = await checkClarity(lastAIQuestion, name);
                     if (isClear) {
                         tour.name = name;
                         collectedName = true;
@@ -248,7 +256,7 @@
                 const extractedLanguages = await extractLanguages(userMessage);
                 if (extractedLanguages) {
                     // Check clarity before accepting languages
-                    const isClear = await checkClarity(`Learning ${extractedLanguages.languageTaught}, taught in ${extractedLanguages.instructionLanguage}`);
+                    const isClear = await checkClarity(lastAIQuestion, `Learning ${extractedLanguages.languageTaught}, taught in ${extractedLanguages.instructionLanguage}`);
                     if (isClear) {
                         tour.languageTaught = extractedLanguages.languageTaught;
                         tour.instructionLanguage = extractedLanguages.instructionLanguage;
@@ -256,7 +264,7 @@
                         messages = [...messages, { role: 'ai', content: `Great! So the tour will teach ${tour.languageTaught} with instructions in ${tour.instructionLanguage}. Now, what language difficulty level? (A1, A2, B1, B2, C1, or C2)` }];
                     } else {
                         // Get clarification if languages aren't clear
-                        const clarification = await getClarification(userMessage, "languages");
+                        const clarification = await getClarification(lastAIQuestion, userMessage, "languages");
                         messages = [...messages, { role: 'ai', content: clarification }];
                     }
                 } else {
@@ -268,14 +276,14 @@
                 const difficulty = extractDifficulty(userMessage);
                 if (difficulty) {
                     // Check clarity before accepting difficulty level
-                    const isClear = await checkClarity(difficulty);
+                    const isClear = await checkClarity(lastAIQuestion, difficulty);
                     if (isClear) {
                         tour.langDifficulty = difficulty;
                         collectedDifficulty = true;
                         messages = [...messages, { role: 'ai', content: "Great! Now please provide a brief description of where the tour will go to and why it's special" }];
                     } else {
                         // Get clarification if difficulty isn't clear
-                        const clarification = await getClarification(userMessage, "difficulty level");
+                        const clarification = await getClarification(lastAIQuestion, userMessage, "difficulty level");
                         messages = [...messages, { role: 'ai', content: clarification }];
                     }
                 } else {
@@ -286,7 +294,7 @@
                 const hasPlaceReference = await checkDescriptionForPlace(userMessage);
                 if (hasPlaceReference) {
                     // Check clarity before accepting description
-                    const isClear = await checkClarity(userMessage);
+                    const isClear = await checkClarity(lastAIQuestion, userMessage);
                     if (isClear) {
                         tour.description = userMessage;
                         collectedDescription = true;
@@ -294,7 +302,7 @@
                         messages = [...messages, { role: 'ai', content: "Thank you! I've collected all the information needed. Please review your tour details below and make any necessary changes." }];
                     } else {
                         // Get clarification if description isn't clear
-                        const clarification = await getClarification(userMessage, "tour description");
+                        const clarification = await getClarification(lastAIQuestion, userMessage, "tour description");
                         messages = [...messages, { role: 'ai', content: clarification }];
                     }
                 } else {
