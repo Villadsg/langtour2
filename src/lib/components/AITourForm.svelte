@@ -154,7 +154,7 @@
         try {
             const prompt = `A user was asked: "${question}"
 Their answer was: "${answer}"
-Is the answer clear, specific, and sufficient for the question? Reply only with 'yes' or 'no'.`;
+Is the answer a clear decision on the question? Reply only with 'yes' or 'no'.`;
             const response = await GeminiService.getResponse(prompt);
             return response.trim().toLowerCase() === 'yes';
         } catch (error) {
