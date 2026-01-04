@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
     import TourForm from '$lib/components/TourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
     
@@ -17,7 +17,7 @@
             // Get current user if available
             let userId: string | undefined = undefined;
             try {
-                const user = await SupabaseService.getAccount();
+                const user = await ConvexService.getAccount();
                 if (user) {
                     userId = user.id;
                 }
@@ -26,7 +26,7 @@
             }
             
             // Create tour in Supabase
-            await SupabaseService.createTour(tourData, userId);
+            await ConvexService.createTour(tourData, userId);
             
             // Redirect to admin page
             goto('/admin');

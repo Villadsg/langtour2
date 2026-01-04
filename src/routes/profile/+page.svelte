@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { currentUser, SupabaseService } from '$lib/supabaseService';
+  import { currentUser, ConvexService } from '$lib/convexService';
   import { onMount } from 'svelte';
   
   let username = '';
@@ -11,13 +11,15 @@
   
   onMount(async () => {
     // Check if user is logged in
-    const user = await SupabaseService.getAccount();
+    const user = await ConvexService.getAccount();
     if (!user) {
       goto('/login');
     } else {
-      // Initialize username from user metadata
-      username = user.user_metadata?.name || user.email?.split('@')[0] || '';
-      userEmail = user.email || '';
+      // Initialize username from user data
+      username = user.username || '';
+      // Email is stored in the auth system - we don't have direct access to it here
+      // For now, show the username or a placeholder
+      userEmail = 'Logged in user';
     }
   });
   
@@ -31,7 +33,7 @@
       loading = true;
       error = '';
       
-      await SupabaseService.updateUserProfile(username);
+      await ConvexService.updateUserProfile(username);
       success = true;
       
       // Reset success message after 3 seconds
@@ -48,7 +50,7 @@
   
   const handleLogout = async () => {
     try {
-      await SupabaseService.logout();
+      await ConvexService.logout();
       goto('/');
     } catch (err) {
       console.error('Error logging out:', err);

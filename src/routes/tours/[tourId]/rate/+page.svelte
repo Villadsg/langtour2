@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { SupabaseService, currentUser } from '$lib/supabaseService';
+  import { ConvexService, currentUser } from '$lib/convexService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   const tourId = window.location.pathname.split('/')[2] || '';
@@ -24,7 +24,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await SupabaseService.getAccount();
+      const user = await ConvexService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -33,14 +33,14 @@
       }
       
       // Fetch tour details
-      const tourResponse = await SupabaseService.getTour(tourId);
+      const tourResponse = await ConvexService.getTour(tourId);
       tour = tourResponse;
       
       // Check if user has attended this tour
-      canRate = await SupabaseService.hasUserAttendedTour(user.id, tourId);
+      canRate = await ConvexService.hasUserAttendedTour(user.id, tourId);
       
       // Check if user has already rated this tour
-      hasRated = await SupabaseService.hasUserRatedTour(user.id, tourId);
+      hasRated = await ConvexService.hasUserRatedTour(user.id, tourId);
       
       if (!canRate) {
         error = 'You can only rate tours that you have attended.';
@@ -74,7 +74,7 @@
       }
       
       // Submit ratings
-      await SupabaseService.submitTourRatings(
+      await ConvexService.submitTourRatings(
         tourId,
         user.id,
         languageLearningRating,

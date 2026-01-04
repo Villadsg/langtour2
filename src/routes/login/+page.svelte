@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { SupabaseService } from '$lib/supabaseService';
+  import { ConvexService } from '$lib/convexService';
   import { onMount } from 'svelte';
   import { components, text, gradients } from '$lib/styles/DesignSystem.svelte';
   
@@ -13,7 +13,7 @@
 
   onMount(async () => {
     // Check if already logged in
-    const user = await SupabaseService.getAccount();
+    const user = await ConvexService.getAccount();
     if (user) {
       goto('/');
     }
@@ -52,7 +52,7 @@
     
     try {
       loading = true;
-      await SupabaseService.login(email, password);
+      await ConvexService.login(email, password);
       goto('/');
     } catch (error: any) {
       console.error('Login error:', error);
@@ -92,7 +92,7 @@
       {#if emailConfirmationNeeded}
         <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
           <p class="font-medium">{generalError}</p>
-          <p class="mt-2 text-sm">Didn't receive the confirmation email? Check your spam folder or <button class="text-green-700 underline font-medium" on:click={() => SupabaseService.resendConfirmationEmail(email)}>resend it</button>.</p>
+          <p class="mt-2 text-sm">Didn't receive the confirmation email? Check your spam folder or <button class="text-green-700 underline font-medium" on:click={() => ConvexService.resendConfirmationEmail(email)}>resend it</button>.</p>
         </div>
       {:else if generalError}
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

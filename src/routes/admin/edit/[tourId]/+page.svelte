@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
     import TourForm from '$lib/components/TourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
     
@@ -21,7 +21,7 @@
     onMount(async () => {
         try {
             // Fetch tour from Supabase
-            const response = await SupabaseService.getTour(tourId);
+            const response = await ConvexService.getTour(tourId);
             
             if (!response || response.error) {
                 throw new Error(response?.error?.message || 'Failed to load tour');
@@ -80,7 +80,7 @@
         
         try {
             // Update tour in Supabase
-            await SupabaseService.updateTour(tourId, tourData);
+            await ConvexService.updateTour(tourId, tourData);
             
             // Redirect to admin page
             goto('/admin');

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
     
     export let tour = {
         name: '',
@@ -152,7 +152,7 @@
                 // Get current user if available for permissions
                 let userId = undefined;
                 try {
-                    const user = await SupabaseService.getAccount();
+                    const user = await ConvexService.getAccount();
                     if (user) {
                         userId = user.id;
                     }
@@ -161,7 +161,7 @@
                 }
                 
                 // Upload the file to Supabase storage
-                const uploadResult = await SupabaseService.uploadFile(selectedFile, userId);
+                const uploadResult = await ConvexService.uploadFile(selectedFile, userId);
                 
                 // Set the image URL to the uploaded file URL
                 const fileId = uploadResult.id;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { SupabaseService, currentUser } from '$lib/supabaseService';
+  import { ConvexService, currentUser } from '$lib/convexService';
   import { page } from '$app/stores';
 
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
@@ -40,7 +40,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await SupabaseService.getAccount();
+      const user = await ConvexService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -49,11 +49,11 @@
       }
       
       // Fetch tour details
-      const tourResponse = await SupabaseService.getTour(tourId);
+      const tourResponse = await ConvexService.getTour(tourId);
       tour = tourResponse;
       
       // Fetch existing scheduled tours
-      const scheduledToursResponse = await SupabaseService.getScheduledTours(tourId);
+      const scheduledToursResponse = await ConvexService.getScheduledTours(tourId);
       scheduledTours = scheduledToursResponse.data || [];
       
       isLoading = false;
@@ -78,7 +78,7 @@
       const dateTime = new Date(`${scheduledDate}T${scheduledTime}`);
       
       // Schedule the tour
-      await SupabaseService.scheduleTour(
+      await ConvexService.scheduleTour(
         tourId,
         dateTime,
         maxParticipants,
@@ -88,7 +88,7 @@
       );
       
       // Refresh the scheduled tours list
-      const scheduledToursResponse = await SupabaseService.getScheduledTours(tourId);
+      const scheduledToursResponse = await ConvexService.getScheduledTours(tourId);
       scheduledTours = scheduledToursResponse.data || [];
       
       // Reset form

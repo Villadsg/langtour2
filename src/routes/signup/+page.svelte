@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { SupabaseService } from '$lib/supabaseService';
+  import { ConvexService } from '$lib/convexService';
   import { onMount } from 'svelte';
   import { components, text, gradients } from '$lib/styles/DesignSystem.svelte';
   
@@ -19,7 +19,7 @@
 
   onMount(async () => {
     // Check if already logged in
-    const user = await SupabaseService.getAccount();
+    const user = await ConvexService.getAccount();
     if (user) {
       goto('/');
     }
@@ -72,7 +72,7 @@
     
     try {
       loading = true;
-      const result = await SupabaseService.createAccount(email, password, username);
+      const result = await ConvexService.createAccount(email, password, username);
       
       // Check if signup was successful
       if (result) {

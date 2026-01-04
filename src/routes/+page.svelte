@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { citiesStore, type Tour } from '$lib/stores/tourStore';
-	import { SupabaseService, currentUser, isAdmin } from '$lib/supabaseService';
+	import { ConvexService, currentUser, isAdmin } from '$lib/convexService';
 	import TourCard from '$lib/components/TourCard.svelte';
 	import { get } from 'svelte/store';
 	import { toursStore } from '$lib/stores/tourStore';
@@ -21,7 +21,7 @@
 	// Fetch tours from Supabase on component mount
 	onMount(async () => {
 		try {
-			const response = await SupabaseService.getAllTours();
+			const response = await ConvexService.getAllTours();
 			
 			// Map Supabase records to Tour objects, extracting data from JSON in description field
 			tours = response.data.map((doc: any) => {

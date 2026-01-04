@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { SupabaseService, currentUser } from '$lib/supabaseService';
-  import { supabase } from '$lib/supabase';
+  import { ConvexService, currentUser } from '$lib/convexService';
 
   
   // Get the schedule ID from the URL and ensure it's valid
@@ -22,7 +21,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await SupabaseService.getAccount();
+      const user = await ConvexService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -31,7 +30,7 @@
       }
       
       // Fetch schedule details using our new function specifically for getting a schedule by ID
-      const scheduleResponse = await SupabaseService.getScheduleById(scheduleId);
+      const scheduleResponse = await ConvexService.getScheduleById(scheduleId);
       console.log('Schedule response:', scheduleResponse);
       
       if (!scheduleResponse || scheduleResponse.error) {
@@ -47,14 +46,14 @@
       }
       
       // Fetch tour data
-      const tourResponse = await SupabaseService.getTour(schedule.tour_id);
+      const tourResponse = await ConvexService.getTour(schedule.tour_id);
       if (!tourResponse || tourResponse.error) {
         throw new Error('Tour not found or error fetching tour');
       }
       tour = tourResponse.data;
       
       // Fetch bookings for this schedule
-      const bookingsResponse = await SupabaseService.getBookingsForSchedule(scheduleId);
+      const bookingsResponse = await ConvexService.getBookingsForSchedule(scheduleId);
       bookings = bookingsResponse.data || [];
       
       isLoading = false;
@@ -68,34 +67,14 @@
     try {
       error = '';
       success = '';
-      
-      // Get booking details before marking as attended
-      const { data: bookingData } = await supabase
-        .from('bookings')
-        .select('*, schedules:schedule_id(tour_id)')
-        .eq('id', bookingId)
-        .single();
-      
-      if (!bookingData) {
-        throw new Error('Booking not found');
-      }
-      
-      // Mark booking as attended - this will trigger the database function to send the email
-      await SupabaseService.markAsAttended(bookingId);
-      
-      // Also update the booking status to 'attended'
-      await supabase
-        .from('bookings')
-        .update({ status: 'attended' })
-        .eq('id', bookingId);
-      
+
+      // Mark booking as attended using ConvexService
+      await ConvexService.markAsAttended(bookingId);
+
       // Refresh bookings
-      const bookingsResponse = await SupabaseService.getBookingsForSchedule(scheduleId);
+      const bookingsResponse = await ConvexService.getBookingsForSchedule(scheduleId);
       bookings = bookingsResponse.data || [];
-      
-      // Get the tour ID for the success message
-      const tourId = bookingData.schedules.tour_id;
-      
+
       // Display success message
       success = `${userName} has been marked as attended and can now rate this tour! An email notification has been sent with rating instructions.`;
     } catch (err: any) {

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
     
     interface Tour {
         $id: string;
@@ -19,14 +19,14 @@
     onMount(async () => {
         try {
             // Check if user is logged in
-            const user = await SupabaseService.getAccount();
+            const user = await ConvexService.getAccount();
             if (!user) {
                 // Redirect to login page if not implemented
                 // For now, we'll just show the tours
             }
             
             // Fetch tours from Supabase
-            const response = await SupabaseService.getAllTours();
+            const response = await ConvexService.getAllTours();
             
             // Process documents to extract tour data from JSON in description field
             tours = response.data.map((doc: any) => {
@@ -62,7 +62,7 @@
     const deleteTour = async (tourId: string) => {
         if (confirm('Are you sure you want to delete this tour?')) {
             try {
-                await SupabaseService.deleteTour(tourId);
+                await ConvexService.deleteTour(tourId);
                 tours = tours.filter(tour => tour.$id !== tourId);
             } catch (err: any) {
                 error = err.message || 'Failed to delete tour';

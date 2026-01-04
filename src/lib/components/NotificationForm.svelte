@@ -1,6 +1,6 @@
 <script lang="ts">
     import { addNotification, getTourById } from '$lib/stores/tourStore';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
     
     let { tourId, tourName = '' } = $props<{ tourId: string, tourName?: string }>();
     
@@ -29,7 +29,7 @@
         
         try {
             // Save to Supabase
-            await SupabaseService.saveNotification(tourId, email);
+            await ConvexService.saveNotification(tourId, email);
             
             // Also add to local store as backup
             addNotification(email, tourId);

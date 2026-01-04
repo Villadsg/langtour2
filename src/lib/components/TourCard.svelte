@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import type { Tour } from '$lib/stores/tourStore';
     import { citiesStore } from '$lib/stores/tourStore';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
 
     let { tour } = $props<{ tour: Tour }>();
     
@@ -40,7 +40,7 @@
     
     // Get the city information for this tour
     const city = $citiesStore.find(c => c.id === tour.cityId);
-    let averageRating = SupabaseService.getAverageRating(tour);
+    let averageRating = ConvexService.getAverageRating(tour);
     
     // Initialize ratings
     let ratings = $state({
@@ -89,27 +89,27 @@
         try {
             // Fetch multi-dimensional ratings if available
             if (tour.id) {
-                const tourRatings = await SupabaseService.getAverageTourRatings(tour.id);
+                const tourRatings = await ConvexService.getAverageTourRatings(tour.id);
                 if (tourRatings) {
                     ratings = tourRatings;
                 }
                 
                 // Get creator ID
-                creatorId = await SupabaseService.getTourCreatorId(tour.id);
+                creatorId = await ConvexService.getTourCreatorId(tour.id);
                 
                 // Fetch creator ratings and username if creator ID is available
                 if (creatorId) {
-                    const creatorAvgRatings = await SupabaseService.getCreatorAverageRatings(creatorId);
+                    const creatorAvgRatings = await ConvexService.getCreatorAverageRatings(creatorId);
                     if (creatorAvgRatings) {
                         creatorRatings = creatorAvgRatings;
                     }
                     
                     // Get creator username
-                    creatorUsername = await SupabaseService.getUsernameById(creatorId);
+                    creatorUsername = await ConvexService.getUsernameById(creatorId);
                 }
                 
                 // Get next scheduled tour
-                const { data } = await SupabaseService.getNextScheduledTour(tour.id);
+                const { data } = await ConvexService.getNextScheduledTour(tour.id);
                 if (data) {
                     nextSchedule = data;
                 }

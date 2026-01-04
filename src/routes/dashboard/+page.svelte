@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { SupabaseService, currentUser, userCreatedTours } from '$lib/supabaseService';
+  import { ConvexService, currentUser, userCreatedTours } from '$lib/convexService';
 
   
   let isLoading = true;
@@ -16,7 +16,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await SupabaseService.getAccount();
+      const user = await ConvexService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -25,7 +25,7 @@
       }
       
       // Fetch upcoming scheduled tours
-      const scheduledToursResponse = await SupabaseService.getUpcomingScheduledTours();
+      const scheduledToursResponse = await ConvexService.getUpcomingScheduledTours();
       upcomingScheduledTours = scheduledToursResponse.documents || scheduledToursResponse;
       
       isLoading = false;
@@ -126,7 +126,7 @@
     successMessage = '';
     
     try {
-      const result = await SupabaseService.cancelSchedule(scheduleId);
+      const result = await ConvexService.cancelSchedule(scheduleId);
       
       if (result.error) {
         cancelError = `Failed to cancel schedule: ${result.error?.message || 'Unknown error'}`;
@@ -157,7 +157,7 @@
     
     try {
       // Call the API to delete the tour
-      await SupabaseService.deleteTour(tourId);
+      await ConvexService.deleteTour(tourId);
       
       // Update the list of tours
       userCreatedTours.update(tours => tours.filter(tour => (tour.id || tour.$id) !== tourId));

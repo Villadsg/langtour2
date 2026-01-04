@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { SupabaseService, currentUser } from '$lib/supabaseService';
+  import { ConvexService, currentUser } from '$lib/convexService';
 
   
   let isLoading = true;
@@ -11,7 +11,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await SupabaseService.getAccount();
+      const user = await ConvexService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in
@@ -20,7 +20,7 @@
       }
       
       // Fetch user bookings
-      const bookingsResponse = await SupabaseService.getUserBookings(user.id);
+      const bookingsResponse = await ConvexService.getUserBookings(user.id);
       userBookings = bookingsResponse.documents || bookingsResponse;
       
       isLoading = false;
@@ -86,7 +86,7 @@
     
     try {
       // Call the API to cancel the booking
-      const result = await SupabaseService.cancelBooking(bookingId);
+      const result = await ConvexService.cancelBooking(bookingId);
       
       if (result && result.error) {
         cancelError = `Failed to cancel booking: ${result.error?.message || 'Unknown error'}`;

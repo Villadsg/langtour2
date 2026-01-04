@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
-    import { SupabaseService, currentUser } from '$lib/supabaseService';
+    import { ConvexService, currentUser } from '$lib/convexService';
     import EditTourForm from '$lib/components/editTourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
 
@@ -24,7 +24,7 @@
     onMount(async () => {
         try {
             // Check if user is logged in
-            const user = await SupabaseService.getAccount();
+            const user = await ConvexService.getAccount();
             if (!user) {
                 // Redirect to login page if not logged in
                 goto('/login');
@@ -32,7 +32,7 @@
             }
             
             // Fetch tour from Supabase
-            const { data: doc, error: tourError } = await SupabaseService.getTour(tourId);
+            const { data: doc, error: tourError } = await ConvexService.getTour(tourId);
             
             if (tourError || !doc) {
                 error = typeof tourError === 'object' && tourError !== null && 'message' in tourError
@@ -43,7 +43,7 @@
             }
             
             // Check if the current user is the creator of this tour
-            const creatorId = await SupabaseService.getTourCreatorId(tourId);
+            const creatorId = await ConvexService.getTourCreatorId(tourId);
             if (creatorId !== user.id) {
                 error = "You don't have permission to edit this tour";
                 isLoading = false;
@@ -97,7 +97,7 @@
         
         try {
             // Update tour in Supabase
-            await SupabaseService.updateTour(tourId, tourData);
+            await ConvexService.updateTour(tourId, tourData);
             
             // Redirect to dashboard page
             goto('/dashboard');

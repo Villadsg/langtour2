@@ -1,12 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { SupabaseService, currentUser } from '$lib/supabaseService';
+    import { ConvexService, currentUser } from '$lib/convexService';
     import { citiesStore } from '$lib/stores/tourStore';
-    import type { Models } from 'appwrite';
     import FlyNotification from '$lib/components/FlyNotification.svelte';
-    
-    let tour: Models.Document | null = null;
+
+    let tour: any = null;
     let isLoading = true;
     let error = '';
     let userRating = 0;
@@ -37,7 +36,7 @@
     
     onMount(async () => {
         try {
-            const response = await SupabaseService.getTour(tourId);
+            const response = await ConvexService.getTour(tourId);
             
             if (response && response.data) {
                 tour = response.data;
@@ -45,7 +44,7 @@
                 // Get user's rating if logged in
                 if ($currentUser && tour) {
                     try {
-                        const ratings = await SupabaseService.getTourRatings(tour.id || tour.$id);
+                        const ratings = await ConvexService.getTourRatings(tour.id || tour.$id);
                         // Make sure ratings.data exists and is an array before using find
                         if (ratings && ratings.data && Array.isArray(ratings.data)) {
                             const userRatingData = ratings.data.find((r: any) => r.user_id === $currentUser.id);
@@ -62,8 +61,7 @@
                 
                 // Pre-fill booking form if user is logged in
                 if ($currentUser) {
-                    bookingEmail = $currentUser.email || '';
-                    bookingName = $currentUser.user_metadata?.name || '';
+                    bookingName = $currentUser.username || '';
                 }
             } else {
                 error = 'Tour not found';
@@ -81,7 +79,7 @@
         scheduleError = '';
         
         try {
-            const response = await SupabaseService.getScheduledTours(tourId);
+            const response = await ConvexService.getScheduledTours(tourId);
             
             if (response.error) {
                 scheduleError = response.error?.message || 'Failed to load scheduled tours';
@@ -102,7 +100,7 @@
                 // For each schedule, fetch the current participants count from bookings
                 for (const schedule of scheduledTours) {
                     try {
-                        const bookingsResponse = await SupabaseService.getBookingsForSchedule(schedule.id);
+                        const bookingsResponse = await ConvexService.getBookingsForSchedule(schedule.id);
                         
                         if (!bookingsResponse.error && bookingsResponse.data) {
                             // Calculate total participants from bookings
@@ -158,7 +156,7 @@
         
         try {
             const userId = $currentUser?.id || 'anonymous';
-            const response = await SupabaseService.bookTour(
+            const response = await ConvexService.bookTour(
                 selectedScheduleId,
                 userId,
                 bookingName,
@@ -205,7 +203,7 @@
         
         try {
             const tourId = tour.id || tour.$id;
-            const response = await SupabaseService.saveNotification(tourId, notificationEmail);
+            const response = await ConvexService.saveNotification(tourId, notificationEmail);
             
             if (response.error) {
                 console.error('Error saving notification:', response.error);
@@ -238,11 +236,11 @@
         isSubmittingRating = true;
         try {
             const tourId = tour.id || tour.$id;
-            await SupabaseService.submitTourRatings(tourId, $currentUser.id, rating, rating, rating, '');
+            await ConvexService.submitTourRatings(tourId, $currentUser.id, rating, rating, rating, '');
             userRating = rating;
             
             // Refresh tour data to update average rating
-            const response = await SupabaseService.getTour(tourId);
+            const response = await ConvexService.getTour(tourId);
             if (response && response.data) {
                 tour = response.data;
             }
@@ -370,7 +368,7 @@
                     <p class="text-gray-600 mb-4">Language: {tourData.language}</p>
                     <div class="flex items-center mb-4">
                         <span class="text-gray-600 mr-2">Average Rating:</span>
-                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{SupabaseService.getAverageRating(tour).toFixed(1)}</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{ConvexService.getAverageRating(tour).toFixed(1)}</span>
                     </div>
                     
                     {#if $currentUser}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { SupabaseService, currentUser, isAdmin } from '$lib/supabaseService';
+  import { ConvexService, currentUser, isAdmin } from '$lib/convexService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   let isLoading = true;
@@ -9,7 +9,7 @@
   onMount(async () => {
     try {
       // Check if user is logged in
-      const user = await SupabaseService.getAccount();
+      const user = await ConvexService.getAccount();
       
       if (!user) {
         // Redirect to login page if not logged in

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-    import { SupabaseService } from '$lib/supabaseService';
+    import { ConvexService } from '$lib/convexService';
     import AITourForm from '$lib/components/AITourForm.svelte';
     import type { Tour } from '$lib/stores/tourStore';
 
@@ -14,7 +14,7 @@
     onMount(async () => {
         try {
             // Just check if we can access Supabase, but don't redirect yet
-            await SupabaseService.getAccount();
+            await ConvexService.getAccount();
             isLoading = false;
         } catch (err) {
             // Don't redirect or show error on initial load
@@ -32,7 +32,7 @@
             // Get current user if available
             let userId: string | undefined = undefined;
             try {
-                const user = await SupabaseService.getAccount();
+                const user = await ConvexService.getAccount();
                 if (user) {
                     userId = user.id;
                 } else {
@@ -47,7 +47,7 @@
             }
             
             // Create tour in Supabase
-            await SupabaseService.createTour(tourData, userId);
+            await ConvexService.createTour(tourData, userId);
             
             // Redirect to dashboard
             goto('/dashboard');

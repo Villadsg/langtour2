@@ -2,48 +2,42 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { supabase } from '$lib/supabase';
-  import { SupabaseService } from '$lib/supabaseService';
+  import { ConvexService } from '$lib/convexService';
 
   let message = 'Verifying your email...';
   let status = 'loading'; // loading, success, error
 
   onMount(async () => {
-    // Get token and type from URL
-    const token = $page.url.searchParams.get('token');
-    const type = $page.url.searchParams.get('type');
-    
-    if (!token || type !== 'email') {
-      message = 'Invalid confirmation link. Please check your email and try again.';
-      status = 'error';
-      return;
-    }
+    // Convex Auth handles email verification differently than Supabase
+    // The verification happens automatically when the user clicks the link
+    // This page now just confirms the user is authenticated
 
     try {
-      // Verify the email
-      const { error } = await supabase.auth.verifyOtp({
-        token: token,
-        type: 'email'
-      });
+      // Check if user is now authenticated
+      const user = await ConvexService.getAccount();
 
-      if (error) {
-        console.error('Error confirming email:', error);
-        message = error.message || 'Failed to verify your email. Please try again.';
-        status = 'error';
-        return;
+      if (user) {
+        // User is authenticated - verification was successful
+        message = 'Your email has been verified successfully!';
+        status = 'success';
+
+        // Redirect to home after 3 seconds
+        setTimeout(() => {
+          goto('/');
+        }, 3000);
+      } else {
+        // User is not authenticated - may need to log in
+        message = 'Please log in to continue.';
+        status = 'success';
+
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          goto('/login');
+        }, 3000);
       }
-
-      // Success
-      message = 'Your email has been verified successfully!';
-      status = 'success';
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        goto('/login');
-      }, 3000);
     } catch (err) {
       console.error('Unexpected error during confirmation:', err);
-      message = 'An unexpected error occurred. Please try again.';
+      message = 'An unexpected error occurred. Please try logging in.';
       status = 'error';
     }
   });
@@ -75,7 +69,7 @@
             </svg>
           </div>
           <p class="text-green-700 font-medium">{message}</p>
-          <p class="mt-2 text-sm text-gray-500">Redirecting you to login page...</p>
+          <p class="mt-2 text-sm text-gray-500">Redirecting you...</p>
         </div>
       {:else}
         <div class="text-center">

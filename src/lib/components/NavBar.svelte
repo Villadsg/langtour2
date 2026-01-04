@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentUser, SupabaseService } from '$lib/supabaseService';
+  import { currentUser, ConvexService } from '$lib/convexService';
   import { navbar, text, components } from '$lib/styles/DesignSystem.svelte';
   import { onMount } from 'svelte';
   
@@ -7,7 +7,7 @@
   
   onMount(async () => {
     // Check if user is logged in on component mount
-    await SupabaseService.getAccount();
+    await ConvexService.getAccount();
   });
   
   const toggleMenu = () => {

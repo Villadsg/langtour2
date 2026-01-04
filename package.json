@@ -40,8 +40,9 @@
 		"vite": "^6.3.5"
 	},
 	"dependencies": {
+		"@convex-dev/auth": "^0.0.90",
 		"@google/generative-ai": "^0.24.1",
-		"@supabase/supabase-js": "^2.49.4",
-		"dotenv": "^16.5.0"
+		"convex": "^1.31.2",
+		"jose": "^6.1.3"
 	}
 }
