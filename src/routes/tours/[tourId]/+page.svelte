@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { ConvexService, currentUser } from '$lib/convexService';
+    import { ConvexService, currentUser } from '$lib/firebaseService';
     import { citiesStore } from '$lib/stores/tourStore';
     import FlyNotification from '$lib/components/FlyNotification.svelte';
 
@@ -328,7 +328,7 @@
     {/if}
     {#if isLoading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
         </div>
     {:else if error}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -336,7 +336,7 @@
         </div>
     {:else if tour}
         {@const tourData = getTourData(tour)}
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg border border-slate-200 p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <img src={tourData.imageUrl} alt={tourData.name} class="w-full h-96 object-cover rounded-lg" />
@@ -360,15 +360,15 @@
                     {#if citiesStore}
                         {#each $citiesStore as city}
                             {#if city.id === tourData.cityId}
-                                <p class="text-gray-600 mb-4">{city.name}, {city.country}</p>
+                                <p class="text-slate-600 mb-4">{city.name}, {city.country}</p>
                             {/if}
                         {/each}
                     {/if}
                     
-                    <p class="text-gray-600 mb-4">Language: {tourData.language}</p>
+                    <p class="text-slate-600 mb-4">Language: {tourData.language}</p>
                     <div class="flex items-center mb-4">
-                        <span class="text-gray-600 mr-2">Average Rating:</span>
-                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{ConvexService.getAverageRating(tour).toFixed(1)}</span>
+                        <span class="text-slate-600 mr-2">Average Rating:</span>
+                        <span class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded">{ConvexService.getAverageRating(tour).toFixed(1)}</span>
                     </div>
                     
                     {#if $currentUser}
@@ -392,7 +392,7 @@
                     {/if}
                     
                     <h3 class="text-lg font-semibold mb-2">Description</h3>
-                    <p class="text-gray-700">{tourData.description}</p>
+                    <p class="text-slate-700">{tourData.description}</p>
                     
                     <!-- Scheduled Tours Section -->
                     <div class="mt-6">
@@ -400,24 +400,24 @@
                         
                         {#if isLoadingSchedules}
                             <div class="flex justify-center items-center h-16">
-                                <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+                                <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-400"></div>
                             </div>
                         {:else if scheduleError}
                             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
                                 <p>{scheduleError}</p>
                             </div>
                         {:else if scheduledTours.length === 0}
-                            <p class="text-gray-600 mb-3">No upcoming scheduled tours available.</p>
+                            <p class="text-slate-600 mb-3">No upcoming scheduled tours available.</p>
                             
                             {@const tourData = getTourData(tour)}
                             {#if tourData.tourType === 'app'}
                                 <div class="mt-4">
                                     <h4 class="text-md font-semibold mb-2">App-Guided Tour</h4>
-                                    <p class="text-gray-600 mb-3">This tour is self-guided through our app. Start exploring at your convenience:</p>
+                                    <p class="text-slate-600 mb-3">This tour is self-guided through our app. Start exploring at your convenience:</p>
                                     <div class="flex flex-col gap-3 max-w-md">
                                         <button 
                                             on:click={() => goto(`/tours/${tourId}/start`)}
-                                            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded w-auto flex items-center justify-center gap-2"
+                                            class="bg-orange-100 hover:bg-orange-200 text-orange-700 border border-orange-200 font-bold py-3 px-6 rounded w-auto flex items-center justify-center gap-2"
                                         >
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -430,17 +430,17 @@
                             {:else}
                                 <div class="mt-4">
                                     <h4 class="text-md font-semibold mb-2">Get Notified</h4>
-                                    <p class="text-gray-600 mb-3">Enter your email to be notified when this tour is scheduled:</p>
+                                    <p class="text-slate-600 mb-3">Enter your email to be notified when this tour is scheduled:</p>
                                     <div class="flex flex-col gap-3 max-w-md">
                                         <input 
                                             type="email" 
                                             bind:value={notificationEmail}
                                             placeholder="Enter your email" 
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                                         />
                                         <button 
                                             on:click={handleNotifyMe}
-                                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-auto"
+                                            class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded w-auto"
                                         >
                                             Notify Me
                                         </button>
@@ -453,19 +453,19 @@
                         {:else}
                             <div class="space-y-4">
                                 {#each scheduledTours as schedule}
-                                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                    <div class="border border-slate-200 rounded-lg p-4 hover:bg-slate-50">
                                         <div class="flex flex-col md:flex-row justify-between">
                                             <div>
                                                 <p class="font-semibold">{formatDate(schedule.scheduled_date)}</p>
-                                                <p class="text-sm text-gray-600">Meeting Point: {schedule.meeting_point}</p>
-                                                <p class="text-sm text-gray-600">{schedule.current_participants || 0}/{schedule.max_participants} participants</p>
+                                                <p class="text-sm text-slate-600">Meeting Point: {schedule.meeting_point}</p>
+                                                <p class="text-sm text-slate-600">{schedule.current_participants || 0}/{schedule.max_participants} participants</p>
                                                 {#if schedule.additional_info}
-                                                    <p class="text-sm text-gray-600 mt-1">Additional Info: {schedule.additional_info}</p>
+                                                    <p class="text-sm text-slate-600 mt-1">Additional Info: {schedule.additional_info}</p>
                                                 {/if}
                                             </div>
                                             <div class="mt-2 md:mt-0">
                                                 <button 
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-1 px-3 rounded"
+                                                    class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 text-sm font-bold py-1 px-3 rounded"
                                                     on:click={() => selectedScheduleId = schedule.id}
                                                 >
                                                     Sign Up
@@ -477,68 +477,68 @@
                                 
                                 <!-- Booking Form -->
                                 {#if selectedScheduleId}
-                                    <div class="mt-6 border border-blue-200 rounded-lg p-4 bg-blue-50">
+                                    <div class="mt-6 border border-green-200 rounded-lg p-4 bg-green-50">
                                         <h4 class="text-lg font-semibold mb-3">Book Your Spot</h4>
                                         
                                         <div class="space-y-3">
                                             <div>
-                                                <label for="bookingName" class="block text-sm font-medium text-gray-700">Your Name</label>
+                                                <label for="bookingName" class="block text-sm font-medium text-slate-700">Your Name</label>
                                                 <input 
                                                     id="bookingName"
                                                     type="text" 
                                                     bind:value={bookingName}
                                                     placeholder="Enter your name" 
-                                                    class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                                                     disabled={!$currentUser && !!bookingName}
                                                 />
                                             </div>
                                             
                                             <div>
-                                                <label for="bookingEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                                                <label for="bookingEmail" class="block text-sm font-medium text-slate-700">Email</label>
                                                 <input 
                                                     id="bookingEmail"
                                                     type="email" 
                                                     bind:value={bookingEmail}
                                                     placeholder="Enter your email" 
-                                                    class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                                                     disabled={!$currentUser && !!bookingEmail}
                                                 />
                                             </div>
                                             
                                             <div>
-                                                <label for="bookingParticipants" class="block text-sm font-medium text-gray-700">Number of Participants</label>
+                                                <label for="bookingParticipants" class="block text-sm font-medium text-slate-700">Number of Participants</label>
                                                 <input 
                                                     id="bookingParticipants"
                                                     type="number" 
                                                     bind:value={bookingParticipants}
                                                     min="1" 
                                                     max="10" 
-                                                    class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                                                 />
                                             </div>
                                             
                                             <div>
-                                                <label for="bookingNotes" class="block text-sm font-medium text-gray-700">Notes (Optional)</label>
+                                                <label for="bookingNotes" class="block text-sm font-medium text-slate-700">Notes (Optional)</label>
                                                 <textarea 
                                                     id="bookingNotes"
                                                     bind:value={bookingNotes}
                                                     placeholder="Any special requests or questions?" 
                                                     rows="3"
-                                                    class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                                                 ></textarea>
                                             </div>
                                             
                                             <div class="flex justify-between items-center pt-2">
                                                 <button 
                                                     on:click={() => selectedScheduleId = ''}
-                                                    class="text-gray-600 hover:text-gray-800"
+                                                    class="text-slate-600 hover:text-gray-800"
                                                 >
                                                     Cancel
                                                 </button>
                                                 
                                                 <button 
                                                     on:click={handleBooking}
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                                    class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded"
                                                     disabled={isSubmittingBooking || !bookingName || !bookingEmail}
                                                 >
                                                     {isSubmittingBooking ? 'Booking...' : 'Book Now'}

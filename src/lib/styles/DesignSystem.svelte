@@ -1,9 +1,9 @@
-<!-- 
+<!--
   DesignSystem.svelte - Central location for design tokens and styling
   This component doesn't render anything but exports CSS variables and utility classes
 -->
 <script context="module">
-  // Color palette - Nature-inspired green theme for language learning tours
+  // Color palette - Nature-inspired green theme with orange accents
   export const colors = {
     primary: {
       50: '#f0fdf4',
@@ -17,6 +17,18 @@
       800: '#166534',
       900: '#14532d',
       950: '#052e16',
+    },
+    accent: {
+      50: '#fff7ed',
+      100: '#ffedd5',
+      200: '#fed7aa',
+      300: '#fdba74',
+      400: '#fb923c',
+      500: '#f97316',
+      600: '#ea580c',
+      700: '#c2410c',
+      800: '#9a3412',
+      900: '#7c2d12',
     },
     secondary: {
       50: '#f8fafc',
@@ -33,12 +45,12 @@
     }
   };
 
-  // Gradient backgrounds - Nature-inspired
+  // Gradient backgrounds - Subtle and minimal
   export const gradients = {
-    hero: 'bg-gradient-to-r from-gray-50 via-green-50 to-gray-50',
-    card: 'bg-gradient-to-br from-white to-green-50',
-    accent: 'bg-gradient-to-r from-green-500 to-emerald-500',
-    subtle: 'bg-gradient-to-r from-green-50 to-white'
+    hero: 'bg-gradient-to-b from-white to-slate-50',
+    card: 'bg-white',
+    accent: 'bg-gradient-to-r from-green-100 to-green-200',
+    subtle: 'bg-slate-50'
   };
 
   // Typography
@@ -65,10 +77,10 @@
   };
 
   export const navbar = {
-    bg: 'bg-white border-b border-gray-200 shadow-sm',
-    link: 'text-slate-700 hover:text-green-600',
-    activeLink: 'border-b-2 border-green-500',
-    mobileBg: 'bg-white border-t border-gray-200'
+    bg: 'bg-white border-b border-slate-200',
+    link: 'text-slate-500 hover:text-green-500 transition-colors',
+    activeLink: 'text-green-500 border-b-2 border-green-300',
+    mobileBg: 'bg-white border-t border-slate-200'
   };
 
   // Spacing
@@ -85,26 +97,28 @@
   // Components
   export const components = {
     card: {
-      base: 'border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white',
-      highlight: 'border border-green-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white'
+      base: 'border border-slate-200 overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white',
+      highlight: 'border border-green-200 overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white'
     },
     button: {
-      primary: 'bg-green-500 hover:bg-green-600 text-white font-normal py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg shadow-sm',
-      secondary: 'bg-gray-100 text-slate-700 border border-gray-300 font-normal py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-gray-50 rounded-lg shadow-sm',
-      outline: 'border border-green-500 text-green-600 hover:bg-green-50 font-normal py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg shadow-sm'
+      primary: 'bg-green-100 hover:bg-green-200 text-green-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-green-200',
+      secondary: 'bg-slate-50 text-slate-600 border border-slate-200 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-slate-100 rounded-lg',
+      accent: 'bg-orange-100 hover:bg-orange-200 text-orange-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-orange-200',
+      outline: 'border border-green-300 text-green-600 hover:bg-green-50 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg'
     },
     tag: {
-      primary: 'inline-block px-2.5 py-1 bg-green-100 text-green-700 text-sm border border-green-200 rounded-md',
-      secondary: 'inline-block px-2.5 py-1 bg-gray-100 text-gray-700 text-sm border border-gray-200 rounded-md'
+      primary: 'inline-block px-2.5 py-1 bg-green-50 text-green-600 text-sm border border-green-200 rounded-md',
+      accent: 'inline-block px-2.5 py-1 bg-orange-50 text-orange-600 text-sm border border-orange-200 rounded-md',
+      secondary: 'inline-block px-2.5 py-1 bg-slate-50 text-slate-500 text-sm border border-slate-200 rounded-md'
     },
     input: {
-      base: 'block w-full p-3 text-slate-700 border border-gray-300 bg-white focus:ring-green-500 focus:border-green-500 transition-colors duration-150 ease-in-out rounded-md'
+      base: 'block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors duration-150 ease-in-out rounded-lg'
     },
     section: {
       light: 'bg-white',
-      dark: 'bg-slate-900 text-white',
-      accent: 'bg-green-600 text-white',
-      muted: 'bg-green-50'
+      dark: 'bg-slate-800 text-white',
+      accent: 'bg-green-100 text-green-700',
+      muted: 'bg-slate-50'
     }
   };
 

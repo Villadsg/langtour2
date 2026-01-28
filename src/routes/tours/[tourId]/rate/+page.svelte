@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ConvexService, currentUser } from '$lib/convexService';
+  import { ConvexService, currentUser } from '$lib/firebaseService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   const tourId = window.location.pathname.split('/')[2] || '';
@@ -117,7 +117,7 @@
 
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
-    <a href="/dashboard" class="text-blue-600 hover:underline inline-flex items-center">
+    <a href="/dashboard" class="text-green-600 hover:text-green-700 inline-flex items-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
       </svg>
@@ -139,7 +139,7 @@
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
     </div>
   {:else if tour}
     {@const tourData = getTourData(tour)}
@@ -150,14 +150,14 @@
       {#if !canRate}
         <div class="bg-yellow-100 p-4 rounded-lg">
           <p class="text-yellow-800">You can only rate tours that you have attended.</p>
-          <a href="/dashboard" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
             Back to Dashboard
           </a>
         </div>
       {:else if hasRated}
         <div class="bg-green-100 p-4 rounded-lg">
           <p class="text-green-800">You have already rated this tour. Thank you for your feedback!</p>
-          <a href="/dashboard" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
             Back to Dashboard
           </a>
         </div>
@@ -170,7 +170,7 @@
                 <button 
                   type="button"
                   on:click={() => languageLearningRating = i + 1}
-                  class={`w-10 h-10 rounded-full flex items-center justify-center ${languageLearningRating > i ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  class={`w-10 h-10 rounded-full flex items-center justify-center ${languageLearningRating > i ? 'bg-green-200 text-green-700' : 'bg-slate-200 text-slate-600'}`}
                   aria-label={`Rate ${i + 1} star${i > 0 ? 's' : ''}`}
                 >
                   {i + 1}
@@ -201,7 +201,7 @@
                 <button 
                   type="button"
                   on:click={() => informativeRating = i + 1}
-                  class={`w-10 h-10 rounded-full flex items-center justify-center ${informativeRating > i ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  class={`w-10 h-10 rounded-full flex items-center justify-center ${informativeRating > i ? 'bg-green-200 text-green-700' : 'bg-slate-200 text-slate-600'}`}
                   aria-label={`Rate ${i + 1} star${i > 0 ? 's' : ''}`}
                 >
                   {i + 1}
@@ -232,7 +232,7 @@
                 <button 
                   type="button"
                   on:click={() => funRating = i + 1}
-                  class={`w-10 h-10 rounded-full flex items-center justify-center ${funRating > i ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  class={`w-10 h-10 rounded-full flex items-center justify-center ${funRating > i ? 'bg-green-200 text-green-700' : 'bg-slate-200 text-slate-600'}`}
                   aria-label={`Rate ${i + 1} star${i > 0 ? 's' : ''}`}
                 >
                   {i + 1}
@@ -280,16 +280,16 @@
                   bind:value={comment}
                   rows="4"
                   placeholder="Share your experience with this tour..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400"
                 ></textarea>
               </div>
             {/if}
           </div>
           
-          <div class="pt-2">
+          <div class="pt-2 flex justify-end">
             <button
               type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Ratings'}
@@ -301,7 +301,7 @@
   {:else}
     <div class="bg-red-100 p-8 rounded-lg text-center">
       <p class="text-red-600">Tour not found. Please return to the dashboard.</p>
-      <a href="/dashboard" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
         Back to Dashboard
       </a>
     </div>

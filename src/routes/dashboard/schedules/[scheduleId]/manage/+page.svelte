@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ConvexService, currentUser } from '$lib/convexService';
+  import { ConvexService, currentUser } from '$lib/firebaseService';
 
   
   // Get the schedule ID from the URL and ensure it's valid
@@ -149,7 +149,7 @@
 
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
-    <a href="/dashboard" class="text-blue-600 hover:underline inline-flex items-center">
+    <a href="/dashboard" class="text-green-600 hover:text-green-700 inline-flex items-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
       </svg>
@@ -171,12 +171,12 @@
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
     </div>
   {:else if schedule && tour}
     {@const tourData = getTourData(tour)}
     
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
       <h1 class="text-2xl font-bold mb-4">Manage Tour: {tourData.name}</h1>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -194,22 +194,22 @@
           <h2 class="text-lg font-semibold mb-2">Tour Details</h2>
           <p><span class="font-medium">Language:</span> {tourData.language}</p>
           <p class="mt-2"><span class="font-medium">Description:</span></p>
-          <p class="text-gray-700">{tourData.description}</p>
+          <p class="text-slate-700">{tourData.description}</p>
         </div>
       </div>
     </div>
     
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
       <h2 class="text-xl font-semibold mb-4">Participants ({bookings.length} / {schedule.maxParticipants})</h2>
       
       {#if bookings.length === 0}
-        <div class="bg-gray-100 p-4 rounded-lg text-center">
-          <p class="text-gray-600">No bookings for this tour yet.</p>
+        <div class="bg-slate-50 p-4 border border-slate-200 rounded-lg text-center">
+          <p class="text-slate-600">No bookings for this tour yet.</p>
         </div>
       {:else}
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white rounded-lg overflow-hidden">
-            <thead class="bg-gray-100 text-gray-700">
+            <thead class="bg-gray-100 text-slate-700">
               <tr>
                 <th class="py-3 px-4 text-left">Name</th>
                 <th class="py-3 px-4 text-left">Email</th>
@@ -218,9 +218,9 @@
                 <th class="py-3 px-4 text-left">Attendance</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody class="divide-y divide-slate-200">
               {#each bookings as booking}
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-slate-50">
                   <td class="py-3 px-4">{booking.name}</td>
                   <td class="py-3 px-4">{booking.email}</td>
                   <td class="py-3 px-4">{formatDate(booking.created_at)}</td>
@@ -228,7 +228,7 @@
                     <span class={`px-2 py-1 rounded-full text-xs font-medium
                       ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
                         booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                        booking.status === 'attended' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                        booking.status === 'attended' ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>
                       {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Pending'}
                     </span>
                   </td>
@@ -242,7 +242,7 @@
                       </span>
                     {:else}
                       <button 
-                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded"
+                        class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 text-xs font-bold py-1 px-2 rounded"
                         on:click={() => markAsAttended(booking.id, booking.name)}
                       >
                         Mark as Attended
@@ -259,7 +259,7 @@
   {:else}
     <div class="bg-red-100 p-8 rounded-lg text-center">
       <p class="text-red-600">Schedule not found. Please return to the dashboard.</p>
-      <a href="/dashboard" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
         Back to Dashboard
       </a>
     </div>

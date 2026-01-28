@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ConvexService, currentUser, isAdmin } from '$lib/convexService';
+  import { ConvexService, currentUser, isAdmin } from '$lib/firebaseService';
   import NavBar from '$lib/components/NavBar.svelte';
   
   let isLoading = true;
@@ -35,7 +35,7 @@
 
 {#if isLoading}
   <div class="flex justify-center items-center h-screen">
-    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
   </div>
 {:else}
   <NavBar />

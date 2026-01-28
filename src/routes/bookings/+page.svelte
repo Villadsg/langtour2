@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ConvexService, currentUser } from '$lib/convexService';
+  import { ConvexService, currentUser } from '$lib/firebaseService';
 
   
   let isLoading = true;
@@ -142,20 +142,20 @@
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
     </div>
   {:else}
     {#if userBookings.length === 0}
-      <div class="bg-gray-100 p-6 rounded-lg text-center">
-        <p class="text-gray-600">You haven't booked any tours yet.</p>
-        <a href="/" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
+        <p class="text-slate-600">You haven't booked any tours yet.</p>
+        <a href="/" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
           Browse Tours
         </a>
       </div>
     {:else}
       <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-          <thead class="bg-gray-100 text-gray-700">
+        <table class="min-w-full bg-white rounded-lg overflow-hidden border border-slate-200">
+          <thead class="bg-slate-50 text-slate-700">
             <tr>
               <th class="py-3 px-4 text-left">Tour</th>
               <th class="py-3 px-4 text-left">Date</th>
@@ -163,12 +163,12 @@
               <th class="py-3 px-4 text-left">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
+          <tbody class="divide-y divide-slate-200">
             {#each userBookings as booking}
-              <tr class="hover:bg-gray-50">
+              <tr class="hover:bg-slate-50">
                 <td class="py-3 px-4">
                   {#if booking.schedules && booking.schedules.tours}
-                    <a href="/tours/{booking.schedules.tours.id}" class="text-blue-600 hover:underline">
+                    <a href="/tours/{booking.schedules.tours.id}" class="text-green-600 hover:text-green-700 font-medium">
                       {booking.schedules.tours.description?.name || booking.schedules.tours.name || 'Unnamed Tour'}
                     </a>
                   {:else}
@@ -180,7 +180,7 @@
                   <span class={`px-2 py-1 rounded-full text-xs font-medium
                     ${getBookingStatus(booking) === 'confirmed' ? 'bg-green-100 text-green-800' : 
                       getBookingStatus(booking) === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                      getBookingStatus(booking) === 'attended' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                      getBookingStatus(booking) === 'attended' ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>
                     {getBookingStatus(booking).charAt(0).toUpperCase() + getBookingStatus(booking).slice(1)}
                   </span>
                 </td>
@@ -197,7 +197,7 @@
                   {#if booking.attended_at}
                     <a 
                       href={`/tours/${booking.schedules?.tours?.id}/rate`} 
-                      class="text-blue-600 hover:text-blue-800 ml-2"
+                      class="text-orange-500 hover:text-orange-600 font-medium ml-2"
                     >
                       Rate Tour
                     </a>

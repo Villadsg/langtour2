@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { ConvexService } from '$lib/convexService';
+  import { ConvexService } from '$lib/firebaseService';
   import { onMount } from 'svelte';
   import { components, text, gradients } from '$lib/styles/DesignSystem.svelte';
   
@@ -69,26 +69,22 @@
 
   const signup = async () => {
     if (!validateForm()) return;
-    
+
     try {
       loading = true;
-      const result = await ConvexService.createAccount(email, password, username);
-      
-      // Check if signup was successful
-      if (result) {
-        signupSuccess = true;
-        confirmationMessage = 'Your account has been created! Please check your email to verify your account before logging in.';
-      }
+      await ConvexService.createAccount(email, password, username);
+
+      // Account created successfully - redirect to login
+      signupSuccess = true;
+      confirmationMessage = 'Your account has been created! You can now log in.';
+
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        goto('/login');
+      }, 2000);
     } catch (error: any) {
       console.error('Signup error:', error);
-      
-      // If the error is about email confirmation, show a friendly message instead
-      if (error.message && error.message.includes('Email not confirmed')) {
-        signupSuccess = true;
-        confirmationMessage = 'Your account has been created! Please check your email to verify your account before logging in.';
-      } else {
-        generalError = error.message || 'Signup failed. Please try again.';
-      }
+      generalError = error.message || 'Signup failed. Please try again.';
     } finally {
       loading = false;
     }
@@ -137,7 +133,7 @@
               type="email"
               autocomplete="email"
               bind:value={email}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2.5 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 sm:text-sm transition-colors"
             />
             {#if emailError}
               <p class="mt-1 text-sm text-red-600">{emailError}</p>
@@ -161,7 +157,7 @@
               type="password"
               autocomplete="new-password"
               bind:value={password}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2.5 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 sm:text-sm transition-colors"
             />
             {#if passwordError}
               <p class="mt-1 text-sm text-red-600">{passwordError}</p>
@@ -180,7 +176,7 @@
               type="password"
               autocomplete="new-password"
               bind:value={confirmPassword}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2.5 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 sm:text-sm transition-colors"
             />
             {#if confirmPasswordError}
               <p class="mt-1 text-sm text-red-600">{confirmPasswordError}</p>
@@ -188,14 +184,14 @@
           </div>
         </div>
 
-        <div>
+        <div class="flex justify-center">
           <button
             type="submit"
             disabled={loading}
-            class={`${components.button.secondary} w-full disabled:opacity-70 disabled:cursor-not-allowed`}
+            class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-8 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center"
           >
             {#if loading}
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>

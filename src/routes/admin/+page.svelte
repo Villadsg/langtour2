@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { ConvexService } from '$lib/convexService';
+    import { ConvexService } from '$lib/firebaseService';
     
     interface Tour {
         $id: string;
@@ -74,7 +74,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Manage Tours</h1>
-        <a href="/dashboard/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <a href="/dashboard/create" class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
             Create New Tour
         </a>
     </div>
@@ -87,17 +87,17 @@
     
     {#if isLoading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
         </div>
     {:else}
         {#if tours.length === 0}
-            <div class="bg-gray-100 p-8 rounded-lg text-center">
-                <p class="text-gray-600">No tours found. Create your first tour!</p>
+            <div class="bg-slate-50 p-8 border border-slate-200 rounded-lg text-center">
+                <p class="text-slate-600">No tours found. Create your first tour!</p>
             </div>
         {:else}
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-                    <thead class="bg-gray-100 text-gray-700">
+                <table class="min-w-full bg-white rounded-lg overflow-hidden border border-slate-200">
+                    <thead class="bg-slate-50 text-slate-700">
                         <tr>
                             <th class="py-3 px-4 text-left">Name</th>
                             <th class="py-3 px-4 text-left">City</th>
@@ -105,14 +105,14 @@
                             <th class="py-3 px-4 text-left">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-slate-200">
                         {#each tours as tour}
-                            <tr class="hover:bg-gray-50">
+                            <tr class="hover:bg-slate-50">
                                 <td class="py-3 px-4">{tour.name}</td>
                                 <td class="py-3 px-4">{tour.cityId}</td>
                                 <td class="py-3 px-4">{tour.language}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <a href="/admin/edit/{tour.$id}" class="text-blue-600 hover:text-blue-800">
+                                    <a href="/admin/edit/{tour.$id}" class="text-green-600 hover:text-green-700">
                                         Edit
                                     </a>
                                     <button 

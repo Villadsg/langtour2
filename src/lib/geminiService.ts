@@ -1,6 +1,8 @@
 // Gemini AI service for the tour creation form
 // This service handles the interaction with Google's Gemini AI API
 
+import type { TourStop, TeachingMaterial, VocabularyItem, Dialogue } from '$lib/firebase/types';
+
 // Store the API key securely
 let GEMINI_API_KEY: string = '';
 
@@ -588,5 +590,213 @@ Description:`;
         };
       }
     }, 3, 500);
+  },
+
+  // Get a structured response with configurable max tokens
+  async getStructuredResponse(prompt: string, maxOutputTokens: number = 2000): Promise<string> {
+    if (!GEMINI_API_KEY) {
+      throw new Error('Gemini API key is not configured');
+    }
+
+    return callWithRetry(async () => {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: prompt
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: maxOutputTokens,
+              }
+            })
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Gemini API error: ${response.status} - ${errorData}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.candidates || data.candidates.length === 0) {
+          throw new Error('No response from Gemini AI');
+        }
+
+        return data.candidates[0].content.parts[0].text;
+      } catch (error) {
+        console.error('Error calling Gemini API:', error);
+        throw error;
+      }
+    });
+  },
+
+  // Suggest place type based on place name and address
+  async suggestPlaceType(placeName: string, address: string): Promise<string> {
+    try {
+      const prompt = `Based on the place name "${placeName}" and address "${address}", suggest the most appropriate place type from this list: cafe, restaurant, museum, market, landmark, park, shop, neighborhood, station, square, other.
+
+Reply with ONLY the place type (one word from the list), nothing else.`;
+
+      const response = await this.getResponse(prompt);
+      const placeType = response.trim().toLowerCase();
+
+      const validTypes = ['cafe', 'restaurant', 'museum', 'market', 'landmark', 'park', 'shop', 'neighborhood', 'station', 'square', 'other'];
+      return validTypes.includes(placeType) ? placeType : 'other';
+    } catch (error) {
+      console.error('Error suggesting place type:', error);
+      return 'other';
+    }
+  },
+
+  // Generate teaching material for a single stop
+  async generateStopContent(
+    stop: TourStop,
+    tourContext: {
+      languageTaught: string;
+      instructionLanguage: string;
+      cefrLevel: string;
+      tourName?: string;
+      tourDescription?: string;
+    }
+  ): Promise<TeachingMaterial> {
+    const { languageTaught, instructionLanguage, cefrLevel, tourName, tourDescription } = tourContext;
+    const { placeName, placeType, address } = stop.location;
+
+    const prompt = `You are a language learning content creator. Generate teaching material for a language learning tour stop.
+
+STOP INFORMATION:
+- Place: ${placeName || 'Unknown place'}
+- Type: ${placeType || 'location'}
+- Address: ${address || 'Unknown address'}
+${tourName ? `- Tour name: ${tourName}` : ''}
+${tourDescription ? `- Tour context: ${tourDescription}` : ''}
+
+LANGUAGE SETTINGS:
+- Language to teach: ${languageTaught}
+- Instruction language: ${instructionLanguage}
+- CEFR Level: ${cefrLevel}
+
+Generate vocabulary and dialogues appropriate for this stop and language level.
+
+Respond with ONLY valid JSON in exactly this format (no markdown, no code blocks):
+{
+  "vocabulary": [
+    {
+      "word": "word in ${languageTaught}",
+      "translation": "translation in ${instructionLanguage}",
+      "pronunciation": "phonetic pronunciation (optional)",
+      "context": "Example sentence using the word in ${languageTaught}"
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "Dialogue title in ${instructionLanguage}",
+      "participants": ["Person A", "Person B"],
+      "lines": [
+        {
+          "speaker": "Person A",
+          "text": "Line in ${languageTaught}",
+          "translation": "Translation in ${instructionLanguage}"
+        }
+      ]
+    }
+  ]
+}
+
+Generate 8-12 vocabulary items and 2-3 short dialogues (3-6 lines each) relevant to this type of place (${placeType || 'location'}).
+Focus on practical vocabulary and phrases a tourist would use at a ${placeType || 'place'}.
+Ensure all content is appropriate for ${cefrLevel} level learners.`;
+
+    try {
+      const response = await this.getStructuredResponse(prompt, 3000);
+
+      // Extract JSON from response (handle potential markdown code blocks)
+      let jsonStr = response.trim();
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      }
+
+      const parsed = JSON.parse(jsonStr);
+
+      return {
+        vocabulary: parsed.vocabulary || [],
+        dialogues: parsed.dialogues || [],
+        generatedAt: Date.now(),
+        languageTaught,
+        instructionLanguage,
+        cefrLevel
+      };
+    } catch (error) {
+      console.error('Error generating stop content:', error);
+      // Return empty teaching material on error
+      return {
+        vocabulary: [],
+        dialogues: [],
+        generatedAt: Date.now(),
+        languageTaught,
+        instructionLanguage,
+        cefrLevel
+      };
+    }
+  },
+
+  // Generate content for all stops with progress callback
+  async generateAllStopsContent(
+    stops: TourStop[],
+    tourContext: {
+      languageTaught: string;
+      instructionLanguage: string;
+      cefrLevel: string;
+      tourName?: string;
+      tourDescription?: string;
+    },
+    onProgress?: (completed: number, total: number, currentStopName: string) => void
+  ): Promise<TourStop[]> {
+    const total = stops.length;
+    const updatedStops: TourStop[] = [];
+
+    for (let i = 0; i < stops.length; i++) {
+      const stop = stops[i];
+      const stopName = stop.location.placeName || `Stop ${i + 1}`;
+
+      // Report progress
+      if (onProgress) {
+        onProgress(i, total, stopName);
+      }
+
+      try {
+        const teachingMaterial = await this.generateStopContent(stop, tourContext);
+        updatedStops.push({
+          ...stop,
+          teachingMaterial
+        });
+      } catch (error) {
+        console.error(`Error generating content for stop ${stopName}:`, error);
+        // Keep the stop without teaching material on error
+        updatedStops.push(stop);
+      }
+
+      // Rate limiting: wait 500ms between requests (except for last one)
+      if (i < stops.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    // Final progress report
+    if (onProgress) {
+      onProgress(total, total, 'Complete');
+    }
+
+    return updatedStops;
   }
 };

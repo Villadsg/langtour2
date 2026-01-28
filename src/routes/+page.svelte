@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { citiesStore, type Tour } from '$lib/stores/tourStore';
-	import { ConvexService, currentUser, isAdmin } from '$lib/convexService';
+	import { ConvexService, currentUser, isAdmin } from '$lib/firebaseService';
 	import TourCard from '$lib/components/TourCard.svelte';
 	import { get } from 'svelte/store';
 	import { toursStore } from '$lib/stores/tourStore';
@@ -191,19 +191,19 @@
 			
 			<!-- Tour type filter -->
 			<div class="flex justify-center items-center space-x-2">
-				<span class="text-sm text-gray-600">Filter by:</span>
-				
+				<span class="text-sm text-slate-500">Filter by:</span>
+
 				<!-- All tours -->
-				<button 
-					class={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+				<button
+					class={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
 					on:click={() => tourTypeFilter = 'all'}
 				>
 					All Tours
 				</button>
-				
+
 				<!-- Tour Guide filter -->
-				<button 
-					class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'person' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+				<button
+					class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'person' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'}`}
 					on:click={() => tourTypeFilter = 'person'}
 				>
 					<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -211,10 +211,10 @@
 					</svg>
 					Tour Guide
 				</button>
-				
+
 				<!-- App-guide filter -->
-				<button 
-					class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'app' ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}
+				<button
+					class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'app' ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200'}`}
 					on:click={() => tourTypeFilter = 'app'}
 				>
 					<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

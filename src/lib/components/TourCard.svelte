@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import type { Tour } from '$lib/stores/tourStore';
     import { citiesStore } from '$lib/stores/tourStore';
-    import { ConvexService } from '$lib/convexService';
+    import { ConvexService } from '$lib/firebaseService';
 
     let { tour } = $props<{ tour: Tour }>();
     
@@ -139,31 +139,31 @@
                     
                 </div>
                 <div class="flex flex-wrap items-center gap-3 mb-2">
-                    <div class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-sm mr-3 border border-indigo-100">
+                    <div class="inline-block px-2.5 py-1 bg-green-50 text-green-700 text-sm mr-3 border border-green-200 rounded-md">
                         {tour.languageTaught || 'Not specified'}
                     </div>
-    
-    
-                    
+
+
+
                     <!-- Tour Type Marker (moved next to heading) -->
                     {#if tour.tourType === 'person'}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                        <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
+                        <svg class="h-4 w-4 mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                         Tour Guide
                     </span>
                 {:else if tour.tourType === 'app'}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
-                        <svg class="h-4 w-4 mr-1 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200">
+                        <svg class="h-4 w-4 mr-1 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <rect x="7" y="2" width="10" height="20" rx="2" />
                             <circle cx="12" cy="18" r="1" />
                         </svg>
                         App-guide
                     </span>
                 {:else}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                        <svg class="h-4 w-4 mr-1 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
+                        <svg class="h-4 w-4 mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                         Tour Guide
@@ -200,9 +200,9 @@
 
                  <!-- Next scheduled tour badge -->
                  {#if nextSchedule}
-                 <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-medium rounded border border-blue-100 shadow-sm">
-                     
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-200">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                      </svg>
                      <span class="font-medium">Next Time: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { currentUser, ConvexService } from '$lib/convexService';
+  import { currentUser, ConvexService } from '$lib/firebaseService';
   import { onMount } from 'svelte';
   
   let username = '';
@@ -63,12 +63,12 @@
   <title>Edit Profile - Language Learning Tours</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 flex flex-col py-12 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-slate-50 flex flex-col py-12 sm:px-6 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-800">
       Edit Profile
     </h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
+    <p class="mt-2 text-center text-sm text-slate-600">
       Update your profile information
     </p>
   </div>
@@ -88,26 +88,26 @@
       {/if}
       
       <!-- Account Information Section -->
-      <div class="mb-6 pb-6 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Account Information</h3>
+      <div class="mb-6 pb-6 border-b border-slate-200">
+        <h3 class="text-lg font-medium text-slate-800 mb-4">Account Information</h3>
         
         <div class="space-y-3">
           <div>
-            <span class="block text-sm font-medium text-gray-700">Email Address</span>
+            <span class="block text-sm font-medium text-slate-700">Email Address</span>
             <div class="mt-1 flex items-center">
-              <span class="text-sm text-gray-900">{userEmail}</span>
-              <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span class="text-sm text-slate-800">{userEmail}</span>
+              <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
                 Verified
               </span>
             </div>
-            <p class="mt-1 text-xs text-gray-500">Your email address is used for login and notifications.</p>
+            <p class="mt-1 text-xs text-slate-500">Your email address is used for login and notifications.</p>
           </div>
         </div>
       </div>
       
       <form class="space-y-6" on:submit|preventDefault={updateProfile}>
         <div>
-          <label for="username" class="block text-sm font-medium text-gray-700">
+          <label for="username" class="block text-sm font-medium text-slate-700">
             Username
           </label>
           <div class="mt-1">
@@ -117,30 +117,30 @@
               type="text"
               autocomplete="username"
               bind:value={username}
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-green-400 focus:border-green-400 sm:text-sm"
             />
           </div>
         </div>
 
-        <div>
+        <div class="flex justify-center">
           <button
             type="submit"
             disabled={loading}
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            class="py-2.5 px-8 rounded-lg text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 border border-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 disabled:opacity-50 transition-colors"
           >
             {loading ? 'Updating...' : 'Update Profile'}
           </button>
         </div>
       </form>
-      
-      <div class="mt-6 pt-6 border-t border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">Account Actions</h3>
-        <p class="mt-1 text-sm text-gray-600">Manage your account settings</p>
-        
-        <div class="mt-4">
+
+      <div class="mt-6 pt-6 border-t border-slate-200">
+        <h3 class="text-lg font-medium text-slate-800">Account Actions</h3>
+        <p class="mt-1 text-sm text-slate-600">Manage your account settings</p>
+
+        <div class="mt-4 flex justify-center">
           <button
             on:click={handleLogout}
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
+            class="py-2.5 px-8 border border-transparent rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer transition-colors"
           >
             Logout
           </button>

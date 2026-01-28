@@ -1,499 +1,613 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from 'svelte';
-    import { GeminiService } from '$lib/geminiService';
+    import { createEventDispatcher } from 'svelte';
     import SimpleMapPicker from './SimpleMapPicker.svelte';
-    import type { Tour } from '$lib/stores/tourStore';
-    
+    import MultiStopMapPicker from './MultiStopMapPicker.svelte';
+    import StopListEditor from './StopListEditor.svelte';
+    import StopAssistant from './StopAssistant.svelte';
+    import type { TourStop, TourStopLocation, TeachingMaterial } from '$lib/firebase/types';
+
     export let tour = {
         name: '',
         cityId: '',
-        languageTaught: '', 
-        instructionLanguage: '', 
+        languageTaught: '',
+        instructionLanguage: '',
         langDifficulty: '',
         description: '',
         imageUrl: '',
-        tourType: 'person', 
-        price: 24 
+        tourType: 'person',
+        price: 24,
+        stops: [] as TourStop[]
     };
-    
+
     const dispatch = createEventDispatcher();
-    
-    // City options (same as in TourForm)
-    const cities = [
-        { id: 'copenhagen', name: 'Copenhagen', country: 'Denmark' },
-        { id: 'madrid', name: 'Madrid', country: 'Spain' }
-    ];
-    
+
     // Available languages
     const allLanguages = ['English', 'Spanish', 'German', 'French', 'Italian', 'Danish'];
-    
+
     // Language difficulty levels
     const difficultyLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    
-    // Tour type options with display labels and values
+
+    // Tour type options
     const tourTypes = [
         { value: 'person', label: 'Guided tour by a person' },
         { value: 'app', label: 'Guided tour by the app' }
     ];
-    
-    // AI conversation state
-    let userInput = '';
-    let messages: { role: 'ai' | 'user', content: string }[] = [];
-    let isWaitingForResponse = false;
-    let isFormComplete = false;
+
+    // Phase management
+    type Phase = 'basic-info' | 'route-builder' | 'review';
+    let currentPhase: Phase = 'basic-info';
+
+    // Form state
     let isSubmitting = false;
-    
-    // Track what we've collected
-    let collectedName = false;
-    let collectedLanguagePair = false;
-    let collectedDifficulty = false;
-    let collectedDescription = false;
-    
-    // Track confirmation states
-    let awaitingNameConfirmation = false;
-    let pendingName = '';
-    
-    // Start the conversation
-    onMount(() => {
-        messages = [
-            { role: 'ai', content: "What's the name of the tour?" }
-        ];
-    });
-    
-    // Extract tour name from user input
-    const extractTourName = async (input: string): Promise<string | null> => {
-        try {
-            // Use GeminiService to extract the actual tour name
-            const prompt = `Extract ONLY the actual tour name from this text: "${input}"
-            
-            If the name is in quotes, extract just the text within the quotes.
-            If the user says something like "the name is X" or "call it X", extract just X.
-            Return ONLY the extracted name, nothing else.`;
-            
-            const extractedName = await GeminiService.getResponse(prompt);
-            const lowerExtractedName = extractedName.toLowerCase();
-            // Check for common failure patterns or excessive length
-            if (lowerExtractedName.includes("cannot extract") || 
-                lowerExtractedName.includes("not a tour name") || 
-                lowerExtractedName.includes("unable to determine") || 
-                extractedName.length > 75) { // Heuristic for overly long/descriptive responses not being a name
-                return null; // Indicate failure to extract a valid name
-            }
-            return extractedName.trim();
-        } catch (error) {
-            console.error('Error extracting tour name:', error);
-            // Fallback to simple extraction if API call fails, or return null to re-prompt
-            const quotedText = input.match(/["']([^"']+)["']/);
-            if (quotedText && quotedText[1]) {
-                const name = quotedText[1].trim();
-                if (name.length < 75) return name; // Basic validation for fallback
-            }
-            return null; // Indicate failure if fallback also doesn't yield a good name
-        }
-    };
-    
-    // Extract difficulty level from user input
-    const extractDifficulty = (input: string): string => {
-        const upperInput = input.toUpperCase();
-        for (const level of difficultyLevels) {
-            if (upperInput.includes(level)) {
-                return level;
-            }
-        }
-        return '';
+
+    // Route builder state
+    let mapPickerComponent: MultiStopMapPicker;
+
+    // Stop assistant state
+    let selectedStopForAssistant: TourStop | null = null;
+    let showStopAssistant = false;
+
+    // Validation
+    $: isBasicInfoComplete = tour.name.trim() !== '' &&
+        tour.languageTaught !== '' &&
+        tour.instructionLanguage !== '' &&
+        tour.langDifficulty !== '' &&
+        tour.description.trim() !== '';
+
+    $: stopsWithContent = tour.stops.filter(s =>
+        s.teachingMaterial?.vocabulary && s.teachingMaterial.vocabulary.length > 0
+    ).length;
+
+    $: tourContext = {
+        languageTaught: tour.languageTaught,
+        instructionLanguage: tour.instructionLanguage,
+        cefrLevel: tour.langDifficulty,
+        tourName: tour.name,
+        tourDescription: tour.description
     };
 
-    // Extract languages from user input using Gemini
-    const extractLanguages = async (input: string): Promise<{languageTaught: string, instructionLanguage: string} | null> => {
-        try {
-            const prompt = `From the following text, identify the language to be learned and the language of instruction. Format the response as "LanguageLearned, LanguageOfInstruction". For example, if the text is "I want to teach people German, and I'll speak English", respond with "German, English". If you cannot clearly determine both, respond with "unknown". Text: "${input}"`;
-            const extractedPair = await GeminiService.getResponse(prompt);
-            
-            if (extractedPair.toLowerCase().includes('unknown')) {
-                return null;
-            }
+    // Handle stops change from map picker
+    function handleStopsChange(event: CustomEvent<TourStop[]>) {
+        tour.stops = event.detail;
+    }
 
-            // Process Gemini's response
-            const parts = extractedPair.split(',').map(p => p.trim());
-            if (parts.length === 2) {
-                // Normalize language names (capitalize first letter)
-                const languageTaught = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
-                const instructionLanguage = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
-                
-                // Validate that both are recognized languages
-                const isValidLanguageTaught = allLanguages.some(lang => lang.toLowerCase() === languageTaught.toLowerCase());
-                const isValidInstructionLanguage = allLanguages.some(lang => lang.toLowerCase() === instructionLanguage.toLowerCase());
-                
-                if (isValidLanguageTaught && isValidInstructionLanguage) {
-                    return { languageTaught, instructionLanguage };
-                }
-            }
-            return null; // Invalid format or unrecognized languages
-        } catch (error) {
-            console.error('Error extracting languages:', error);
-            return null;
-        }
-    };
+    // Handle stop reorder from list editor
+    function handleStopReorder(event: CustomEvent<TourStop[]>) {
+        tour.stops = event.detail.map((s, index) => ({ ...s, order: index }));
+        mapPickerComponent?.reorderStops(tour.stops);
+    }
 
-    // Check if description mentions a specific place using GeminiService
-    const checkDescriptionForPlace = async (description: string): Promise<boolean> => {
-        try {
-            const prompt = `Does the following tour description mention at least one place, landmark, or address? Answer with only 'yes' or 'no'. Description: "${description}"`;
-            const response = await GeminiService.getResponse(prompt);
-            return response.trim().toLowerCase() === 'yes';
-        } catch (error) {
-            console.error('Error checking description for place:', error);
-            // In case of API error, allow user to proceed but log the error.
-            messages = [...messages, { role: 'ai', content: "I had a little trouble verifying the place in the description, but let's proceed. You can refine it in the form below." }];
-            return true; // Or false to be stricter
-        }
-    };
-    
-        // Check if the answer has enough clarity to proceed, given the previous question
-    const checkClarity = async (question: string, answer: string): Promise<boolean> => {
-        try {
-            const prompt = `A user was asked: "${question}"
-Their answer was: "${answer}"
-Is the answer a clear decision on the question? Reply only with 'yes' or 'no'.`;
-            const response = await GeminiService.getResponse(prompt);
-            return response.trim().toLowerCase() === 'yes';
-        } catch (error) {
-            console.error('Error checking clarity:', error);
-            return true; // Default to true in case of API errors to avoid blocking the flow
-        }
-    };
-    
-    // Check if the user is confirming their previous input
-    const checkConfirmation = async (input: string): Promise<boolean> => {
-        try {
-            const normalizedInput = input.trim().toLowerCase();
-            // Direct check for common confirmation phrases
-            if (['yes', 'yeah', 'yep', 'correct', 'confirm', 'that is correct', 'that is right', 'that\'s right'].includes(normalizedInput)) {
-                return true;
-            }
-            
-            // Use Gemini for more complex confirmations
-            const prompt = `Is the user confirming or agreeing to something in their message? Answer with only 'yes' or 'no'. Message: "${input}"`;
-            const response = await GeminiService.getResponse(prompt);
-            return response.trim().toLowerCase() === 'yes';
-        } catch (error) {
-            console.error('Error checking confirmation:', error);
-            // In case of API error, check for basic confirmation words
-            const normalizedInput = input.trim().toLowerCase();
-            return normalizedInput.includes('yes') || normalizedInput.includes('yeah') || normalizedInput.includes('correct');
-        }
-    };
-    
-    // Get clarification from Gemini, given the previous question
-    const getClarification = async (question: string, answer: string, context: string): Promise<string> => {
-        try {
-            const prompt = `A user was asked: "${question}"
-Their answer was: "${answer}"
-The context is: ${context} for a language tour.
-Please provide a helpful clarifying question or suggestion to help them provide a more certain and clear response. Keep your response friendly, specific, and under 50 words.`;
-            return await GeminiService.getResponse(prompt);
-        } catch (error) {
-            console.error('Error getting clarification:', error);
-            return `Could you please provide more specific information about the ${context}?`;
-        }
-    };
+    // Handle stop delete from list editor
+    function handleStopDelete(event: CustomEvent<string>) {
+        const stopId = event.detail;
+        mapPickerComponent?.removeStop(stopId);
+    }
 
+    // Handle stop update from list editor
+    function handleStopUpdate(event: CustomEvent<{ stopId: string; updates: Partial<TourStopLocation> }>) {
+        const { stopId, updates } = event.detail;
+        tour.stops = tour.stops.map(s =>
+            s.id === stopId
+                ? { ...s, location: { ...s.location, ...updates } }
+                : s
+        );
+        mapPickerComponent?.updateStopLocation(stopId, updates);
+    }
 
-    // Handle user input submission
-    // Track the last AI question for clarity/clarification context
-    let lastAIQuestion = "What's the name of the tour?";
+    // Open stop assistant for creating/editing content
+    function openStopAssistant(stop: TourStop) {
+        selectedStopForAssistant = stop;
+        showStopAssistant = true;
+    }
 
-    const handleSubmit = async () => {
-        if (!userInput.trim() || isWaitingForResponse) return;
-        
-        const userMessage = userInput;
-        userInput = '';
-        
-        messages = [...messages, { role: 'user', content: userMessage }];
-        isWaitingForResponse = true;
-        
-        // Find the last AI message to use as the previous question
-        const lastAImsg = [...messages].reverse().find(m => m.role === 'ai');
-        if (lastAImsg) lastAIQuestion = lastAImsg.content;
-        
-        try {
-            if (awaitingNameConfirmation) {
-                // Check if the user is confirming their previous name input
-                const isConfirming = await checkConfirmation(userMessage);
-                if (isConfirming) {
-                    // User confirmed the name, so accept it
-                    tour.name = pendingName;
-                    collectedName = true;
-                    awaitingNameConfirmation = false;
-                    pendingName = '';
-                    messages = [...messages, { role: 'ai', content: "Great! Which language will be learned, and which language will be used for instruction? For example, 'Learn German, instruction in English'." }];
-                } else {
-                    // User didn't confirm, ask for a new name
-                    awaitingNameConfirmation = false;
-                    pendingName = '';
-                    messages = [...messages, { role: 'ai', content: "Let's try again. What would you like to name your tour?" }];
-                }
-            } else if (!collectedName) {
-                const name = await extractTourName(userMessage);
-                if (name && name.trim() !== '') {
-                    // Check clarity before accepting the name
-                    const isClear = await checkClarity(lastAIQuestion, name);
-                    if (isClear) {
-                        tour.name = name;
-                        collectedName = true;
-                        messages = [...messages, { role: 'ai', content: "Great! Which language will be learned, and which language will be used for instruction? For example, 'Learn German, instruction in English'." }];
-                    } else {
-                        // Store the name for potential confirmation
-                        pendingName = name;
-                        awaitingNameConfirmation = true;
-                        messages = [...messages, { role: 'ai', content: `"${name}" seems unusual for a tour name. Is this definitely the name you want to use? Please confirm with yes or no.` }];
-                    }
-                } else {
-                    tour.name = ''; // Clear any previous potentially bad name
-                    messages = [...messages, { role: 'ai', content: "That doesn't seem like a valid tour name. Could you please provide a clear name for your tour?" }];
-                }
-            } else if (!collectedLanguagePair) {
-                const extractedLanguages = await extractLanguages(userMessage);
-                if (extractedLanguages) {
-                    // Check clarity before accepting languages
-                    const isClear = await checkClarity(lastAIQuestion, `Learning ${extractedLanguages.languageTaught}, taught in ${extractedLanguages.instructionLanguage}`);
-                    if (isClear) {
-                        tour.languageTaught = extractedLanguages.languageTaught;
-                        tour.instructionLanguage = extractedLanguages.instructionLanguage;
-                        collectedLanguagePair = true;
-                        messages = [...messages, { role: 'ai', content: `Great! So the tour will teach ${tour.languageTaught} with instructions in ${tour.instructionLanguage}. Now, what language difficulty level? (A1, A2, B1, B2, C1, or C2)` }];
-                    } else {
-                        // Get clarification if languages aren't clear
-                        const clarification = await getClarification(lastAIQuestion, userMessage, "languages");
-                        messages = [...messages, { role: 'ai', content: clarification }];
-                    }
-                } else {
-                    tour.languageTaught = '';
-                    tour.instructionLanguage = '';
-                    messages = [...messages, { role: 'ai', content: "I couldn't determine which language will be taught and which language will be used for instruction. Could you please state it clearly? For example: 'I'll teach Spanish with instructions in English'." }];
-                }
-            } else if (!collectedDifficulty) {
-                const difficulty = extractDifficulty(userMessage);
-                if (difficulty) {
-                    // Check clarity before accepting difficulty level
-                    const isClear = await checkClarity(lastAIQuestion, difficulty);
-                    if (isClear) {
-                        tour.langDifficulty = difficulty;
-                        collectedDifficulty = true;
-                        messages = [...messages, { role: 'ai', content: "Great! Now please provide a brief description of where the tour will go to and why it's special" }];
-                    } else {
-                        // Get clarification if difficulty isn't clear
-                        const clarification = await getClarification(lastAIQuestion, userMessage, "difficulty level");
-                        messages = [...messages, { role: 'ai', content: clarification }];
-                    }
-                } else {
-                    messages = [...messages, { role: 'ai', content: "Please choose a difficulty level: A1, A2, B1, B2, C1, or C2" }];
-                }
-            } else if (!collectedDescription) {
-                // Check if description mentions a place
-                const hasPlaceReference = await checkDescriptionForPlace(userMessage);
-                if (hasPlaceReference) {
-                    // Check clarity before accepting description
-                    const isClear = await checkClarity(lastAIQuestion, userMessage);
-                    if (isClear) {
-                        tour.description = userMessage;
-                        collectedDescription = true;
-                        isFormComplete = true;
-                        messages = [...messages, { role: 'ai', content: "Thank you! I've collected all the information needed. Please review your tour details below and make any necessary changes." }];
-                    } else {
-                        // Get clarification if description isn't clear
-                        const clarification = await getClarification(lastAIQuestion, userMessage, "tour description");
-                        messages = [...messages, { role: 'ai', content: clarification }];
-                    }
-                } else {
-                    messages = [...messages, { role: 'ai', content: "Your description should mention at least one specific place or landmark. This helps learners know where your tour will go. Please try again." }];
-                }
-            }
-        } catch (error) {
-            console.error('Error processing user input:', error);
-            messages = [...messages, { role: 'ai', content: "Sorry, I'm having trouble processing that. Could you try again?" }];
-        } finally {
-            isWaitingForResponse = false;
+    // Handle view content / edit content request from list editor
+    function handleViewContent(event: CustomEvent<string>) {
+        const stopId = event.detail;
+        const stop = tour.stops.find(s => s.id === stopId);
+        if (stop) {
+            openStopAssistant(stop);
         }
-    };
-    
+    }
+
+    // Handle regenerate request (open assistant)
+    function handleRegenerateStop(event: CustomEvent<string>) {
+        const stopId = event.detail;
+        const stop = tour.stops.find(s => s.id === stopId);
+        if (stop) {
+            openStopAssistant(stop);
+        }
+    }
+
+    // Handle teaching material update from assistant
+    function handleMaterialUpdate(event: CustomEvent<{ stopId: string; teachingMaterial: TeachingMaterial }>) {
+        const { stopId, teachingMaterial } = event.detail;
+        tour.stops = tour.stops.map(s =>
+            s.id === stopId ? { ...s, teachingMaterial } : s
+        );
+        // Update the selected stop if it's still the same
+        if (selectedStopForAssistant?.id === stopId) {
+            selectedStopForAssistant = tour.stops.find(s => s.id === stopId) || null;
+        }
+    }
+
+    // Close stop assistant
+    function closeStopAssistant() {
+        showStopAssistant = false;
+        selectedStopForAssistant = null;
+    }
+
+    // Navigation
+    function goToRouteBuilder() {
+        if (!isBasicInfoComplete) {
+            alert('Please fill in all required fields before continuing.');
+            return;
+        }
+        currentPhase = 'route-builder';
+    }
+
+    function goToReview() {
+        if (tour.stops.length === 0) {
+            alert('Please add at least one stop to your tour.');
+            return;
+        }
+        currentPhase = 'review';
+    }
+
     // Handle form submission
-    const handleCreateTour = () => {
+    function handleCreateTour() {
         isSubmitting = true;
         dispatch('submit', tour);
-    };
-    
+    }
+
     // Handle cancellation
-    const handleCancel = () => {
+    function handleCancel() {
         dispatch('cancel');
-    };
-    
-    // Handle Enter key press
-    const handleKeyPress = (event: KeyboardEvent) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            handleSubmit();
-        }
-    };
+    }
 </script>
 
-<div class="bg-white shadow-md rounded-lg p-6">
-    <!-- Map picker section -->
-    <div class="mb-8">
-        <h3 class="text-lg font-medium mb-2">Select Tour Starting Point</h3>
-        <p class="text-sm text-gray-600 mb-4">Use the map to select the location for your tour.</p>
-        <SimpleMapPicker bind:value={tour.cityId} />
-    </div>
-    
-    <!-- AI Conversation Area -->
+<div class="bg-white border border-slate-200 rounded-lg p-6">
+    <!-- Phase indicator -->
     <div class="mb-6">
-        <h3 class="text-lg font-medium mb-2">Tour Setup Assistant</h3>
-        <div class="bg-gray-50 rounded-lg p-4 overflow-y-auto mb-4">
-            {#each messages as message}
-                <div class="mb-3 {message.role === 'user' ? 'text-right' : 'text-left'}">
-                    <span class="inline-block px-4 py-2 rounded-lg {message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}">
-                        {message.content}
-                    </span>
+        <div class="flex items-center justify-between text-sm">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'basic-info' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700'}">
+                    1
                 </div>
-            {/each}
-            {#if isWaitingForResponse}
-                <div class="text-left mb-3">
-                    <span class="inline-block px-4 py-2 rounded-lg bg-gray-200 text-gray-800">
-                        <span class="inline-block animate-pulse">Thinking...</span>
-                    </span>
+                <span class="{currentPhase === 'basic-info' ? 'font-medium' : 'text-gray-500'}">Basic Info</span>
+            </div>
+            <div class="flex-1 h-px bg-gray-200 mx-2"></div>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'route-builder' ? 'bg-green-500 text-white' : isBasicInfoComplete ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-400'}">
+                    2
                 </div>
-            {/if}
+                <span class="{currentPhase === 'route-builder' ? 'font-medium' : isBasicInfoComplete ? 'text-gray-500' : 'text-gray-400'}">Route & Content</span>
+            </div>
+            <div class="flex-1 h-px bg-gray-200 mx-2"></div>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'review' ? 'bg-green-500 text-white' : tour.stops.length > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-400'}">
+                    3
+                </div>
+                <span class="{currentPhase === 'review' ? 'font-medium' : 'text-gray-400'}">Review</span>
+            </div>
         </div>
-        
-        {#if !isFormComplete}
-            <div class="flex gap-2">
-                <input
-                    type="text"
-                    bind:value={userInput}
-                    on:keypress={handleKeyPress}
-                    placeholder="Type your answer..."
-                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isWaitingForResponse}
-                />
+    </div>
+
+    <!-- Phase 1: Basic Info -->
+    {#if currentPhase === 'basic-info'}
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-medium mb-4">Tour Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label for="tour-name" class="block text-gray-700 text-sm font-medium mb-1">
+                            Tour Name <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="tour-name"
+                            bind:value={tour.name}
+                            placeholder="e.g., Copenhagen Coffee Culture Tour"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        />
+                    </div>
+
+                    <div>
+                        <label for="language-taught" class="block text-gray-700 text-sm font-medium mb-1">
+                            Language to Teach <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            id="language-taught"
+                            bind:value={tour.languageTaught}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        >
+                            <option value="">Select language...</option>
+                            {#each allLanguages as lang}
+                                <option value={lang}>{lang}</option>
+                            {/each}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="instruction-language" class="block text-gray-700 text-sm font-medium mb-1">
+                            Instruction Language <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            id="instruction-language"
+                            bind:value={tour.instructionLanguage}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        >
+                            <option value="">Select language...</option>
+                            {#each allLanguages as lang}
+                                <option value={lang}>{lang}</option>
+                            {/each}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="difficulty" class="block text-gray-700 text-sm font-medium mb-1">
+                            Difficulty Level <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            id="difficulty"
+                            bind:value={tour.langDifficulty}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        >
+                            <option value="">Select level...</option>
+                            {#each difficultyLevels as level}
+                                <option value={level}>{level} - {level === 'A1' ? 'Beginner' : level === 'A2' ? 'Elementary' : level === 'B1' ? 'Intermediate' : level === 'B2' ? 'Upper Intermediate' : level === 'C1' ? 'Advanced' : 'Proficient'}</option>
+                            {/each}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="tour-type" class="block text-gray-700 text-sm font-medium mb-1">
+                            Tour Type
+                        </label>
+                        <select
+                            id="tour-type"
+                            bind:value={tour.tourType}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        >
+                            {#each tourTypes as type}
+                                <option value={type.value}>{type.label}</option>
+                            {/each}
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="description" class="block text-gray-700 text-sm font-medium mb-1">
+                            Description <span class="text-red-500">*</span>
+                        </label>
+                        <textarea
+                            id="description"
+                            bind:value={tour.description}
+                            rows="3"
+                            placeholder="Describe your tour - what makes it special, what will learners experience?"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        ></textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="image-url" class="block text-gray-700 text-sm font-medium mb-1">
+                            Image URL (optional)
+                        </label>
+                        <input
+                            id="image-url"
+                            type="url"
+                            bind:value={tour.imageUrl}
+                            placeholder="https://example.com/image.jpg"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Starting point map -->
+            <div>
+                <h3 class="text-lg font-medium mb-2">Starting Point</h3>
+                <p class="text-sm text-gray-600 mb-4">Select where your tour begins.</p>
+                <SimpleMapPicker bind:value={tour.cityId} />
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex justify-between pt-4">
                 <button
                     type="button"
-                    on:click={handleSubmit}
-                    disabled={!userInput.trim() || isWaitingForResponse}
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    on:click={handleCancel}
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
-                    Send
+                    Cancel
                 </button>
-            </div>
-        {/if}
-    </div>
-    
-    {#if isFormComplete}
-        <!-- Form review and edit area - only visible when all components collected -->
-        <div class="mb-6 grid grid-cols-1 gap-4">
-            <div>
-                <label for="tour-name" class="block text-gray-700 text-sm font-bold mb-2">Tour Name</label>
-                <input type="text" id="tour-name" bind:value={tour.name} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            <div>
-                <label for="tour-language-taught" class="block text-gray-700 text-sm font-bold mb-2">Language Taught</label>
-                <select id="tour-language-taught" bind:value={tour.languageTaught} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    <option value="">Select language taught</option>
-                    {#each allLanguages as lang}
-                        <option value={lang}>{lang}</option>
-                    {/each}
-                </select>
-            </div>
-            <div>
-                <label for="tour-instruction-language" class="block text-gray-700 text-sm font-bold mb-2">Instruction Language</label>
-                <select id="tour-instruction-language" bind:value={tour.instructionLanguage} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    <option value="">Select instruction language</option>
-                    {#each allLanguages as lang}
-                        <option value={lang}>{lang}</option>
-                    {/each}
-                </select>
-            </div>
-            
-            <div>
-                <label for="lang-difficulty" class="block text-gray-700 text-sm font-bold mb-2">Language Difficulty</label>
-                <select
-                    id="lang-difficulty"
-                    bind:value={tour.langDifficulty}
-                    class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    required
+                <button
+                    type="button"
+                    on:click={goToRouteBuilder}
+                    disabled={!isBasicInfoComplete}
+                    class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                    {#each difficultyLevels as level}
-                        <option value={level}>{level}</option>
-                    {/each}
-                </select>
-            </div>
-            
-            <div>
-                <label for="tour-type" class="block text-gray-700 text-sm font-bold mb-2">Tour Type</label>
-                <select
-                    id="tour-type"
-                    bind:value={tour.tourType}
-                    class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    required
-                >
-                    <option value="">Select tour type</option>
-                    {#each tourTypes as type}
-                        <option value={type.value}>{type.label}</option>
-                    {/each}
-                </select>
-            </div>
-            
-
-            
-            <div>
-                <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
-                <textarea
-                    id="description"
-                    bind:value={tour.description}
-                    rows="4"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    placeholder="Describe your tour..."
-                    required
-                ></textarea>
-            </div>
-            
-            <div>
-                <label for="image-url" class="block text-gray-700 text-sm font-bold mb-2">Image URL (optional)</label>
-                <input
-                    id="image-url"
-                    type="url"
-                    bind:value={tour.imageUrl}
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    placeholder="https://example.com/image.jpg"
-                />
+                    Continue to Route Builder
+                </button>
             </div>
         </div>
     {/if}
-    
-    <!-- Action buttons -->
-    <div class="flex items-center justify-between">
-        <button
-            type="button"
-            on:click={handleCreateTour}
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
-            disabled={!isFormComplete || isSubmitting}
-        >
-            {#if isSubmitting}
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating...
-            {:else}
-                Create Tour
+
+    <!-- Phase 2: Route Builder & Content Creation -->
+    {#if currentPhase === 'route-builder'}
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-medium mb-2">Build Your Tour Route</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Add stops to your tour by clicking on the map or searching. For each stop, use the AI assistant to create vocabulary and dialogues.
+                </p>
+
+                <!-- Multi-stop map picker -->
+                <MultiStopMapPicker
+                    bind:this={mapPickerComponent}
+                    bind:stops={tour.stops}
+                    on:stopsChange={handleStopsChange}
+                />
+            </div>
+
+            <!-- Stop list with AI assistant buttons -->
+            <div>
+                <h4 class="text-md font-medium mb-3 flex items-center justify-between">
+                    <span>Tour Stops ({tour.stops.length})</span>
+                    {#if tour.stops.length > 0}
+                        <span class="text-sm font-normal text-gray-500">
+                            {stopsWithContent} of {tour.stops.length} with content
+                        </span>
+                    {/if}
+                </h4>
+
+                {#if tour.stops.length === 0}
+                    <div class="text-center py-8 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                        <p>No stops added yet.</p>
+                        <p class="text-sm mt-1">Click on the map or search to add stops to your tour.</p>
+                    </div>
+                {:else}
+                    <div class="space-y-3">
+                        {#each tour.stops.sort((a, b) => a.order - b.order) as stop, index (stop.id)}
+                            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <!-- Stop number -->
+                                    <div class="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                        {index + 1}
+                                    </div>
+
+                                    <!-- Stop details -->
+                                    <div class="flex-grow min-w-0">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-grow min-w-0 mr-3">
+                                                <input
+                                                    type="text"
+                                                    value={stop.location.placeName || ''}
+                                                    on:input={(e) => handleStopUpdate(new CustomEvent('update', { detail: { stopId: stop.id, updates: { placeName: e.currentTarget.value } } }))}
+                                                    placeholder="Stop name"
+                                                    class="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                                                />
+                                                <p class="text-xs text-gray-500 mt-1 truncate">{stop.location.address || 'No address'}</p>
+                                            </div>
+
+                                            <!-- Place type selector -->
+                                            <select
+                                                value={stop.location.placeType || ''}
+                                                on:change={(e) => handleStopUpdate(new CustomEvent('update', { detail: { stopId: stop.id, updates: { placeType: e.currentTarget.value } } }))}
+                                                class="text-xs px-2 py-1 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                                            >
+                                                <option value="">Type...</option>
+                                                <option value="cafe">Cafe</option>
+                                                <option value="restaurant">Restaurant</option>
+                                                <option value="museum">Museum</option>
+                                                <option value="market">Market</option>
+                                                <option value="landmark">Landmark</option>
+                                                <option value="park">Park</option>
+                                                <option value="shop">Shop</option>
+                                                <option value="neighborhood">Neighborhood</option>
+                                                <option value="station">Station</option>
+                                                <option value="square">Square</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Content status and AI assistant button -->
+                                        <div class="mt-3 flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                {#if stop.teachingMaterial?.vocabulary && stop.teachingMaterial.vocabulary.length > 0}
+                                                    <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        {stop.teachingMaterial.vocabulary.length} vocab, {stop.teachingMaterial.dialogues?.length ?? 0} dialogues
+                                                    </span>
+                                                {:else}
+                                                    <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                                                        No content yet
+                                                    </span>
+                                                {/if}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                on:click={() => openStopAssistant(stop)}
+                                                class="px-3 py-1.5 text-sm bg-green-100 text-green-700 border border-green-200 rounded hover:bg-green-200 transition-colors flex items-center gap-1"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                                </svg>
+                                                {stop.teachingMaterial?.vocabulary && stop.teachingMaterial.vocabulary.length > 0 ? 'Edit Content' : 'Create Content'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Delete button -->
+                                    <button
+                                        type="button"
+                                        on:click={() => handleStopDelete(new CustomEvent('delete', { detail: stop.id }))}
+                                        class="flex-shrink-0 p-1 text-red-400 hover:text-red-600"
+                                        title="Delete stop"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex justify-between pt-4">
+                <button
+                    type="button"
+                    on:click={() => currentPhase = 'basic-info'}
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                    Back to Basic Info
+                </button>
+                <button
+                    type="button"
+                    on:click={goToReview}
+                    disabled={tour.stops.length === 0}
+                    class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                    Continue to Review
+                </button>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Phase 3: Review & Submit -->
+    {#if currentPhase === 'review'}
+        <div class="space-y-6">
+            <h3 class="text-lg font-medium">Review Your Tour</h3>
+
+            <!-- Tour summary -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-500">Name:</span>
+                        <span class="ml-2 font-medium">{tour.name}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Type:</span>
+                        <span class="ml-2">{tourTypes.find(t => t.value === tour.tourType)?.label}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Language:</span>
+                        <span class="ml-2">{tour.languageTaught} (instructions in {tour.instructionLanguage})</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Level:</span>
+                        <span class="ml-2">{tour.langDifficulty}</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-gray-500">Description:</span>
+                        <p class="mt-1 text-gray-700">{tour.description}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stops summary -->
+            <div>
+                <h4 class="font-medium mb-3">Tour Stops ({tour.stops.length})</h4>
+                <div class="space-y-2">
+                    {#each tour.stops.sort((a, b) => a.order - b.order) as stop, index}
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 border border-slate-200 rounded-lg">
+                            <div class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                {index + 1}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-sm truncate">{stop.location.placeName || 'Stop ' + (index + 1)}</p>
+                                <p class="text-xs text-gray-500">{stop.location.placeType || 'Location'}</p>
+                            </div>
+                            {#if stop.teachingMaterial?.vocabulary && stop.teachingMaterial.vocabulary.length > 0}
+                                <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                    {stop.teachingMaterial.vocabulary.length} vocab, {stop.teachingMaterial.dialogues?.length ?? 0} dialogues
+                                </span>
+                                <button
+                                    type="button"
+                                    on:click={() => openStopAssistant(stop)}
+                                    class="text-xs text-green-600 hover:text-green-700 underline"
+                                >
+                                    Edit
+                                </button>
+                            {:else}
+                                <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
+                                    No content
+                                </span>
+                                <button
+                                    type="button"
+                                    on:click={() => openStopAssistant(stop)}
+                                    class="text-xs text-green-600 hover:text-green-700 underline"
+                                >
+                                    Add
+                                </button>
+                            {/if}
+                        </div>
+                    {/each}
+                </div>
+            </div>
+
+            <!-- Warning if missing content -->
+            {#if stopsWithContent < tour.stops.length}
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p class="text-sm text-yellow-800">
+                        <strong>Note:</strong> {tour.stops.length - stopsWithContent} stop(s) don't have teaching content yet.
+                        You can still create the tour and add content later.
+                    </p>
+                </div>
             {/if}
-        </button>
-        
-        <button
-            type="button"
-            on:click={handleCancel}
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-            Cancel
-        </button>
-    </div>
+
+            <!-- Navigation and submit -->
+            <div class="flex justify-between pt-4">
+                <button
+                    type="button"
+                    on:click={() => currentPhase = 'route-builder'}
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                    Back to Route Builder
+                </button>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        on:click={handleCancel}
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        on:click={handleCreateTour}
+                        disabled={isSubmitting}
+                        class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center"
+                    >
+                        {#if isSubmitting}
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Creating...
+                        {:else}
+                            Create Tour
+                        {/if}
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
 </div>
+
+<!-- Stop Assistant Modal -->
+{#if showStopAssistant && selectedStopForAssistant}
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="w-full max-w-4xl">
+            <StopAssistant
+                stop={selectedStopForAssistant}
+                {tourContext}
+                on:update={handleMaterialUpdate}
+                on:close={closeStopAssistant}
+            />
+        </div>
+    </div>
+{/if}

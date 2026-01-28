@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { ConvexService } from '$lib/convexService';
+  import { ConvexService } from '$lib/firebaseService';
 
   let message = 'Verifying your email...';
   let status = 'loading'; // loading, success, error
@@ -47,9 +47,9 @@
   <title>Email Confirmation - Language Learning Tours</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-800">
       Email Confirmation
     </h2>
   </div>
@@ -58,8 +58,8 @@
     <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
       {#if status === 'loading'}
         <div class="animate-pulse flex flex-col items-center">
-          <div class="rounded-full bg-blue-400 h-12 w-12 mb-4"></div>
-          <p class="text-gray-700">{message}</p>
+          <div class="rounded-full bg-green-400 h-12 w-12 mb-4"></div>
+          <p class="text-slate-700">{message}</p>
         </div>
       {:else if status === 'success'}
         <div class="text-center">
@@ -69,7 +69,7 @@
             </svg>
           </div>
           <p class="text-green-700 font-medium">{message}</p>
-          <p class="mt-2 text-sm text-gray-500">Redirecting you...</p>
+          <p class="mt-2 text-sm text-slate-500">Redirecting you...</p>
         </div>
       {:else}
         <div class="text-center">
@@ -80,7 +80,7 @@
           </div>
           <p class="text-red-700 font-medium">{message}</p>
           <p class="mt-4">
-            <a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
+            <a href="/login" class="font-medium text-green-600 hover:text-green-500">
               Return to login
             </a>
           </p>

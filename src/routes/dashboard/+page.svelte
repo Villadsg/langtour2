@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ConvexService, currentUser, userCreatedTours } from '$lib/convexService';
+  import { ConvexService, currentUser, userCreatedTours } from '$lib/firebaseService';
 
   
   let isLoading = true;
@@ -177,7 +177,7 @@
 
 
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Your Dashboard</h1>
+  <h1 class="text-3xl font-bold text-slate-800 mb-6">Your Dashboard</h1>
   
   {#if error}
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -187,12 +187,12 @@
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
     </div>
   {:else}
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold">Created Tours</h2>
-      <a href="/dashboard/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      <h2 class="text-2xl font-bold text-slate-800">Created Tours</h2>
+      <a href="/dashboard/create" class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-5 rounded-lg transition-colors">
         Create New Tour
       </a>
     </div>
@@ -216,29 +216,29 @@
     {/if}
         
     {#if $userCreatedTours.length === 0}
-      <div class="bg-gray-100 p-6 rounded-lg text-center">
-        <p class="text-gray-600">You haven't created any tours yet.</p>
+      <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
+        <p class="text-slate-600">You haven't created any tours yet.</p>
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {#each $userCreatedTours as tour}
           {@const tourData = getTourData(tour)}
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-white rounded-lg border border-slate-200 overflow-hidden hover:shadow-sm transition-shadow">
             {#if tour.imageUrl}
               <img src={tour.imageUrl} alt={tourData.name} class="w-full h-48 object-cover" />
             {/if}
             <div class="p-4">
-              <h3 class="text-lg font-semibold mb-2">{tourData.name}</h3>
-              <p class="text-gray-600 mb-4 line-clamp-2">{tourData.description}</p>
+              <h3 class="text-lg font-semibold text-slate-800 mb-2">{tourData.name}</h3>
+              <p class="text-slate-600 mb-4 line-clamp-2">{tourData.description}</p>
               <div class="flex space-x-4 justify-end mb-2">
-                <a href={`/dashboard/edit/${tour.id || tour.$id}`} class="text-blue-600 hover:text-blue-800">
+                <a href={`/dashboard/edit/${tour.id || tour.$id}`} class="text-green-600 hover:text-green-700 font-medium transition-colors">
                   Edit Tour
                 </a>
-                <a href={`/dashboard/tours/${tour.id || tour.$id}/schedule`} class="text-green-600 hover:text-green-800">
+                <a href={`/dashboard/tours/${tour.id || tour.$id}/schedule`} class="text-orange-500 hover:text-orange-600 font-medium transition-colors">
                   Schedule Tour
                 </a>
-                <button 
-                  class="text-red-600 hover:text-red-800 cursor-pointer {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
+                <button
+                  class="text-red-500 hover:text-red-600 cursor-pointer font-medium transition-colors {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
                   on:click={() => handleDeleteTour(tour.id || tour.$id, tourData.name)}
                   disabled={isDeleting}
                 >
@@ -252,7 +252,7 @@
     {/if}
         
     <div class="mt-8">
-      <h3 class="text-lg font-semibold mb-4">All created schedules</h3>
+      <h3 class="text-lg font-semibold text-slate-800 mb-4">All created schedules</h3>
       
       {#if cancelError}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -273,13 +273,13 @@
       {/if}
       
       {#if upcomingScheduledTours.length === 0}
-        <div class="bg-gray-100 p-4 rounded-lg">
-          <p class="text-gray-600">No upcoming scheduled tours.</p>
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+          <p class="text-slate-600">No upcoming scheduled tours.</p>
         </div>
       {:else}
         <div class="overflow-x-auto">
-          <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-            <thead class="bg-gray-100 text-gray-700">
+          <table class="min-w-full bg-white rounded-lg overflow-hidden border border-slate-200">
+            <thead class="bg-slate-50 text-slate-700">
               <tr>
                 <th class="py-3 px-4 text-left">Tour</th>
                 <th class="py-3 px-4 text-left">Date</th>
@@ -287,28 +287,28 @@
                 <th class="py-3 px-4 text-left">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody class="divide-y divide-slate-200">
               {#each upcomingScheduledTours as schedule}
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-slate-50">
                   <td class="py-3 px-4">
                     {#if schedule.tours}
                       {@const tourData = getTourData(schedule.tours)}
-                      <span>{tourData.name}</span>
+                      <span class="text-slate-700">{tourData.name}</span>
                     {:else}
-                      <span class="text-gray-500">Unknown Tour</span>
+                      <span class="text-slate-400">Unknown Tour</span>
                     {/if}
                   </td>
                   <td class="py-3 px-4">{formatDate(schedule.scheduled_date)}</td>
                   <td class="py-3 px-4">0 / {schedule.max_participants}</td>
                   <td class="py-3 px-4">
-                    <a 
-                      href={`/dashboard/schedules/${schedule.id}/manage`} 
-                      class="text-blue-600 hover:text-blue-800 mr-2"
+                    <a
+                      href={`/dashboard/schedules/${schedule.id}/manage`}
+                      class="text-green-600 hover:text-green-700 font-medium transition-colors mr-3"
                     >
                       Manage
                     </a>
-                    <button 
-                      class="text-red-600 hover:text-red-800 {isCancelling ? 'opacity-50 cursor-not-allowed' : ''}"
+                    <button
+                      class="text-red-500 hover:text-red-600 font-medium transition-colors {isCancelling ? 'opacity-50 cursor-not-allowed' : ''}"
                       on:click={() => handleCancelSchedule(schedule.id, schedule.tours ? getTourData(schedule.tours).name : 'Unknown Tour')}
                       disabled={isCancelling}
                     >

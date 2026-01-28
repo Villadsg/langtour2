@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ConvexService, currentUser } from '$lib/convexService';
+  import { ConvexService, currentUser } from '$lib/firebaseService';
   import { page } from '$app/stores';
 
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
@@ -199,7 +199,7 @@
 
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
-    <a href="/dashboard" class="text-blue-600 hover:underline inline-flex items-center">
+    <a href="/dashboard" class="text-green-600 hover:text-green-700 inline-flex items-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
       </svg>
@@ -209,7 +209,7 @@
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
     </div>
   {:else if tour}
     {@const tourData = getTourData(tour)}
@@ -242,9 +242,9 @@
               minDate={new Date()}
             />
             
-            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
+            <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-green-200 transition-all duration-200">
               <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Tour Capacity
@@ -258,7 +258,7 @@
                     bind:value={maxParticipants}
                     min="1"
                     max="100"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400"
                     required
                   />
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
@@ -268,9 +268,9 @@
               </div>
             </div>
             
-            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
+            <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-green-200 transition-all duration-200">
               <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -287,9 +287,9 @@
               </div>
             </div>
             
-            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
+            <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-green-200 transition-all duration-200">
               <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Additional Details
@@ -303,7 +303,7 @@
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400"
                 />
               </div>
 
@@ -313,20 +313,20 @@
                   id="additionalInfo"
                   bind:value={additionalInfo}
                   placeholder="Any additional details participants should know..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400"
                   rows="3"
                 ></textarea>
               </div>
             </div>
             
-            <div class="pt-2">
+            <div class="pt-2 flex justify-end">
               <button
                 type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-200 flex items-center justify-center"
+                class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 transition-all duration-200 inline-flex items-center"
                 disabled={isSubmitting}
               >
                 {#if isSubmitting}
-                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -354,7 +354,7 @@
           {:else}
             <div class="space-y-4">
               {#each scheduledTours as schedule}
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                <div class="border border-slate-200 rounded-lg p-4 hover:bg-gray-50">
                   <div class="flex justify-between items-start">
                     <div class="text-sm text-gray-600 mt-1">
                   <p><strong>Date:</strong> {formatDate(schedule.scheduled_date)}</p>
@@ -368,7 +368,7 @@
                     <div>
                       <a 
                         href={`/dashboard/schedules/${schedule.id}/manage`}
-                        class="text-blue-600 hover:text-blue-800 text-sm"
+                        class="text-green-600 hover:text-green-700 text-sm"
                       >
                         Manage
                       </a>
@@ -384,7 +384,7 @@
   {:else}
     <div class="bg-red-100 p-8 rounded-lg text-center">
       <p class="text-red-600">Tour not found. Please return to the dashboard.</p>
-      <a href="/dashboard" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
         Back to Dashboard
       </a>
     </div>

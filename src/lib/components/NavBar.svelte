@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentUser, ConvexService } from '$lib/convexService';
+  import { currentUser, ConvexService } from '$lib/firebaseService';
   import { navbar, text, components } from '$lib/styles/DesignSystem.svelte';
   import { onMount } from 'svelte';
   
@@ -39,7 +39,7 @@
       <div class="hidden sm:ml-6 sm:flex sm:items-center">
         {#if $currentUser}
           <div class="flex items-center space-x-4">
-            <span class={`text-sm ${text.muted}`}>Hello, {$currentUser?.user_metadata?.name || $currentUser?.email}</span>
+            <span class={`text-sm ${text.muted}`}>Hello, {$currentUser?.username || $currentUser?.email || 'User'}</span>
            
             <a href="/bookings" class={components.button.secondary}>
               Your plans
@@ -65,10 +65,10 @@
       
       <!-- Mobile menu button -->
       <div class="flex items-center sm:hidden">
-        <button 
+        <button
           on:click={toggleMenu}
-          type="button" 
-          class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" 
+          type="button"
+          class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-green-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-400 transition-colors"
           aria-expanded="false"
         >
           <span class="sr-only">Open main menu</span>
@@ -94,8 +94,8 @@
         {#if $currentUser}
           <div class="flex items-center px-4 mt-3">
             <div class="ml-3">
-              <div class={`text-base font-medium ${text.primary}`}>{$currentUser?.user_metadata?.name || $currentUser?.email}</div>
-              <div class={`text-sm font-medium ${text.muted}`}>{$currentUser?.email}</div>
+              <div class={`text-base font-medium ${text.primary}`}>{$currentUser?.username || 'User'}</div>
+              <div class={`text-sm font-medium ${text.muted}`}>{$currentUser?.email || ''}</div>
             </div>
           </div>
           <div class="space-y-1">

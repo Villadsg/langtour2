@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { ConvexService } from '$lib/convexService';
+    import { ConvexService } from '$lib/firebaseService';
     
     export let tour = {
         name: '',
@@ -196,28 +196,28 @@
     };
 </script>
 
-<form on:submit|preventDefault={handleSubmit} class="bg-white shadow-md rounded-lg p-6">
+<form on:submit|preventDefault={handleSubmit} class="bg-white border border-slate-200 rounded-lg p-6">
     <div class="mb-4">
-        <label for="name" class="block text-gray-700 text-sm font-bold mb-2">
+        <label for="name" class="block text-slate-700 text-sm font-medium mb-2">
             Tour Name *
         </label>
-        <input 
-            type="text" 
-            id="name" 
-            bind:value={tour.name} 
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        <input
+            type="text"
+            id="name"
+            bind:value={tour.name}
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
             required
         />
     </div>
-    
+
     <div class="mb-4">
-        <label for="cityId" class="block text-gray-700 text-sm font-bold mb-2">
+        <label for="cityId" class="block text-slate-700 text-sm font-medium mb-2">
             City *
         </label>
-        <select 
-            id="cityId" 
-            bind:value={tour.cityId} 
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        <select
+            id="cityId"
+            bind:value={tour.cityId}
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
             required
         >
             <option value="" disabled>Select a city</option>
@@ -226,15 +226,15 @@
             {/each}
         </select>
     </div>
-    
+
     <div class="mb-4">
-        <label for="language" class="block text-gray-700 text-sm font-bold mb-2">
+        <label for="language" class="block text-slate-700 text-sm font-medium mb-2">
             Language *
         </label>
-        <select 
-            id="language" 
-            bind:value={tour.language} 
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        <select
+            id="language"
+            bind:value={tour.language}
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
             required
         >
             <option value="" disabled>Select a language</option>
@@ -243,59 +243,59 @@
             {/each}
         </select>
     </div>
-    
+
     <div class="mb-4">
-        <label for="description" class="block text-gray-700 text-sm font-bold mb-2">
+        <label for="description" class="block text-slate-700 text-sm font-medium mb-2">
             Description *
         </label>
-        <textarea 
-            id="description" 
-            bind:value={tour.description} 
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32"
+        <textarea
+            id="description"
+            bind:value={tour.description}
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors h-32"
             required
         ></textarea>
     </div>
     
     <div class="mb-6">
-        <span id="tourImageLabel" class="block text-gray-700 text-sm font-bold mb-2">
-            Tour Image <span class="text-gray-500 font-normal">(optional)</span>
+        <span id="tourImageLabel" class="block text-slate-700 text-sm font-medium mb-2">
+            Tour Image <span class="text-slate-400 font-normal">(optional)</span>
         </span>
         
         <!-- Current image preview (if editing) -->
         {#if currentImageUrl && !filePreview}
             <div class="mb-3">
-                <p class="text-sm text-gray-600 mb-2">Current image:</p>
-                <div class="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                <p class="text-sm text-slate-600 mb-2">Current image:</p>
+                <div class="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden">
                     <img src={currentImageUrl} alt="Tour view" class="w-full h-full object-cover" />
                 </div>
             </div>
         {/if}
-        
+
         <!-- File upload input -->
         <div class="mb-3">
-            <label for="tourImage" class="block text-sm text-gray-600 mb-2">
+            <label for="tourImage" class="block text-sm text-slate-600 mb-2">
                 {isEditing ? 'Change image:' : 'Upload image:'}
             </label>
-            <input 
-                type="file" 
-                id="tourImage" 
+            <input
+                type="file"
+                id="tourImage"
                 accept="image/*"
                 on:change={handleFileChange}
                 aria-labelledby="tourImageLabel"
-                class="block w-full text-sm text-gray-500
+                class="block w-full text-sm text-slate-500
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-lg file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-blue-50 file:text-blue-700
-                    hover:file:bg-blue-100"
+                    file:text-sm file:font-medium
+                    file:bg-green-50 file:text-green-700
+                    hover:file:bg-green-100"
             />
         </div>
         
         <!-- New file preview -->
         {#if filePreview}
             <div class="mb-3">
-                <p class="text-sm text-gray-600 mb-2">New image preview:</p>
-                <div class="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                <p class="text-sm text-slate-600 mb-2">New image preview:</p>
+                <div class="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden">
                     <img src={filePreview} alt="Tour preview" class="w-full h-full object-cover" />
                 </div>
             </div>
@@ -310,13 +310,13 @@
     </div>
     
     <div class="flex items-center justify-between">
-        <button 
-            type="submit" 
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
+        <button
+            type="submit"
+            class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-5 rounded-lg transition-colors flex items-center"
             disabled={isUploading}
         >
             {#if isUploading}
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -325,10 +325,10 @@
                 {isEditing ? 'Update Tour' : 'Create Tour'}
             {/if}
         </button>
-        <button 
-            type="button" 
+        <button
+            type="button"
             on:click={handleCancel}
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-5 rounded-lg border border-slate-200 transition-colors"
             disabled={isUploading}
         >
             Cancel

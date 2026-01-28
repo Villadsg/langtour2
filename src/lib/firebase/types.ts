@@ -1,0 +1,155 @@
+import type { Timestamp } from 'firebase/firestore';
+
+// Teaching material types for multi-stop tours
+export interface VocabularyItem {
+	word: string;
+	translation: string;
+	pronunciation?: string;
+	context: string; // Example sentence
+}
+
+export interface DialogueLine {
+	speaker: string;
+	text: string;
+	translation: string;
+}
+
+export interface Dialogue {
+	title: string;
+	participants: string[];
+	lines: DialogueLine[];
+}
+
+export interface TeachingMaterial {
+	vocabulary: VocabularyItem[];
+	dialogues: Dialogue[];
+	generatedAt: number;
+	languageTaught: string;
+	instructionLanguage: string;
+	cefrLevel: string;
+}
+
+export interface TourStopLocation {
+	lat: number;
+	lng: number;
+	address: string;
+	placeName?: string; // User-editable label
+	placeType?: string; // cafe, museum, market, etc.
+}
+
+export interface TourStop {
+	id: string;
+	order: number;
+	location: TourStopLocation;
+	teachingMaterial?: TeachingMaterial;
+}
+
+export interface User {
+	id: string;
+	email: string;
+	name?: string;
+	username?: string;
+	role: string;
+	isAdmin: boolean;
+}
+
+export interface PublicProfile {
+	userId: string;
+	username: string;
+	updatedAt: Timestamp | number;
+}
+
+export interface UserRole {
+	userId: string;
+	role: string;
+}
+
+export interface TourDescription {
+	name: string;
+	cityId: string;
+	languageTaught: string;
+	instructionLanguage: string;
+	langDifficulty?: string;
+	description: string;
+	tourType?: string;
+	price?: number;
+	stops?: TourStop[];
+}
+
+export interface Tour {
+	id?: string;
+	_id?: string;
+	$id?: string;
+	description: TourDescription;
+	imageUrl?: string;
+	imageStorageId?: string;
+	creatorId: string;
+	createdAt?: Timestamp | number;
+	updatedAt?: Timestamp | number;
+}
+
+export interface Schedule {
+	id?: string;
+	_id?: string;
+	$id?: string;
+	tourId: string;
+	scheduledDate: number;
+	maxParticipants: number;
+	meetingPoint: string;
+	additionalInfo?: string;
+	price?: number;
+	createdAt?: Timestamp | number;
+}
+
+export interface Booking {
+	id?: string;
+	_id?: string;
+	$id?: string;
+	scheduleId: string;
+	userId: string;
+	name: string;
+	email: string;
+	participants: number;
+	notes?: string;
+	attended?: boolean;
+	attendedAt?: number;
+	createdAt?: Timestamp | number;
+}
+
+export interface Rating {
+	id?: string;
+	_id?: string;
+	$id?: string;
+	tourId: string;
+	userId: string;
+	languageLearningRating: number;
+	informativeRating: number;
+	funRating: number;
+	comment?: string;
+	createdAt?: Timestamp | number;
+}
+
+export interface Notification {
+	id?: string;
+	tourId: string;
+	email: string;
+	createdAt: number;
+}
+
+export interface AverageRatings {
+	languageLearning: number;
+	informative: number;
+	fun: number;
+	overall: number;
+	count: number;
+}
+
+export interface ScheduledTour extends Schedule {
+	tour?: Tour;
+	bookingsCount?: number;
+}
+
+export interface UserBooking extends Booking {
+	schedule?: Schedule;
+	tour?: Tour;
+}

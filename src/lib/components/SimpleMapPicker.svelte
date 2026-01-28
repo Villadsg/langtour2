@@ -1,285 +1,213 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  
+  import { onMount, onDestroy } from 'svelte';
+  import type { Map, Marker, LeafletMouseEvent } from 'leaflet';
+
   // Props
   export let value = '';
   export let required = false;
-  
+
   // Internal state
   let mapContainer: HTMLElement;
   let searchInput: HTMLInputElement;
   let mapLoaded = false;
-  let displayAddress = ''; // Variable to store the formatted address for display
-  
-  // Direct API key reference - this is a temporary solution
-  const API_KEY = 'AIzaSyCQ-BDUQSi8rItD-t6_AV2wW67KKDIFv0w';
-  
-  // TypeScript workaround for Google Maps API
-  // We'll use any type for simplicity
-  type GoogleMapsWindow = Window & {
-    initMap: () => void;
-    google: any;
-  };
-  
-  const win = window as GoogleMapsWindow;
-  
-  onMount(() => {
-    // Create and append the script
-    const script = document.createElement('script');
-    script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMap&loading=async`;
-    script.async = true;
-    script.defer = true;
-    
-    // Define the callback function globally
-    win.initMap = () => {
-      console.log('Map initialized');
-      setupMap();
-    };
-    
-    // Add the script to the document
-    document.head.appendChild(script);
-    
-    return () => {
-      // Cleanup on component destruction
-      const existingScript = document.getElementById('google-maps-script');
-      if (existingScript) {
-        existingScript.remove();
-      }
-    };
+  let map: Map | null = null;
+  let marker: Marker | null = null;
+  let displayAddress = '';
+  let L: typeof import('leaflet') | null = null;
+
+  // Nominatim API for geocoding (free, no API key needed)
+  const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
+
+  onMount(async () => {
+    // Dynamically import Leaflet (client-side only)
+    const leaflet = await import('leaflet');
+    L = leaflet.default;
+
+    // Import Leaflet CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+
+    // Wait for CSS to load
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    setupMap();
   });
-  
-  function setupMap() {
-    if (!mapContainer) return;
-    
+
+  onDestroy(() => {
+    if (map) {
+      map.remove();
+      map = null;
+    }
+  });
+
+  async function setupMap() {
+    if (!mapContainer || !L) return;
+
     try {
-      // Default location (will be used as fallback)
-      const defaultLocation = { lat: 40.7128, lng: -74.0060 };
-      
-      // Create the map with initial default location
-      const map = new window.google.maps.Map(mapContainer, {
-        center: defaultLocation,
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false
-      });
-      
-      // Create a marker (using standard Marker for compatibility)
-      let marker = new window.google.maps.Marker({
-        position: defaultLocation,
-        map: map,
-        draggable: true
-      });
-      
+      // Default location (Copenhagen)
+      const defaultLocation: [number, number] = [55.6761, 12.5683];
+
+      // Create the map
+      map = L.map(mapContainer).setView(defaultLocation, 13);
+
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // Create a draggable marker
+      marker = L.marker(defaultLocation, { draggable: true }).addTo(map);
+
       // Try to get user's current location
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (position) => {
-            // Success callback - user allowed location access
-            const userLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            
-            // Update map and marker to user's location
-            map.setCenter(userLocation);
-            marker.setPosition(userLocation);
-            
-            // Store coordinates as the value
-            value = `${userLocation.lat},${userLocation.lng}`;
-            
-            // Reverse geocode to get the address for display
-            const geocoder = new window.google.maps.Geocoder();
-            geocoder.geocode(
-              { location: userLocation },
-              (results: any[], status: string) => {
-                if (status === 'OK' && results[0]) {
-                  displayAddress = results[0].formatted_address;
-                  searchInput.value = displayAddress;
-                }
-              }
-            );
+          async (position) => {
+            const userLocation: [number, number] = [
+              position.coords.latitude,
+              position.coords.longitude
+            ];
+
+            map?.setView(userLocation, 13);
+            marker?.setLatLng(userLocation);
+
+            // Store coordinates
+            value = `${userLocation[0]},${userLocation[1]}`;
+
+            // Reverse geocode
+            const address = await reverseGeocode(userLocation[0], userLocation[1]);
+            if (address) {
+              displayAddress = address;
+              if (searchInput) searchInput.value = address;
+            }
           },
           (error) => {
-            // Error callback - user denied location or other error
             console.log('Geolocation error:', error.message);
-            // Continue with default location (already set)
           },
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          }
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
       }
-      
-      // Initialize the search box with Autocomplete
-      const autocomplete = new window.google.maps.places.Autocomplete(searchInput);
-      
-      // We'll skip setting bounds as it's causing TypeScript errors
-      // This won't affect basic functionality
-      
-      // Handle place selection
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        
-        if (!place.geometry || !place.geometry.location) {
-          console.error('No geometry found for this place');
-          return;
-        }
-        
-        // Update map and marker
-        map.setCenter(place.geometry.location);
-        marker.setPosition(place.geometry.location);
-        
-        // Store coordinates as the value
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        value = `${lat},${lng}`;
-        
-        // Update the display address
-        displayAddress = place.formatted_address || '';
-        searchInput.value = displayAddress;
-      });
-      
+
       // Handle map clicks
-      map.addListener('click', (e: any) => {
-        marker.setPosition(e.latLng);
-        
-        // Store coordinates immediately
-        const lat = e.latLng.lat();
-        const lng = e.latLng.lng();
+      map.on('click', async (e: LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng;
+        marker?.setLatLng([lat, lng]);
         value = `${lat},${lng}`;
-        
-        // Reverse geocode to get the address for display
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode(
-          { location: e.latLng },
-          (results: any[], status: string) => {
-            if (status === 'OK' && results[0]) {
-              displayAddress = results[0].formatted_address;
-              searchInput.value = displayAddress;
-            }
-          }
-        );
+
+        const address = await reverseGeocode(lat, lng);
+        if (address) {
+          displayAddress = address;
+          if (searchInput) searchInput.value = address;
+        }
       });
-      
+
       // Handle marker drag
-      marker.addListener('dragend', () => {
-        const position = marker.getPosition();
-        
-        // Store coordinates immediately
-        const lat = position.lat();
-        const lng = position.lng();
-        value = `${lat},${lng}`;
-        
-        // Reverse geocode to get the address for display
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode(
-          { location: position },
-          (results: any[], status: string) => {
-            if (status === 'OK' && results[0]) {
-              displayAddress = results[0].formatted_address;
-              searchInput.value = displayAddress;
-            }
+      marker.on('dragend', async () => {
+        const position = marker?.getLatLng();
+        if (position) {
+          value = `${position.lat},${position.lng}`;
+
+          const address = await reverseGeocode(position.lat, position.lng);
+          if (address) {
+            displayAddress = address;
+            if (searchInput) searchInput.value = address;
           }
-        );
+        }
       });
-      
-      // If we have an initial value, try to parse it as coordinates
+
+      // If we have an initial value, parse and display it
       if (value) {
-        // Check if value is in the format "lat,lng"
         const coords = value.split(',');
         if (coords.length === 2) {
           const lat = parseFloat(coords[0]);
           const lng = parseFloat(coords[1]);
-          
+
           if (!isNaN(lat) && !isNaN(lng)) {
-            const latLng = new window.google.maps.LatLng(lat, lng);
-            map.setCenter(latLng);
-            marker.setPosition(latLng);
-            
-            // Reverse geocode to get the address
-            const geocoder = new window.google.maps.Geocoder();
-            geocoder.geocode(
-              { location: latLng },
-              (results: any[], status: string) => {
-                if (status === 'OK' && results[0]) {
-                  displayAddress = results[0].formatted_address;
-                  searchInput.value = displayAddress;
-                }
-              }
-            );
-          } else {
-            // If not valid coordinates, treat as address
-            const geocoder = new window.google.maps.Geocoder();
-            geocoder.geocode(
-              { address: value },
-              (results: any[], status: string) => {
-                if (status === 'OK' && results[0]) {
-                  map.setCenter(results[0].geometry.location);
-                  marker.setPosition(results[0].geometry.location);
-                  
-                  // Update value with coordinates
-                  const lat = results[0].geometry.location.lat();
-                  const lng = results[0].geometry.location.lng();
-                  value = `${lat},${lng}`;
-                  
-                  displayAddress = results[0].formatted_address;
-                  searchInput.value = displayAddress;
-                }
-              }
-            );
-          }
-        } else {
-          // If not in coordinate format, treat as address
-          const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode(
-            { address: value },
-            (results: any[], status: string) => {
-              if (status === 'OK' && results[0]) {
-                map.setCenter(results[0].geometry.location);
-                marker.setPosition(results[0].geometry.location);
-                
-                // Update value with coordinates
-                const lat = results[0].geometry.location.lat();
-                const lng = results[0].geometry.location.lng();
-                value = `${lat},${lng}`;
-                
-                displayAddress = results[0].formatted_address;
-                searchInput.value = displayAddress;
-              }
+            map.setView([lat, lng], 13);
+            marker.setLatLng([lat, lng]);
+
+            const address = await reverseGeocode(lat, lng);
+            if (address) {
+              displayAddress = address;
+              if (searchInput) searchInput.value = address;
             }
-          );
+          }
         }
       }
-      
+
       mapLoaded = true;
     } catch (error) {
       console.error('Error setting up map:', error);
     }
   }
-</script>
 
-<svelte:head>
-  <!-- Google Maps API is loaded dynamically in onMount -->
-</svelte:head>
+  // Reverse geocode using Nominatim
+  async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+    try {
+      const response = await fetch(
+        `${NOMINATIM_URL}/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      const data = await response.json();
+      return data.display_name || null;
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      return null;
+    }
+  }
+
+  // Forward geocode (search) using Nominatim
+  async function searchLocation(query: string) {
+    if (!query.trim() || !map || !marker || !L) return;
+
+    try {
+      const response = await fetch(
+        `${NOMINATIM_URL}/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+
+        map.setView([lat, lng], 15);
+        marker.setLatLng([lat, lng]);
+        value = `${lat},${lng}`;
+        displayAddress = result.display_name;
+        searchInput.value = displayAddress;
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+  }
+
+  // Handle search input
+  function handleSearchKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      searchLocation(searchInput.value);
+    }
+  }
+</script>
 
 <div class="map-picker">
   <div class="relative mb-4">
     <input
       bind:this={searchInput}
       type="text"
-      placeholder="Search for a location"
-      class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      placeholder="Search for a location and press Enter"
+      class="w-full p-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+      on:keydown={handleSearchKeydown}
       {required}
     />
   </div>
-  
-  <div 
-    bind:this={mapContainer} 
-    class="map-container rounded-md" 
+
+  <div
+    bind:this={mapContainer}
+    class="map-container rounded-md border border-slate-200"
     style="width: 100%; height: 350px;"
   >
     {#if !mapLoaded}
@@ -291,5 +219,7 @@
 </div>
 
 <style>
-  /* Add any component-specific styles here */
+  :global(.leaflet-container) {
+    font-family: inherit;
+  }
 </style>
