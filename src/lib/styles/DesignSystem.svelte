@@ -97,14 +97,15 @@
   // Components
   export const components = {
     card: {
-      base: 'border border-slate-200 overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white',
-      highlight: 'border border-green-200 overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white'
+      base: 'border border-slate-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white',
+      highlight: 'border border-green-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white'
     },
     button: {
-      primary: 'bg-green-100 hover:bg-green-200 text-green-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-green-200',
-      secondary: 'bg-slate-50 text-slate-600 border border-slate-200 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-slate-100 rounded-lg',
-      accent: 'bg-orange-100 hover:bg-orange-200 text-orange-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-orange-200',
-      outline: 'border border-green-300 text-green-600 hover:bg-green-50 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg'
+      primary: 'bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      secondary: 'bg-slate-50 text-slate-600 border border-slate-200 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-slate-100 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      accent: 'bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      outline: 'border border-green-300 text-green-600 hover:bg-green-50 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      ghost: 'bg-green-100 hover:bg-green-200 text-green-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-green-200 disabled:opacity-60 disabled:cursor-not-allowed'
     },
     tag: {
       primary: 'inline-block px-2.5 py-1 bg-green-50 text-green-600 text-sm border border-green-200 rounded-md',

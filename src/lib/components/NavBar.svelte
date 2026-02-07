@@ -2,6 +2,7 @@
   import { currentUser, ConvexService } from '$lib/firebaseService';
   import { navbar, text, components } from '$lib/styles/DesignSystem.svelte';
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   
   let isMenuOpen = false;
   
@@ -17,6 +18,11 @@
   const closeMenu = () => {
     isMenuOpen = false;
   };
+
+  function isActive(path: string): boolean {
+    if (path === '/') return $page.url.pathname === '/';
+    return $page.url.pathname.startsWith(path);
+  }
 </script>
 
 <nav class={navbar.bg}>
@@ -27,10 +33,10 @@
           <a href="/" class={`text-xl font-semibold tracking-tight ${text.primary}`}>LangTour</a>
         </div>
         <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
-          <a href="/" class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
+          <a href="/" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/') ? navbar.activeLink : navbar.link}`}>
             Book a tour
           </a>
-          <a href="/dashboard/create" class={`${navbar.link} inline-flex items-center px-1 pt-1 text-sm font-medium`}>
+          <a href="/dashboard/create" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/dashboard/create') ? navbar.activeLink : navbar.link}`}>
             Create a tour
           </a>
         </div>
@@ -71,10 +77,16 @@
           class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-green-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-400 transition-colors"
           aria-expanded="false"
         >
-          <span class="sr-only">Open main menu</span>
-          <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <span class="sr-only">{isMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
+          {#if isMenuOpen}
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          {:else}
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          {/if}
         </button>
       </div>
     </div>

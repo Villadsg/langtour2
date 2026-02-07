@@ -4,6 +4,7 @@
     import { ConvexService, currentUser } from '$lib/firebaseService';
     import { citiesStore } from '$lib/stores/tourStore';
     import FlyNotification from '$lib/components/FlyNotification.svelte';
+    import { getTourData } from '$lib/tourValidation';
 
     let tour: any = null;
     let isLoading = true;
@@ -252,66 +253,7 @@
         }
     };
     
-    // Helper function to extract tour data from description JSON
-    function getTourData(tourDoc: any) {
-        if (!tourDoc) return { name: '', description: '', language: '', cityId: '', tourType: 'person', price: 0 };
-        
-        let tourData: Partial<any> = {};
-        try {
-            if (tourDoc.description) {
-                if (typeof tourDoc.description === 'string') {
-                    // Check if it looks like JSON (starts with { or [)
-                    if (tourDoc.description.trim().startsWith('{') || tourDoc.description.trim().startsWith('[')) {
-                        tourData = JSON.parse(tourDoc.description);
-                    } else {
-                        // It's a plain string, create a simple object with name and description
-                        tourData = {
-                            name: tourDoc.description.split('\n')[0] || 'Tour', // Use first line as name
-                            description: tourDoc.description,
-                            language: 'Unknown',
-                            cityId: '',
-                            tourType: 'person',
-                            price: 0 // Default price for person-guided tours
-                        };
-                    }
-                } else if (typeof tourDoc.description === 'object') {
-                    // It's already an object
-                    tourData = tourDoc.description;
-                }
-            }
-        } catch (error) {
-            console.error('Error parsing tour data:', error);
-            // If parsing fails, use the description as is
-            tourData = {
-                name: 'Tour',
-                description: typeof tourDoc.description === 'string' ? tourDoc.description : 'No description available',
-                language: 'Unknown',
-                cityId: '',
-                tourType: 'person',
-                price:0 // Default price for person-guided tours
-            };
-        }
-        
-        // Extract tourType from tour document or description
-        let tourType = tourDoc.tourType || tourData.tourType || 'person';
-        
-        // Set default price based on tour type if not present
-        let price = tourData.price;
-        if (price === undefined) {
-            price = tourType === 'app' ? 0 : 0;
-        }
-        
-        return {
-            id: tourDoc.id,
-            name: tourData.name || '',
-            cityId: tourData.cityId || '',
-            language: tourData.language || '',
-            description: tourData.description || '',
-            imageUrl: tourDoc.imageUrl || '',
-            tourType: tourType,
-            price: price
-        };
-    }
+    // getTourData is now imported from $lib/tourValidation
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -339,7 +281,15 @@
         <div class="bg-white rounded-lg border border-slate-200 p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <img src={tourData.imageUrl} alt={tourData.name} class="w-full h-96 object-cover rounded-lg" />
+                    {#if tourData.imageUrl}
+                        <img src={tourData.imageUrl} alt={tourData.name} class="w-full h-96 object-cover rounded-lg" />
+                    {:else}
+                        <div class="w-full h-96 bg-gradient-to-br from-green-50 to-slate-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-20 h-20 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    {/if}
                 </div>
                 <div>
                     <div class="flex justify-between items-start mb-2">

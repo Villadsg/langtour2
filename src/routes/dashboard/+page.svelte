@@ -2,14 +2,15 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { ConvexService, currentUser, userCreatedTours } from '$lib/firebaseService';
+  import { getTourData } from '$lib/tourValidation';
 
   
   let isLoading = true;
   let error = '';
   let upcomingScheduledTours: any[] = [];
   
-  // State for tour deletion
-  let isDeleting = false;
+  // Track which tour ID is currently being deleted
+  let deletingTourId: string | null = null;
   let deleteError = '';
   let deleteSuccess = '';
   
@@ -55,73 +56,20 @@
     }
   }
   
-  // State for cancellation
-  let isCancelling = false;
+  // Track which schedule ID is currently being cancelled
+  let cancellingScheduleId: string | null = null;
   let cancelError = '';
   let successMessage = '';
   
   // Function to handle schedule cancellation
-  // Function to get tour data from JSON in description
-  function getTourData(tourDoc: any) {
-    if (!tourDoc) return { name: 'Tour not found', description: '' };
-    
-    // First check if the tour has a direct name property
-    if (tourDoc.name) {
-      return {
-        name: tourDoc.name,
-        description: tourDoc.description || '',
-        language: tourDoc.language || '',
-        cityId: tourDoc.cityId || ''
-      };
-    }
-    
-    try {
-      if (tourDoc.description) {
-        if (typeof tourDoc.description === 'string') {
-          try {
-            // Try to parse as JSON
-            const parsedData = JSON.parse(tourDoc.description);
-            return {
-              name: parsedData.name || 'Unnamed Tour',
-              description: parsedData.description || '',
-              language: parsedData.language || '',
-              cityId: parsedData.cityId || ''
-            };
-          } catch (parseError) {
-            // If not valid JSON, use the description as is
-            console.log('Description is not valid JSON, using as plain text');
-            return {
-              name: tourDoc.description.split('\n')[0] || 'Unnamed Tour',
-              description: tourDoc.description
-            };
-          }
-        } else if (typeof tourDoc.description === 'object') {
-          // If it's already an object, return it with defaults
-          return {
-            name: tourDoc.description.name || 'Unnamed Tour',
-            description: tourDoc.description.description || '',
-            language: tourDoc.description.language || '',
-            cityId: tourDoc.description.cityId || ''
-          };
-        }
-      }
-    } catch (error) {
-      console.error('Error processing tour data:', error);
-    }
-    
-    // Fallback with sensible defaults
-    return { 
-      name: 'Unnamed Tour', 
-      description: 'No description available' 
-    };
-  }
+  // getTourData is now imported from $lib/tourValidation
   
   async function handleCancelSchedule(scheduleId: string, tourName: string) {
     if (!confirm(`Are you sure you want to cancel the scheduled tour: ${tourName || 'Unknown Tour'}?`)) {
       return; // User cancelled the operation
     }
     
-    isCancelling = true;
+    cancellingScheduleId = scheduleId;
     cancelError = '';
     successMessage = '';
     
@@ -141,7 +89,7 @@
       cancelError = `An unexpected error occurred: ${err?.message || 'Unknown error'}`;
       console.error('Exception in handleCancelSchedule:', err);
     } finally {
-      isCancelling = false;
+      cancellingScheduleId = null;
     }
   }
   
@@ -151,7 +99,7 @@
       return; // User cancelled the operation
     }
     
-    isDeleting = true;
+    deletingTourId = tourId;
     deleteError = '';
     deleteSuccess = '';
     
@@ -167,7 +115,7 @@
       deleteError = `Failed to delete tour: ${err?.message || 'Unknown error'}`;
       console.error('Error deleting tour:', err);
     } finally {
-      isDeleting = false;
+      deletingTourId = null;
     }
   }
   
@@ -192,25 +140,25 @@
   {:else}
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-slate-800">Created Tours</h2>
-      <a href="/dashboard/create" class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-5 rounded-lg transition-colors">
+      <a href="/dashboard/create" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors">
         Create New Tour
       </a>
     </div>
     
     {#if deleteError}
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+      <div class="relative flex items-center justify-between bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
         <p>{deleteError}</p>
-        <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => deleteError = ''}>
-          <span class="text-red-500 hover:text-red-700">×</span>
+        <button class="ml-4 text-red-400 hover:text-red-600" on:click={() => deleteError = ''}>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
     {/if}
-    
+
     {#if deleteSuccess}
-      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+      <div class="relative flex items-center justify-between bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4" role="alert">
         <p>{deleteSuccess}</p>
-        <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => deleteSuccess = ''}>
-          <span class="text-green-500 hover:text-green-700">×</span>
+        <button class="ml-4 text-green-400 hover:text-green-600" on:click={() => deleteSuccess = ''}>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
     {/if}
@@ -238,11 +186,11 @@
                   Schedule Tour
                 </a>
                 <button
-                  class="text-red-500 hover:text-red-600 cursor-pointer font-medium transition-colors {isDeleting ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="text-red-500 hover:text-red-600 cursor-pointer font-medium transition-colors {deletingTourId === (tour.id || tour.$id) ? 'opacity-50 cursor-not-allowed' : ''}"
                   on:click={() => handleDeleteTour(tour.id || tour.$id, tourData.name)}
-                  disabled={isDeleting}
+                  disabled={deletingTourId !== null}
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete Tour'}
+                  {deletingTourId === (tour.id || tour.$id) ? 'Deleting...' : 'Delete Tour'}
                 </button>
               </div>
             </div>
@@ -255,19 +203,19 @@
       <h3 class="text-lg font-semibold text-slate-800 mb-4">All created schedules</h3>
       
       {#if cancelError}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+        <div class="relative flex items-center justify-between bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
           <p>{cancelError}</p>
-          <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => cancelError = ''}>
-            <span class="text-red-500 hover:text-red-700">×</span>
+          <button class="ml-4 text-red-400 hover:text-red-600" on:click={() => cancelError = ''}>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       {/if}
-      
+
       {#if successMessage}
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+        <div class="relative flex items-center justify-between bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4" role="alert">
           <p>{successMessage}</p>
-          <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => successMessage = ''}>
-            <span class="text-green-500 hover:text-green-700">×</span>
+          <button class="ml-4 text-green-400 hover:text-green-600" on:click={() => successMessage = ''}>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       {/if}
@@ -308,11 +256,11 @@
                       Manage
                     </a>
                     <button
-                      class="text-red-500 hover:text-red-600 font-medium transition-colors {isCancelling ? 'opacity-50 cursor-not-allowed' : ''}"
+                      class="text-red-500 hover:text-red-600 font-medium transition-colors {cancellingScheduleId === schedule.id ? 'opacity-50 cursor-not-allowed' : ''}"
                       on:click={() => handleCancelSchedule(schedule.id, schedule.tours ? getTourData(schedule.tours).name : 'Unknown Tour')}
-                      disabled={isCancelling}
+                      disabled={cancellingScheduleId !== null}
                     >
-                      {isCancelling ? 'Cancelling...' : 'Cancel'}
+                      {cancellingScheduleId === schedule.id ? 'Cancelling...' : 'Cancel'}
                     </button>
                   </td>
                 </tr>

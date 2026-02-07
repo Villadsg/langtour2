@@ -153,3 +153,35 @@ export interface UserBooking extends Booking {
 	schedule?: Schedule;
 	tour?: Tour;
 }
+
+// Types for paste-and-parse tour creation flow
+export interface ParsedTourData {
+	name?: string;
+	languageTaught?: string;
+	instructionLanguage?: string;
+	langDifficulty?: string;
+	description?: string;
+	tourType?: string;
+	cityName?: string; // For geocoding to cityId
+	stops: ParsedStopData[];
+	rawText: string;
+}
+
+export interface ParsedStopData {
+	placeName: string;
+	addressOrDescription: string;
+	placeType?: string;
+	teachingMaterial?: TeachingMaterial; // If user included vocab/dialogues
+	// Geocoding results
+	location?: TourStopLocation;
+	geocodeStatus: 'pending' | 'found' | 'not_found' | 'ambiguous';
+	// For ambiguous results, store alternatives
+	alternatives?: TourStopLocation[];
+}
+
+export interface MissingField {
+	field: string;
+	section: 'tour' | 'stop';
+	stopIndex?: number;
+	required: boolean;
+}

@@ -76,10 +76,10 @@
 
 <div class="min-h-screen bg-green-50 flex flex-col pt-24 sm:px-6 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-4 text-center text-3xl font-extrabold ${text.primary}">
+    <h2 class={`mt-4 text-center text-3xl font-extrabold ${text.primary}`}>
       Sign in to your account
     </h2>
-    <p class="mt-2 text-center text-sm ${text.secondary}">
+    <p class={`mt-2 text-center text-sm ${text.secondary}`}>
       Or
       <a href="/signup" class="font-medium text-orange-600 hover:text-orange-500">
         create a new account
@@ -102,7 +102,7 @@
       
       <form class="space-y-4" on:submit|preventDefault={login}>
         <div>
-          <label for="email" class="block text-sm font-medium ${text.secondary}">
+          <label for="email" class={`block text-sm font-medium ${text.secondary}`}>
             Email address
           </label>
           <div class="mt-1">
@@ -121,7 +121,7 @@
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium ${text.secondary}">
+          <label for="password" class={`block text-sm font-medium ${text.secondary}`}>
             Password
           </label>
           <div class="mt-1">
@@ -143,7 +143,7 @@
           <button
             type="submit"
             disabled={loading}
-            class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-8 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center"
+            class={`${components.button.primary} px-8 inline-flex items-center`}
           >
             {#if loading}
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

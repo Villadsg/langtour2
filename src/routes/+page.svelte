@@ -9,6 +9,7 @@
 	import FeatureCard from '$lib/components/FeatureCard.svelte';
 
 	import { gradients, components, typography, spacing, text } from '$lib/styles/DesignSystem.svelte';
+	import { getTourData } from '$lib/tourValidation';
 
 	let tours: Tour[] = [];
 	let cities = $citiesStore;
@@ -23,58 +24,20 @@
 		try {
 			const response = await ConvexService.getAllTours();
 			
-			// Map Supabase records to Tour objects, extracting data from JSON in description field
+			// Map Supabase records to Tour objects using shared utility
 			tours = response.data.map((doc: any) => {
-				let tourData: Partial<Tour> = {};
-				
-				// Handle the description field which might be JSON or a plain string
-				try {
-					if (doc.description) {
-						if (typeof doc.description === 'string') {
-							// Check if it looks like JSON (starts with { or [)
-							if (doc.description.trim().startsWith('{') || doc.description.trim().startsWith('[')) {
-								tourData = JSON.parse(doc.description);
-							} else {
-								// It's a plain string, create a simple object with description
-								tourData = {
-									description: doc.description
-								};
-							}
-						} else if (typeof doc.description === 'object') {
-							// It's already an object
-							tourData = doc.description;
-						}
-					}
-				} catch (parseError) {
-					console.error(`Error parsing tour data for tour ${doc.id}:`, parseError);
-					// If parsing fails, use the description as is
-					tourData = {
-						name: 'Tour',
-						description: doc.description || ''
-					};
-				}
-				
-				// Extract tourType - first check if it's directly on the doc, then in tourData
-				const tourType = doc.tourType || tourData.tourType || 'person';
-				
-				// Extract price based on tour type
-				let price = tourData.price;
-				
-				if (price === undefined) {
-					price = tourType === 'app' ? 0 : 0; // Default price is 0
-				}
-
+				const parsed = getTourData(doc);
 				return {
-					id: doc.id, // Use doc.id directly as per Supabase response structure
-					cityId: tourData.cityId || '', // Prefer tourData for consistency from JSON
-					name: tourData.name || 'Tour',
-					languageTaught: tourData.languageTaught || '', // Correctly map languageTaught
-					instructionLanguage: tourData.instructionLanguage || '', // Add instructionLanguage
-					langDifficulty: tourData.langDifficulty || '', // Add langDifficulty
-					description: tourData.description || '',
-					imageUrl: doc.image_url, // Supabase typically uses snake_case for columns
-					tourType: tourType, // tourType is already correctly extracted
-					price: price // price is already correctly extracted
+					id: parsed.id,
+					cityId: parsed.cityId,
+					name: parsed.name,
+					languageTaught: parsed.languageTaught || parsed.language,
+					instructionLanguage: parsed.instructionLanguage,
+					langDifficulty: parsed.langDifficulty,
+					description: parsed.description,
+					imageUrl: parsed.imageUrl,
+					tourType: parsed.tourType,
+					price: parsed.price
 				};
 			});
 			isLoading = false;
@@ -195,7 +158,7 @@
 
 				<!-- All tours -->
 				<button
-					class={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+					class={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tourTypeFilter === 'all' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'}`}
 					on:click={() => tourTypeFilter = 'all'}
 				>
 					All Tours

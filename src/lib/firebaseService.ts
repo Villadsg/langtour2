@@ -175,44 +175,51 @@ export const FirebaseService = {
 			const price = tourData.tourType === 'app' ? 0 : (tourData.price || 24);
 
 			// Process stops if present
-			const stops: TourStop[] | undefined = tourData.stops?.map((stop: TourStop) => ({
-				id: stop.id,
-				order: stop.order,
-				location: {
-					lat: stop.location.lat,
-					lng: stop.location.lng,
-					address: stop.location.address || '',
-					placeName: stop.location.placeName || '',
-					placeType: stop.location.placeType || ''
-				},
-				teachingMaterial: stop.teachingMaterial ? {
-					vocabulary: stop.teachingMaterial.vocabulary || [],
-					dialogues: stop.teachingMaterial.dialogues || [],
-					generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
-					languageTaught: stop.teachingMaterial.languageTaught || '',
-					instructionLanguage: stop.teachingMaterial.instructionLanguage || '',
-					cefrLevel: stop.teachingMaterial.cefrLevel || ''
-				} : undefined
-			}));
+			const stops: TourStop[] = (tourData.stops || []).map((stop: TourStop) => {
+				const s: any = {
+					id: stop.id,
+					order: stop.order,
+					location: {
+						lat: stop.location.lat,
+						lng: stop.location.lng,
+						address: stop.location.address || '',
+						placeName: stop.location.placeName || '',
+						placeType: stop.location.placeType || ''
+					}
+				};
+				if (stop.teachingMaterial) {
+					s.teachingMaterial = {
+						vocabulary: stop.teachingMaterial.vocabulary || [],
+						dialogues: stop.teachingMaterial.dialogues || [],
+						generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
+						languageTaught: stop.teachingMaterial.languageTaught || '',
+						instructionLanguage: stop.teachingMaterial.instructionLanguage || '',
+						cefrLevel: stop.teachingMaterial.cefrLevel || ''
+					};
+				}
+				return s;
+			});
 
-			const tourDoc = {
-				description: {
-					name: tourData.name || '',
-					cityId: tourData.cityId || '',
-					languageTaught: tourData.languageTaught || '',
-					instructionLanguage: tourData.instructionLanguage || '',
-					langDifficulty: tourData.langDifficulty,
-					description: tourData.description || '',
-					tourType: tourData.tourType,
-					price: price,
-					stops: stops
-				},
-				imageUrl: tourData.imageUrl,
-				imageStorageId: tourData.imageStorageId,
+			const descriptionDoc: any = {
+				name: tourData.name || '',
+				cityId: tourData.cityId || '',
+				languageTaught: tourData.languageTaught || '',
+				instructionLanguage: tourData.instructionLanguage || '',
+				description: tourData.description || '',
+				price: price,
+				stops: stops
+			};
+			if (tourData.langDifficulty) descriptionDoc.langDifficulty = tourData.langDifficulty;
+			if (tourData.tourType) descriptionDoc.tourType = tourData.tourType;
+
+			const tourDoc: any = {
+				description: descriptionDoc,
 				creatorId: user.uid,
 				createdAt: serverTimestamp(),
 				updatedAt: serverTimestamp()
 			};
+			if (tourData.imageUrl) tourDoc.imageUrl = tourData.imageUrl;
+			if (tourData.imageStorageId) tourDoc.imageStorageId = tourData.imageStorageId;
 
 			const docRef = await addDoc(collection(db, 'tours'), tourDoc);
 			return { _id: docRef.id, id: docRef.id };
@@ -231,48 +238,55 @@ export const FirebaseService = {
 			};
 
 			// Process stops if present
-			const processStops = (stops: TourStop[] | undefined): TourStop[] | undefined => {
-				if (!stops) return undefined;
-				return stops.map((stop: TourStop) => ({
-					id: stop.id,
-					order: stop.order,
-					location: {
-						lat: stop.location.lat,
-						lng: stop.location.lng,
-						address: stop.location.address || '',
-						placeName: stop.location.placeName || '',
-						placeType: stop.location.placeType || ''
-					},
-					teachingMaterial: stop.teachingMaterial ? {
-						vocabulary: stop.teachingMaterial.vocabulary || [],
-						dialogues: stop.teachingMaterial.dialogues || [],
-						generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
-						languageTaught: stop.teachingMaterial.languageTaught || '',
-						instructionLanguage: stop.teachingMaterial.instructionLanguage || '',
-						cefrLevel: stop.teachingMaterial.cefrLevel || ''
-					} : undefined
-				}));
+			const processStops = (stops: TourStop[] | undefined): TourStop[] => {
+				if (!stops) return [];
+				return stops.map((stop: TourStop) => {
+					const s: any = {
+						id: stop.id,
+						order: stop.order,
+						location: {
+							lat: stop.location.lat,
+							lng: stop.location.lng,
+							address: stop.location.address || '',
+							placeName: stop.location.placeName || '',
+							placeType: stop.location.placeType || ''
+						}
+					};
+					if (stop.teachingMaterial) {
+						s.teachingMaterial = {
+							vocabulary: stop.teachingMaterial.vocabulary || [],
+							dialogues: stop.teachingMaterial.dialogues || [],
+							generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
+							languageTaught: stop.teachingMaterial.languageTaught || '',
+							instructionLanguage: stop.teachingMaterial.instructionLanguage || '',
+							cefrLevel: stop.teachingMaterial.cefrLevel || ''
+						};
+					}
+					return s;
+				});
 			};
 
-			if (tourData.description) {
-				updateData.description = {
-					...tourData.description,
-					stops: processStops(tourData.description.stops || tourData.stops)
-				};
+			if (tourData.description && typeof tourData.description === 'object') {
+				const desc: any = { ...tourData.description };
+				desc.stops = processStops(tourData.description.stops || tourData.stops);
+				// Remove any undefined values from the spread
+				for (const key of Object.keys(desc)) {
+					if (desc[key] === undefined) delete desc[key];
+				}
+				updateData.description = desc;
 			} else {
-				updateData.description = {
+				const desc: any = {
 					name: tourData.name || '',
 					cityId: tourData.cityId || '',
 					languageTaught: tourData.languageTaught || '',
 					instructionLanguage: tourData.instructionLanguage || '',
-					langDifficulty: tourData.langDifficulty,
-					description: typeof tourData.description === 'string'
-						? tourData.description
-						: tourData.description?.description || '',
-					tourType: tourData.tourType,
-					price: tourData.price,
+					description: '',
 					stops: processStops(tourData.stops)
 				};
+				if (tourData.langDifficulty) desc.langDifficulty = tourData.langDifficulty;
+				if (tourData.tourType) desc.tourType = tourData.tourType;
+				if (tourData.price !== undefined) desc.price = tourData.price;
+				updateData.description = desc;
 			}
 
 			if (tourData.imageUrl !== undefined) {

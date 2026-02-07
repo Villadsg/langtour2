@@ -2,7 +2,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { ConvexService } from '$lib/firebaseService';
-    import AITourForm from '$lib/components/AITourForm.svelte';
+    import TourTextInput from '$lib/components/TourTextInput.svelte';
     import type { Tour } from '$lib/stores/tourStore';
 
     
@@ -90,7 +90,7 @@
                 <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
             </div>
         {:else}
-            <AITourForm on:submit={handleSubmit} on:cancel={handleCancel} />
+            <TourTextInput on:submit={handleSubmit} on:cancel={handleCancel} />
         {/if}
     </div>
 </div>
