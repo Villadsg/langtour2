@@ -81,7 +81,7 @@
 <div class={`${gradients.hero} ${text.primary} py-10`}>
 	<div class="container mx-auto px-6">
 		<div class="max-w-4xl mx-auto text-center">
-			<h1 class={typography.heading.h1 + " mb-4"}>Language Learning Tours</h1>
+			<h1 class={typography.heading.h1 + " mb-4"}>Language learning city tours</h1>
 			<p class={`text-xl ${text.secondary} mb-6`}>Explore cities and cultures through language learning</p>
 			
 			<!-- Feature highlights -->
