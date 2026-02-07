@@ -78,10 +78,10 @@
 
 <!-- Hero section with gradient background - only visible when NOT logged in -->
 {#if !$currentUser}
-<div class={`${gradients.hero} ${text.primary} py-10`}>
+<div class={`${gradients.hero} ${text.primary} pt-20 pb-12`}>
 	<div class="container mx-auto px-6">
 		<div class="max-w-4xl mx-auto text-center">
-			<h1 class={typography.heading.h1 + " mb-4"}>Language learning city tours</h1>
+			<h1 class={typography.heading.h1 + " mb-5"}>Language learning city tours</h1>
 			<p class={`text-xl ${text.secondary} mb-6`}>Explore cities and cultures through language learning</p>
 			
 			<!-- Feature highlights -->
@@ -99,11 +99,7 @@
 				/>
 			</div>
 			
-			<div class="mt-8">
-				<a href="/login" class={components.button.secondary + " inline-block mx-2"}>Login</a>
-				<a href="/signup" class={components.button.secondary + " inline-block mx-2"}>Sign Up</a>
 			</div>
-		</div>
 	</div>
 </div>
 {/if}
