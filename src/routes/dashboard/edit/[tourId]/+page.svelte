@@ -4,36 +4,39 @@
     import { goto } from '$app/navigation';
     import { ConvexService, currentUser } from '$lib/firebaseService';
     import EditTourForm from '$lib/components/editTourForm.svelte';
-    import type { Tour } from '$lib/stores/tourStore';
+    import type { TourStop } from '$lib/firebase/types';
 
-    
-    interface SupabaseTour extends Omit<Tour, 'id'> {
-        $id: string;
-        imageUrl?: string;
-        tourType?: string;
-        price?: number;
-    }
-    
     const tourId = $page.params.tourId;
-    
+
     let isLoading = true;
     let isSubmitting = false;
-    let tour: SupabaseTour | null = null;
     let error = '';
-    
+
+    // All fields the form needs
+    let tourData: {
+        id: string;
+        name: string;
+        cityId: string;
+        languageTaught: string;
+        instructionLanguage: string;
+        langDifficulty: string;
+        description: string;
+        imageUrl: string;
+        tourType: string;
+        price: number;
+        stops: TourStop[];
+    } | null = null;
+
     onMount(async () => {
         try {
-            // Check if user is logged in
             const user = await ConvexService.getAccount();
             if (!user) {
-                // Redirect to login page if not logged in
                 goto('/login');
                 return;
             }
-            
-            // Fetch tour from Supabase
+
             const { data: doc, error: tourError } = await ConvexService.getTour(tourId);
-            
+
             if (tourError || !doc) {
                 error = typeof tourError === 'object' && tourError !== null && 'message' in tourError
                     ? String(tourError.message)
@@ -41,72 +44,77 @@
                 isLoading = false;
                 return;
             }
-            
-            // Check if the current user is the creator of this tour
+
             const creatorId = await ConvexService.getTourCreatorId(tourId);
             if (creatorId !== user.id) {
                 error = "You don't have permission to edit this tour";
                 isLoading = false;
                 return;
             }
-            
-            // Parse the JSON from the description field
-            let tourData: Partial<SupabaseTour> = {};
+
+            // Parse the full description object
+            let parsed: Record<string, any> = {};
             try {
                 if (doc.description) {
-                    if (typeof doc.description === 'string') {
-                        tourData = JSON.parse(doc.description);
-                    } else {
-                        tourData = doc.description;
-                    }
+                    parsed = typeof doc.description === 'string'
+                        ? JSON.parse(doc.description)
+                        : doc.description;
                 }
             } catch (parseError) {
                 console.error('Error parsing tour data:', parseError);
             }
-            
-            // Create a combined object with Supabase document properties and parsed tour data
-            tour = {
-                $id: doc.id,
-                name: tourData.name || '',
-                cityId: tourData.cityId || '',
-                language: tourData.language || '',
-                description: tourData.description || '',
-                imageUrl: doc.image_url,
-                tourType: tourData.tourType || 'person', // Default to 'person' if not specified
-                price: typeof tourData.price === 'number' ? tourData.price : 0 // Default to 0 if not specified
-            } as SupabaseTour;
-            
-            // Log the parsed tour data for debugging
-            console.log('Parsed tour data:', {
-                tourType: tour.tourType,
-                price: tour.price,
-                rawData: tourData
-            });
-            
+
+            tourData = {
+                id: tourId,
+                name: parsed.name || '',
+                cityId: parsed.cityId || '',
+                languageTaught: parsed.languageTaught || '',
+                instructionLanguage: parsed.instructionLanguage || '',
+                langDifficulty: parsed.langDifficulty || '',
+                description: parsed.description || '',
+                imageUrl: doc.image_url || parsed.imageUrl || '',
+                tourType: parsed.tourType || 'person',
+                price: typeof parsed.price === 'number' ? parsed.price : 0,
+                stops: Array.isArray(parsed.stops) ? parsed.stops : []
+            };
+
             isLoading = false;
         } catch (err: any) {
             error = err.message || 'Failed to load tour';
             isLoading = false;
         }
     });
-    
-    const handleSubmit = async (event: { detail: Partial<Tour> }) => {
-        const tourData = event.detail;
+
+    const handleSubmit = async (event: { detail: any }) => {
+        const formData = event.detail;
         isSubmitting = true;
         error = '';
-        
+
         try {
-            // Update tour in Supabase
-            await ConvexService.updateTour(tourId, tourData);
-            
-            // Redirect to dashboard page
+            // Wrap in { description: { ... } } so updateTour takes the object path
+            // which properly processes stops via processStops()
+            await ConvexService.updateTour(tourId, {
+                description: {
+                    name: formData.name,
+                    cityId: formData.cityId,
+                    languageTaught: formData.languageTaught,
+                    instructionLanguage: formData.instructionLanguage,
+                    langDifficulty: formData.langDifficulty,
+                    description: formData.description,
+                    tourType: formData.tourType,
+                    price: formData.price,
+                    stops: formData.stops || []
+                },
+                imageUrl: formData.imageUrl
+            });
+
             goto('/dashboard');
         } catch (err: any) {
             error = err.message || 'Failed to update tour';
             isSubmitting = false;
         }
     };
-    
+
     const handleCancel = () => {
         goto('/dashboard');
     };
@@ -124,36 +132,27 @@
     </div>
 
     <h1 class="text-3xl font-bold mb-6">Edit Tour</h1>
-    
+
     {#if error}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
             <p>{error}</p>
         </div>
     {/if}
-    
+
     {#if isLoading || isSubmitting}
         <div class="flex justify-center items-center h-64">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
         </div>
-    {:else if tour}
-        <EditTourForm 
-            tour={{
-                name: tour.name,
-                cityId: tour.cityId,
-                language: tour.language,
-                description: tour.description,
-                imageUrl: tour.imageUrl || '',
-                tourType: tour.tourType || 'person',
-                price: typeof tour.price === 'number' ? tour.price : 0,
-                id: $page.params.tourId // Use tourId from page params
-            }} 
-            on:submit={handleSubmit} 
-            on:cancel={handleCancel} 
+    {:else if tourData}
+        <EditTourForm
+            tour={tourData}
+            on:submit={handleSubmit}
+            on:cancel={handleCancel}
         />
     {:else}
         <div class="bg-red-100 p-8 rounded-lg text-center">
             <p class="text-red-600">Tour not found. Please return to the dashboard.</p>
-            <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
+            <a href="/dashboard" class="inline-block mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg">
                 Back to Dashboard
             </a>
         </div>

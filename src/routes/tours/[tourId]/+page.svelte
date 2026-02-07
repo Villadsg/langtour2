@@ -5,6 +5,27 @@
     import { citiesStore } from '$lib/stores/tourStore';
     import FlyNotification from '$lib/components/FlyNotification.svelte';
     import { getTourData } from '$lib/tourValidation';
+    import TourStopsMap from '$lib/components/TourStopsMap.svelte';
+    import type { TourStop } from '$lib/firebase/types';
+
+    // Extract stops from tour description (stored as JSON string)
+    function getStops(tourDoc: any): TourStop[] {
+        if (!tourDoc?.description) return [];
+        try {
+            let desc = tourDoc.description;
+            if (typeof desc === 'string') {
+                const trimmed = desc.trim();
+                if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                    desc = JSON.parse(trimmed);
+                } else {
+                    return [];
+                }
+            }
+            return Array.isArray(desc.stops) ? desc.stops : [];
+        } catch {
+            return [];
+        }
+    }
 
     let tour: any = null;
     let isLoading = true;
@@ -343,7 +364,16 @@
                     
                     <h3 class="text-lg font-semibold mb-2">Description</h3>
                     <p class="text-slate-700">{tourData.description}</p>
-                    
+
+                    <!-- Tour Stops Map -->
+                    {#if getStops(tour).length > 0}
+                        {@const stops = getStops(tour)}
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold mb-2">Tour Route ({stops.length} stop{stops.length !== 1 ? 's' : ''})</h3>
+                            <TourStopsMap {stops} />
+                        </div>
+                    {/if}
+
                     <!-- Scheduled Tours Section -->
                     <div class="mt-6">
                         <h3 class="text-lg font-semibold mb-2">Upcoming Scheduled Tours</h3>
