@@ -336,7 +336,16 @@
                         {/each}
                     {/if}
                     
-                    <p class="text-slate-600 mb-4">Language: {tourData.language}</p>
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm border border-green-200 rounded-md">
+                            <span class="text-green-500">Learn:</span>
+                            <span class="font-medium">{tourData.languageTaught || 'Not specified'}</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 text-sm border border-slate-200 rounded-md">
+                            <span class="text-slate-500">Instruction:</span>
+                            <span class="font-medium">{tourData.instructionLanguage || 'English'}</span>
+                        </div>
+                    </div>
                     <div class="flex items-center mb-4">
                         <span class="text-slate-600 mr-2">Average Rating:</span>
                         <span class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded">{ConvexService.getAverageRating(tour).toFixed(1)}</span>

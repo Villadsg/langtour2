@@ -6,20 +6,25 @@
 
     let { tour } = $props<{ tour: Tour }>();
 
-    // Derive effective tourType without mutating the prop
-    let effectiveTourType = $derived.by(() => {
+    // Parse tour description once
+    let parsedDescription = $derived.by(() => {
         if (tour.description) {
             try {
-                const descObj = typeof tour.description === 'string'
+                return typeof tour.description === 'string'
                     ? JSON.parse(tour.description)
                     : tour.description;
-                return descObj.tourType || 'person';
             } catch {
-                return 'person';
+                return {};
             }
         }
-        return 'person';
+        return {};
     });
+
+    // Derive effective tourType without mutating the prop
+    let effectiveTourType = $derived(parsedDescription.tourType || 'person');
+
+    // Derive base price from tour description
+    let basePrice = $derived(parsedDescription.price ?? tour.price ?? null);
 
     // Get the city information for this tour
     let city = $derived($citiesStore.find(c => c.id === tour.cityId));
@@ -131,8 +136,10 @@
                     
                 </div>
                 <div class="flex flex-wrap items-center gap-3 mb-2">
-                    <div class="inline-block px-2.5 py-1 bg-green-50 text-green-700 text-sm mr-3 border border-green-200 rounded-md">
-                        {tour.languageTaught || 'Not specified'}
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm mr-3 border border-green-200 rounded-md">
+                        <span class="font-medium">{tour.languageTaught || 'Not specified'}</span>
+                        <span class="text-green-500">in</span>
+                        <span>{tour.instructionLanguage || 'English'}</span>
                     </div>
 
 
@@ -175,15 +182,17 @@
                    
                 </div>
         
-                <!-- Price tag - updated logic -->
+                <!-- Price tag -->
                 <div class="mt-4 flex items-center justify-between">
                     <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
                         {#if effectiveTourType === 'app'}
                             Free
                         {:else if nextSchedule && nextSchedule.price !== null && nextSchedule.price !== undefined}
                             €{nextSchedule.price.toFixed(2)}/person
+                        {:else if basePrice !== null && basePrice !== undefined}
+                            €{Number(basePrice).toFixed(2)}/person
                         {:else}
-                            Price available when scheduled
+                            Price TBD
                         {/if}
                     </span>
                 </div>

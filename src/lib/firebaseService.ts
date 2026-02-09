@@ -5,7 +5,9 @@ import {
 	createUserWithEmailAndPassword,
 	signOut,
 	onAuthStateChanged,
-	updateProfile
+	updateProfile,
+	GoogleAuthProvider,
+	signInWithPopup
 } from 'firebase/auth';
 import {
 	collection,
@@ -145,6 +147,38 @@ export const FirebaseService = {
 			return user;
 		} catch (error) {
 			console.error('Error logging in:', error);
+			throw error;
+		}
+	},
+
+	async loginWithGoogle() {
+		try {
+			const provider = new GoogleAuthProvider();
+			const result = await signInWithPopup(auth, provider);
+			const firebaseUser = result.user;
+
+			// Check if user profile already exists
+			const profileDoc = await getDoc(doc(db, 'publicProfiles', firebaseUser.uid));
+
+			if (!profileDoc.exists()) {
+				// Create public profile for new Google user
+				await addDoc(collection(db, 'publicProfiles'), {
+					userId: firebaseUser.uid,
+					username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+					updatedAt: serverTimestamp()
+				});
+
+				// Create default user role
+				await addDoc(collection(db, 'userRoles'), {
+					userId: firebaseUser.uid,
+					role: 'user'
+				});
+			}
+
+			const user = await this.getAccount();
+			return user;
+		} catch (error) {
+			console.error('Error logging in with Google:', error);
 			throw error;
 		}
 	},
