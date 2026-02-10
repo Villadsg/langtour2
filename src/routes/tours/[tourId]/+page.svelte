@@ -6,7 +6,7 @@
     import FlyNotification from '$lib/components/FlyNotification.svelte';
     import { getTourData } from '$lib/tourValidation';
     import TourStopsMap from '$lib/components/TourStopsMap.svelte';
-    import type { TourStop } from '$lib/firebase/types';
+    import type { TourStop, PublicProfile, AverageRatings } from '$lib/firebase/types';
 
     // Extract stops from tour description (stored as JSON string)
     function getStops(tourDoc: any): TourStop[] {
@@ -52,8 +52,13 @@
     let bookingMessage = '';
     let bookingSuccess = false;
     
+    // Tour guide profile
+    let guideProfile: PublicProfile | null = null;
+    let guideRatings: AverageRatings | null = null;
+    let guideTourCount = 0;
+
     import { page } from '$app/stores';
-    
+
     const tourId = $page.params.tourId;
     
     onMount(async () => {
@@ -80,7 +85,20 @@
                 
                 // Fetch scheduled tours for this tour
                 await fetchScheduledTours(tour?.id || tour?.$id || '');
-                
+
+                // Fetch tour guide profile
+                const creatorId = await ConvexService.getTourCreatorId(tour?.id || tour?.$id || '');
+                if (creatorId) {
+                    const [profile, ratings, tours] = await Promise.all([
+                        ConvexService.getPublicProfile(creatorId),
+                        ConvexService.getCreatorAverageRatings(creatorId),
+                        ConvexService.getCreatorTours(creatorId)
+                    ]);
+                    guideProfile = profile;
+                    guideRatings = ratings;
+                    guideTourCount = tours.length;
+                }
+
                 // Pre-fill booking form if user is logged in
                 if ($currentUser) {
                     bookingName = $currentUser.username || '';
@@ -373,6 +391,66 @@
                     
                     <h3 class="text-lg font-semibold mb-2">Description</h3>
                     <p class="text-slate-700">{tourData.description}</p>
+
+                    <!-- Tour Guide Section -->
+                    {#if guideProfile}
+                        <div class="mt-6 border border-slate-200 rounded-lg p-5">
+                            <h3 class="text-lg font-semibold mb-3">Your Tour Guide</h3>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <!-- Avatar -->
+                                <div class="flex-shrink-0">
+                                    {#if guideProfile.avatarUrl}
+                                        <img src={guideProfile.avatarUrl} alt={guideProfile.username} class="w-16 h-16 rounded-full object-cover border-2 border-slate-200" />
+                                    {:else}
+                                        <div class="w-16 h-16 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                            </svg>
+                                        </div>
+                                    {/if}
+                                </div>
+
+                                <!-- Guide Info -->
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-base font-semibold text-slate-800">{guideProfile.username}</h4>
+
+                                    <div class="flex flex-wrap items-center gap-3 mt-1">
+                                        {#if guideRatings && guideRatings.count > 0}
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 22 20">
+                                                    <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+                                                </svg>
+                                                <span class="text-sm font-medium text-slate-700">{guideRatings.overall.toFixed(1)}</span>
+                                                <span class="text-xs text-slate-400">({guideRatings.count} {guideRatings.count === 1 ? 'review' : 'reviews'})</span>
+                                            </div>
+                                        {/if}
+
+                                        {#if guideTourCount > 0}
+                                            <span class="text-xs text-slate-400">|</span>
+                                            <span class="text-sm text-slate-500">{guideTourCount} {guideTourCount === 1 ? 'tour' : 'tours'}</span>
+                                        {/if}
+
+                                        {#if guideProfile.memberSince}
+                                            <span class="text-xs text-slate-400">|</span>
+                                            <span class="text-sm text-slate-500">Member since {new Date(guideProfile.memberSince).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                                        {/if}
+                                    </div>
+
+                                    {#if guideProfile.bio}
+                                        <p class="mt-2 text-sm text-slate-600">{guideProfile.bio}</p>
+                                    {/if}
+
+                                    {#if guideProfile.languagesSpoken && guideProfile.languagesSpoken.length > 0}
+                                        <div class="mt-2 flex flex-wrap gap-1.5">
+                                            {#each guideProfile.languagesSpoken as lang}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">{lang}</span>
+                                            {/each}
+                                        </div>
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
 
                     <!-- Tour Stops Map -->
                     {#if getStops(tour).length > 0}

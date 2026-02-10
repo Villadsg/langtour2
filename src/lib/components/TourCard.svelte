@@ -144,33 +144,6 @@
 
 
 
-                    <!-- Tour Type Marker (moved next to heading) -->
-                    {#if effectiveTourType === 'person'}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
-                        <svg class="h-4 w-4 mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        Tour Guide
-                    </span>
-                {:else if effectiveTourType === 'app'}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200">
-                        <svg class="h-4 w-4 mr-1 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <rect x="7" y="2" width="10" height="20" rx="2" />
-                            <circle cx="12" cy="18" r="1" />
-                        </svg>
-                        App-guide
-                    </span>
-                {:else}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
-                        <svg class="h-4 w-4 mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        Tour Guide
-                    </span>
-                {/if}
-
-                 
-    
             </div>
 
                 <div class="flex items-center mt-3 gap-3 mb-2">
@@ -182,19 +155,21 @@
                    
                 </div>
         
-                <!-- Price tag -->
-                <div class="mt-4 flex items-center justify-between">
-                    <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
-                        {#if effectiveTourType === 'app'}
-                            Free
-                        {:else if nextSchedule && nextSchedule.price !== null && nextSchedule.price !== undefined}
-                            €{nextSchedule.price.toFixed(2)}/person
-                        {:else if basePrice !== null && basePrice !== undefined}
-                            €{Number(basePrice).toFixed(2)}/person
-                        {:else}
-                            Price TBD
-                        {/if}
+                <!-- Overall rating -->
+                <div class="mt-4 flex items-center gap-2">
+                    <div class="flex items-center space-x-0.5">
+                        {#each Array(5) as _, i}
+                            <svg class={`w-4 h-4 ${i < Math.round(ratings.overall || ((ratings.languageLearning + ratings.informative + ratings.fun) / 3)) ? getRatingColor(ratings.overall || ((ratings.languageLearning + ratings.informative + ratings.fun) / 3)) : 'text-slate-200'}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+                                <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+                            </svg>
+                        {/each}
+                    </div>
+                    <span class="text-sm font-medium text-slate-700">
+                        {(ratings.overall || ((ratings.languageLearning + ratings.informative + ratings.fun) / 3)).toFixed(1)}
                     </span>
+                    {#if ratings.count > 0}
+                        <span class="text-xs text-slate-400">({ratings.count})</span>
+                    {/if}
                 </div>
                   
                 
@@ -213,25 +188,8 @@
                
             </div>
             
-            <!-- Right side: Rating & creator -->
+            <!-- Right side: Creator & price -->
             <div class="mt-4 md:mt-0 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 flex flex-col items-start md:items-center justify-center gap-3">
-                <!-- Overall rating -->
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center space-x-0.5">
-                        {#each Array(5) as _, i}
-                            <svg class={`w-4 h-4 ${i < Math.round(ratings.overall || ((ratings.languageLearning + ratings.informative + ratings.fun) / 3)) ? getRatingColor(ratings.overall || ((ratings.languageLearning + ratings.informative + ratings.fun) / 3)) : 'text-slate-200'}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
-                                <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
-                            </svg>
-                        {/each}
-                    </div>
-                    <span class="text-sm font-medium text-slate-700">
-                        {(ratings.overall || ((ratings.languageLearning + ratings.informative + ratings.fun) / 3)).toFixed(1)}
-                    </span>
-                    {#if ratings.count > 0}
-                        <span class="text-xs text-slate-400">({ratings.count})</span>
-                    {/if}
-                </div>
-
                 <!-- Creator info -->
                 {#if creatorUsername}
                     <div class="flex items-center gap-1.5 text-sm text-slate-500">
@@ -239,8 +197,47 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                         <span>{creatorUsername}</span>
+                        {#if creatorRatings.count > 0}
+                            <span class="text-slate-300">|</span>
+                            <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 22 20">
+                                <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+                            </svg>
+                            <span class="text-slate-600 font-medium">{creatorRatings.overall.toFixed(1)}</span>
+                            <span class="text-slate-400 text-xs">({creatorRatings.count})</span>
+                        {/if}
                     </div>
                 {/if}
+
+                <!-- Tour Type Marker -->
+                {#if effectiveTourType === 'app'}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200">
+                        <svg class="h-4 w-4 mr-1 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="7" y="2" width="10" height="20" rx="2" />
+                            <circle cx="12" cy="18" r="1" />
+                        </svg>
+                        App-guide
+                    </span>
+                {:else}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
+                        <svg class="h-4 w-4 mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        Tour Guided Class
+                    </span>
+                {/if}
+
+                <!-- Price tag -->
+                <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
+                    {#if effectiveTourType === 'app'}
+                        Free
+                    {:else if nextSchedule && nextSchedule.price !== null && nextSchedule.price !== undefined}
+                        €{nextSchedule.price.toFixed(2)}/person
+                    {:else if basePrice !== null && basePrice !== undefined}
+                        €{Number(basePrice).toFixed(2)}/person
+                    {:else}
+                        Price TBD
+                    {/if}
+                </span>
             </div>
         </div>
     </div>

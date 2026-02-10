@@ -56,6 +56,11 @@ export interface User {
 export interface PublicProfile {
 	userId: string;
 	username: string;
+	bio?: string;
+	languagesSpoken?: string[];
+	avatarUrl?: string;
+	avatarStorageId?: string;
+	memberSince?: number;
 	updatedAt: Timestamp | number;
 }
 

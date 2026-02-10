@@ -38,7 +38,8 @@ import type {
 	Booking,
 	Rating,
 	AverageRatings,
-	TourStop
+	TourStop,
+	PublicProfile
 } from './firebase/types';
 
 // Create stores for state management (matching convexService)
@@ -122,6 +123,7 @@ export const FirebaseService = {
 			await addDoc(collection(db, 'publicProfiles'), {
 				userId: credential.user.uid,
 				username: name,
+				memberSince: Date.now(),
 				updatedAt: serverTimestamp()
 			});
 
@@ -165,6 +167,7 @@ export const FirebaseService = {
 				await addDoc(collection(db, 'publicProfiles'), {
 					userId: firebaseUser.uid,
 					username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+					memberSince: Date.now(),
 					updatedAt: serverTimestamp()
 				});
 
@@ -1242,6 +1245,91 @@ export const FirebaseService = {
 			return { success: true };
 		} catch (error) {
 			console.error('Error updating user profile:', error);
+			throw error;
+		}
+	},
+
+	async getPublicProfile(userId: string): Promise<PublicProfile | null> {
+		if (!userId) return null;
+
+		try {
+			const profilesQuery = query(
+				collection(db, 'publicProfiles'),
+				where('userId', '==', userId),
+				limit(1)
+			);
+			const profilesSnapshot = await getDocs(profilesQuery);
+
+			if (profilesSnapshot.empty) return null;
+
+			const data = profilesSnapshot.docs[0].data();
+			return {
+				userId: data.userId,
+				username: data.username,
+				bio: data.bio,
+				languagesSpoken: data.languagesSpoken,
+				avatarUrl: data.avatarUrl,
+				avatarStorageId: data.avatarStorageId,
+				memberSince: data.memberSince,
+				updatedAt: data.updatedAt
+			} as PublicProfile;
+		} catch (error) {
+			console.error('Error getting public profile:', error);
+			return null;
+		}
+	},
+
+	async updatePublicProfile(data: Partial<PublicProfile>) {
+		try {
+			const user = auth.currentUser;
+			if (!user) throw new Error('Not authenticated');
+
+			const profilesQuery = query(
+				collection(db, 'publicProfiles'),
+				where('userId', '==', user.uid),
+				limit(1)
+			);
+			const profilesSnapshot = await getDocs(profilesQuery);
+
+			const updateData: any = {
+				...data,
+				updatedAt: serverTimestamp()
+			};
+			// Remove undefined values
+			for (const key of Object.keys(updateData)) {
+				if (updateData[key] === undefined) delete updateData[key];
+			}
+
+			if (!profilesSnapshot.empty) {
+				await updateDoc(profilesSnapshot.docs[0].ref, updateData);
+			} else {
+				await addDoc(collection(db, 'publicProfiles'), {
+					userId: user.uid,
+					...updateData
+				});
+			}
+
+			return { success: true };
+		} catch (error) {
+			console.error('Error updating public profile:', error);
+			throw error;
+		}
+	},
+
+	async uploadAvatar(file: File) {
+		try {
+			const user = auth.currentUser;
+			if (!user) throw new Error('Not authenticated');
+
+			const filePath = `avatars/${user.uid}/${Date.now()}_${file.name}`;
+			const fileRef = ref(storage, filePath);
+
+			await uploadBytes(fileRef, file);
+			const url = await getDownloadURL(fileRef);
+
+			return { id: filePath, url };
+		} catch (error) {
+			console.error('Error uploading avatar:', error);
 			throw error;
 		}
 	},
