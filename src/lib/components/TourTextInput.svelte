@@ -47,6 +47,13 @@
   let tourType = 'person';
   let cityName = '';
 
+  // Price per person
+  let price: number | undefined = undefined;
+
+  // Starting location (becomes first stop)
+  let startingLocation = '';
+  let hasStartingLocationStop = false;
+
   // Stop location picker state
   let editingStopIndex: number | null = null;
 
@@ -57,31 +64,6 @@
   $: missingFields = parsedData ? getMissingFields(parsedData) : [];
   $: canCreate = parsedData ? canPublish(parsedData) : false;
   $: stopNames = parsedData?.stops.map(s => s.placeName) || [];
-
-  // Example template
-  const exampleTemplate = `Tour Name: Copenhagen Coffee Culture Tour
-Language: Learn Danish, instructions in English
-Level: A2 (Elementary)
-City: Copenhagen, Denmark
-
-Description: Explore Copenhagen's vibrant coffee scene while learning Danish vocabulary for ordering drinks, making small talk, and appreciating local culture.
-
-Stops:
-1. The Coffee Collective - Jægersborggade 10
-   Type: cafe
-   Learn ordering vocabulary and casual greetings
-
-2. Democratic Coffee - Krystalgade 15
-   Type: cafe
-   Practice dialogue about coffee preferences
-
-3. Prolog Coffee Bar - Højbro Plads 10
-   Type: cafe
-   Learn expressions for paying and thanking`;
-
-  function showExample() {
-    rawText = exampleTemplate;
-  }
 
   // Parse the pasted text
   async function handleParse() {
@@ -102,6 +84,23 @@ Stops:
       description = result.description || '';
       tourType = result.tourType || 'person';
       cityName = result.cityName || '';
+
+      // Populate starting location and prepend as first stop
+      if (result.startingLocation) {
+        startingLocation = result.startingLocation;
+        hasStartingLocationStop = true;
+        parsedData = {
+          ...parsedData!,
+          stops: [
+            {
+              placeName: result.startingLocation,
+              addressOrDescription: result.startingLocation,
+              geocodeStatus: 'pending'
+            },
+            ...parsedData!.stops
+          ]
+        };
+      }
 
       // Move to review phase
       currentPhase = 'review';
@@ -159,6 +158,36 @@ Stops:
       tourType,
       cityName
     };
+  }
+
+  // Handle starting location change - add/update first stop
+  function handleStartingLocationChange() {
+    if (!parsedData) return;
+
+    let stops = [...parsedData.stops];
+
+    // Remove previous starting location stop if present
+    if (hasStartingLocationStop && stops.length > 0) {
+      stops = stops.slice(1);
+      hasStartingLocationStop = false;
+    }
+
+    // Add new starting location stop if value is non-empty
+    if (startingLocation.trim()) {
+      stops.unshift({
+        placeName: startingLocation.trim(),
+        addressOrDescription: startingLocation.trim(),
+        geocodeStatus: 'pending'
+      });
+      hasStartingLocationStop = true;
+    }
+
+    parsedData = { ...parsedData, stops };
+
+    // Trigger geocoding for the new stop
+    if (startingLocation.trim() && cityName) {
+      geocodeStops();
+    }
   }
 
   // Handle field click from missing fields banner
@@ -222,6 +251,12 @@ Stops:
   function deleteStop(stopIndex: number) {
     if (!parsedData) return;
 
+    // If deleting the starting location stop, clear the flag and field
+    if (hasStartingLocationStop && stopIndex === 0) {
+      hasStartingLocationStop = false;
+      startingLocation = '';
+    }
+
     parsedData = {
       ...parsedData,
       stops: parsedData.stops.filter((_, i) => i !== stopIndex)
@@ -276,7 +311,7 @@ Stops:
       langDifficulty,
       description,
       tourType,
-      price: 24,
+      price: price || 0,
       stops: parsedData.stops.map((stop, index) => createTourStop(stop, index))
     };
 
@@ -320,15 +355,8 @@ Stops:
   {#if currentPhase === 'input'}
     <div class="space-y-6">
       <div>
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2">
           <h3 class="text-lg font-medium">Paste Your Tour Plan</h3>
-          <button
-            type="button"
-            on:click={showExample}
-            class="text-sm text-green-600 hover:text-green-700"
-          >
-            Show Example
-          </button>
         </div>
         <p class="text-sm text-gray-600 mb-4">
           Paste your tour description below. Include the tour name, languages, difficulty level, city, description, and list of stops.
@@ -340,20 +368,9 @@ Stops:
           rows="16"
           placeholder="Paste your tour plan here...
 
-Example format:
-Tour Name: My Language Tour
-Language: Learn Spanish, instructions in English
-Level: B1
-City: Barcelona
+Example prompt your favorite LLM with this:
 
-Description: A walking tour exploring local markets...
-
-Stops:
-1. La Boqueria Market - Las Ramblas
-   Type: market
-
-2. Cafe de l'Opera - Las Ramblas 74
-   Type: cafe"
+&quot;Create a tour description with [n] stops in Madrid which begins in [location]&quot;"
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 font-mono text-sm"
         ></textarea>
 
@@ -532,6 +549,23 @@ Stops:
               {/each}
             </select>
           </div>
+
+          {#if tourType === 'person'}
+            <div>
+              <label for="field-price" class="block text-gray-700 text-sm font-medium mb-1">
+                Price per Person (EUR) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                id="field-price"
+                min="0"
+                step="1"
+                bind:value={price}
+                placeholder="e.g., 25"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+          {/if}
         </div>
       </div>
 
@@ -540,6 +574,23 @@ Stops:
         <h3 class="text-lg font-medium mb-4">
           Tour Stops ({parsedData.stops.length})
         </h3>
+
+        <div class="mb-4">
+          <label for="field-startingLocation" class="block text-gray-700 text-sm font-medium mb-1">
+            Starting Location
+          </label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="field-startingLocation"
+              bind:value={startingLocation}
+              on:change={handleStartingLocationChange}
+              placeholder="e.g., Plaza Mayor"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Added as the first tour stop</p>
+        </div>
 
         {#if parsedData.stops.length === 0}
           <div class="text-center py-8 text-gray-500 border border-dashed border-gray-300 rounded-lg">
@@ -733,6 +784,12 @@ Stops:
             <span class="text-gray-500">City:</span>
             <span class="ml-2">{cityName || 'Not specified'}</span>
           </div>
+          {#if tourType === 'person' && price}
+            <div>
+              <span class="text-gray-500">Price:</span>
+              <span class="ml-2">{price} EUR per person</span>
+            </div>
+          {/if}
           <div class="col-span-2">
             <span class="text-gray-500">Description:</span>
             <p class="mt-1 text-gray-700">{description}</p>

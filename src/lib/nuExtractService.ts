@@ -12,6 +12,7 @@ const TOUR_EXTRACTION_TEMPLATE = {
   "description": "",
   "tour_type": "",
   "city": "",
+  "starting_location": "",
   "stops": [
     {
       "place_name": "",
@@ -178,6 +179,7 @@ export async function extractTourData(text: string): Promise<ParsedTourData> {
       description: extracted.description || undefined,
       tourType: normalizeTourType(extracted.tour_type),
       cityName: extracted.city || undefined,
+      startingLocation: extracted.starting_location || undefined,
       stops,
       rawText: text
     };

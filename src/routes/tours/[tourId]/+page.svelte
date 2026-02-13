@@ -4,28 +4,9 @@
     import { ConvexService, currentUser } from '$lib/firebaseService';
     import { citiesStore } from '$lib/stores/tourStore';
     import FlyNotification from '$lib/components/FlyNotification.svelte';
-    import { getTourData } from '$lib/tourValidation';
+    import { getTourData, getStops } from '$lib/tourValidation';
     import TourStopsMap from '$lib/components/TourStopsMap.svelte';
-    import type { TourStop, PublicProfile, AverageRatings } from '$lib/firebase/types';
-
-    // Extract stops from tour description (stored as JSON string)
-    function getStops(tourDoc: any): TourStop[] {
-        if (!tourDoc?.description) return [];
-        try {
-            let desc = tourDoc.description;
-            if (typeof desc === 'string') {
-                const trimmed = desc.trim();
-                if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-                    desc = JSON.parse(trimmed);
-                } else {
-                    return [];
-                }
-            }
-            return Array.isArray(desc.stops) ? desc.stops : [];
-        } catch {
-            return [];
-        }
-    }
+    import type { PublicProfile, AverageRatings } from '$lib/firebase/types';
 
     let tour: any = null;
     let isLoading = true;
@@ -391,6 +372,23 @@
                     
                     <h3 class="text-lg font-semibold mb-2">Description</h3>
                     <p class="text-slate-700">{tourData.description}</p>
+
+                    <!-- Prepare for this tour -->
+                    {#if getStops(tour).filter(s => s.teachingMaterial).length > 0}
+                        {@const prepStops = getStops(tour).filter(s => s.teachingMaterial)}
+                        <div class="mt-6">
+                            <a
+                                href="/tours/{tourId}/prepare"
+                                class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                                </svg>
+                                Prepare for this tour
+                            </a>
+                            <p class="text-sm text-slate-500 mt-1.5">Vocabulary and practice dialogues for {prepStops.length} stop{prepStops.length !== 1 ? 's' : ''}</p>
+                        </div>
+                    {/if}
 
                     <!-- Tour Guide Section -->
                     {#if guideProfile}

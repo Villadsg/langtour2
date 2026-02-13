@@ -168,6 +168,7 @@ export interface ParsedTourData {
 	description?: string;
 	tourType?: string;
 	cityName?: string; // For geocoding to cityId
+	startingLocation?: string; // Becomes first tour stop
 	stops: ParsedStopData[];
 	rawText: string;
 }

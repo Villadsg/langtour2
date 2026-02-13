@@ -1,6 +1,6 @@
 // Tour validation utility for paste-and-parse flow
 
-import type { ParsedTourData, MissingField } from '$lib/firebase/types';
+import type { ParsedTourData, MissingField, TourStop } from '$lib/firebase/types';
 
 // Shared utility to extract structured tour data from a raw tour document.
 // The description field may be a JSON string, a plain string, or an object.
@@ -74,6 +74,25 @@ export function getTourData(tourDoc: any): {
     tourType,
     price: tourData.price ?? 0
   };
+}
+
+// Extract stops from a tour document (description stored as JSON string or object)
+export function getStops(tourDoc: any): TourStop[] {
+  if (!tourDoc?.description) return [];
+  try {
+    let desc = tourDoc.description;
+    if (typeof desc === 'string') {
+      const trimmed = desc.trim();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        desc = JSON.parse(trimmed);
+      } else {
+        return [];
+      }
+    }
+    return Array.isArray(desc.stops) ? desc.stops : [];
+  } catch {
+    return [];
+  }
 }
 
 // Required fields for publishing a tour
