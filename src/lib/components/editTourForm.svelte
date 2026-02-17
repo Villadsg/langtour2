@@ -20,11 +20,6 @@
 
     const dispatch = createEventDispatcher();
 
-    const cities = [
-        { id: 'copenhagen', name: 'Copenhagen', country: 'Denmark' },
-        { id: 'madrid', name: 'Madrid', country: 'Spain' }
-    ];
-
     const languages = ['Danish', 'Spanish', 'English', 'French', 'German', 'Italian'];
 
     const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -69,6 +64,24 @@
         }
         if (adjustingStopId === stopId) {
             adjustingStopId = null;
+        }
+    }
+
+    function moveStop(stopId: string, direction: 'up' | 'down') {
+        const sorted = [...stops].sort((a, b) => a.order - b.order);
+        const idx = sorted.findIndex(s => s.id === stopId);
+        if (idx < 0) return;
+        const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+        // Swap orders
+        const tempOrder = sorted[idx].order;
+        sorted[idx] = { ...sorted[idx], order: sorted[swapIdx].order };
+        sorted[swapIdx] = { ...sorted[swapIdx], order: tempOrder };
+
+        stops = sorted;
+        if (mapPicker) {
+            mapPicker.reorderStops(stops);
         }
     }
 
@@ -139,15 +152,13 @@
 
         <div>
             <label for="tour-city" class="block text-sm font-medium text-slate-700 mb-1">City</label>
-            <select
+            <input
                 id="tour-city"
+                type="text"
                 bind:value={cityId}
+                placeholder="e.g., Copenhagen, Denmark"
                 class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
-            >
-                {#each cities as city}
-                    <option value={city.id}>{city.name}, {city.country}</option>
-                {/each}
-            </select>
+            />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -308,6 +319,28 @@
 
                             <!-- Actions -->
                             <div class="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                    type="button"
+                                    on:click={() => moveStop(stop.id, 'up')}
+                                    class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Move up"
+                                    disabled={index === 0}
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    on:click={() => moveStop(stop.id, 'down')}
+                                    class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Move down"
+                                    disabled={index === sortedStops.length - 1}
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
                                 <button
                                     type="button"
                                     on:click={() => adjustingStopId = adjustingStopId === stop.id ? null : stop.id}

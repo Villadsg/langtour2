@@ -247,6 +247,24 @@
     };
   }
 
+  // Move a stop up or down
+  function moveStop(stopIndex: number, direction: 'up' | 'down') {
+    if (!parsedData) return;
+    const swapIndex = direction === 'up' ? stopIndex - 1 : stopIndex + 1;
+    if (swapIndex < 0 || swapIndex >= parsedData.stops.length) return;
+
+    const newStops = [...parsedData.stops];
+    [newStops[stopIndex], newStops[swapIndex]] = [newStops[swapIndex], newStops[stopIndex]];
+
+    // Update starting location flag if first stop moved
+    if (hasStartingLocationStop && (stopIndex === 0 || swapIndex === 0)) {
+      hasStartingLocationStop = false;
+      startingLocation = '';
+    }
+
+    parsedData = { ...parsedData, stops: newStops };
+  }
+
   // Delete a stop
   function deleteStop(stopIndex: number) {
     if (!parsedData) return;
@@ -683,6 +701,29 @@ Example prompt your favorite LLM with this:
                         </div>
 
                         <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            on:click={() => moveStop(index, 'up')}
+                            class="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move up"
+                            disabled={index === 0}
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            on:click={() => moveStop(index, 'down')}
+                            class="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move down"
+                            disabled={index === parsedData.stops.length - 1}
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
                           {#if stop.geocodeStatus === 'not_found' || stop.geocodeStatus === 'ambiguous'}
                             <button
                               type="button"
