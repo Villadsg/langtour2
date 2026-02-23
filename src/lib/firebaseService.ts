@@ -15,6 +15,7 @@ import {
 	getDoc,
 	getDocs,
 	addDoc,
+	setDoc,
 	updateDoc,
 	deleteDoc,
 	query,
@@ -119,16 +120,16 @@ export const FirebaseService = {
 			const credential = await createUserWithEmailAndPassword(auth, email, password);
 			await updateProfile(credential.user, { displayName: name });
 
-			// Create public profile
-			await addDoc(collection(db, 'publicProfiles'), {
+			// Create public profile (use UID as document ID so getAccount can find it)
+			await setDoc(doc(db, 'publicProfiles', credential.user.uid), {
 				userId: credential.user.uid,
 				username: name,
 				memberSince: Date.now(),
 				updatedAt: serverTimestamp()
 			});
 
-			// Create default user role
-			await addDoc(collection(db, 'userRoles'), {
+			// Create default user role (use UID as document ID)
+			await setDoc(doc(db, 'userRoles', credential.user.uid), {
 				userId: credential.user.uid,
 				role: 'user'
 			});
@@ -163,16 +164,16 @@ export const FirebaseService = {
 			const profileDoc = await getDoc(doc(db, 'publicProfiles', firebaseUser.uid));
 
 			if (!profileDoc.exists()) {
-				// Create public profile for new Google user
-				await addDoc(collection(db, 'publicProfiles'), {
+				// Create public profile for new Google user (use UID as document ID)
+				await setDoc(doc(db, 'publicProfiles', firebaseUser.uid), {
 					userId: firebaseUser.uid,
 					username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
 					memberSince: Date.now(),
 					updatedAt: serverTimestamp()
 				});
 
-				// Create default user role
-				await addDoc(collection(db, 'userRoles'), {
+				// Create default user role (use UID as document ID)
+				await setDoc(doc(db, 'userRoles', firebaseUser.uid), {
 					userId: firebaseUser.uid,
 					role: 'user'
 				});
@@ -293,6 +294,7 @@ export const FirebaseService = {
 						s.teachingMaterial = {
 							vocabulary: stop.teachingMaterial.vocabulary || [],
 							dialogues: stop.teachingMaterial.dialogues || [],
+							facts: stop.teachingMaterial.facts || [],
 							generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
 							languageTaught: stop.teachingMaterial.languageTaught || '',
 							instructionLanguage: stop.teachingMaterial.instructionLanguage || '',

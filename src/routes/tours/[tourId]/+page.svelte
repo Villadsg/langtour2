@@ -34,6 +34,7 @@
     let bookingSuccess = false;
     
     // Tour guide profile
+    let creatorId: string | null = null;
     let guideProfile: PublicProfile | null = null;
     let guideRatings: AverageRatings | null = null;
     let guideTourCount = 0;
@@ -68,7 +69,7 @@
                 await fetchScheduledTours(tour?.id || tour?.$id || '');
 
                 // Fetch tour guide profile
-                const creatorId = await ConvexService.getTourCreatorId(tour?.id || tour?.$id || '');
+                creatorId = await ConvexService.getTourCreatorId(tour?.id || tour?.$id || '');
                 if (creatorId) {
                     const [profile, ratings, tours] = await Promise.all([
                         ConvexService.getPublicProfile(creatorId),
@@ -379,7 +380,7 @@
                         <div class="mt-6">
                             <a
                                 href="/tours/{tourId}/prepare"
-                                class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                                class="inline-flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-5 rounded-lg transition-colors"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -387,6 +388,19 @@
                                 Prepare for this tour
                             </a>
                             <p class="text-sm text-slate-500 mt-1.5">Vocabulary and practice dialogues for {prepStops.length} stop{prepStops.length !== 1 ? 's' : ''}</p>
+                        </div>
+                    {/if}
+
+                    <!-- Creator-only: Generate material button -->
+                    {#if $currentUser && creatorId && $currentUser.id === creatorId}
+                        <div class="mt-4">
+                            <a href="/tours/{tourId}/generate-material"
+                               class="inline-flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-5 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                                </svg>
+                                Create Preparation Material and Tests
+                            </a>
                         </div>
                     {/if}
 

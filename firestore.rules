@@ -11,14 +11,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isAdmin() {
+    // Lightweight admin check using document ID (no extra reads)
+    function isAdminById() {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/userRoles/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/userRoles/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/userRoles/$(userId)).data.role;
     }
 
     // Public Profiles - readable by all, writable by owner
@@ -29,35 +26,35 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // User Roles - readable by owner or admin, writable by admin only
+    // User Roles - readable by owner (by doc ID), writable by admin only
     match /userRoles/{roleId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isAuthenticated() && roleId == request.auth.uid;
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow update: if isAdminById();
+      allow delete: if isAdminById();
     }
 
-    // Tours - readable by all, writable by authenticated users
+    // Tours - readable by all, writable by creator or admin
     match /tours/{tourId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.creatorId == request.auth.uid || isAdmin());
-      allow delete: if isAuthenticated() && (resource.data.creatorId == request.auth.uid || isAdmin());
+      allow update: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
     }
 
-    // Schedules - readable by all, writable by tour owner or admin
+    // Schedules - readable by all, writable by authenticated users
     match /schedules/{scheduleId} {
       allow read: if true;
       allow create: if isAuthenticated();
       allow update, delete: if isAuthenticated();
     }
 
-    // Bookings - readable by owner or admin, writable by authenticated users
+    // Bookings - readable/deletable by authenticated, updatable by owner
     match /bookings/{bookingId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow delete: if isAdmin();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated();
     }
 
     // Ratings - readable by all, writable by authenticated users
@@ -65,14 +62,14 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAdmin();
+      allow delete: if isAuthenticated();
     }
 
-    // Notifications - readable by admin, writable by authenticated users
+    // Notifications - readable/writable by authenticated users
     match /notifications/{notificationId} {
-      allow read: if isAdmin();
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAuthenticated();
     }
   }
 }

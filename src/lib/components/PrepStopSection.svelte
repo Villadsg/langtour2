@@ -8,8 +8,8 @@
 {#if stop.teachingMaterial}
     <section class="print-break-avoid mb-8">
         <!-- Header -->
-        <div class="flex items-center gap-3 bg-green-600 text-white px-4 py-3 rounded-t-lg">
-            <span class="inline-flex items-center justify-center w-8 h-8 bg-white text-green-700 font-bold text-sm rounded-full">
+        <div class="flex items-center gap-3 bg-green-100 text-green-800 border border-green-200 px-4 py-3 rounded-t-lg">
+            <span class="inline-flex items-center justify-center w-8 h-8 bg-green-600 text-white font-bold text-sm rounded-full">
                 {stopNumber}
             </span>
             <h2 class="text-lg font-semibold">{stop.location?.placeName || stop.location?.address || `Stop ${stopNumber}`}</h2>
@@ -72,6 +72,32 @@
                                         </div>
                                     {/each}
                                 </div>
+                            </div>
+                        {/each}
+                    </div>
+                </div>
+            {/if}
+
+            <!-- Did You Know? Facts -->
+            {#if stop.teachingMaterial.facts && stop.teachingMaterial.facts.length > 0}
+                <div>
+                    <h3 class="text-base font-semibold text-slate-800 mb-3">Did You Know?</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {#each stop.teachingMaterial.facts as fact}
+                            <div class="border rounded-lg p-3 {fact.category === 'historical' ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'}">
+                                <span class="inline-block text-xs font-semibold uppercase tracking-wide mb-1 {fact.category === 'historical' ? 'text-blue-700' : 'text-amber-700'}">
+                                    {fact.category === 'historical' ? 'Historical' : 'Cultural'}
+                                </span>
+                                <p class="text-sm {fact.category === 'historical' ? 'text-blue-800' : 'text-amber-800'}">{fact.text}</p>
+                                {#if fact.keywords && fact.keywords.length > 0}
+                                    <div class="mt-2 pt-2 border-t {fact.category === 'historical' ? 'border-blue-200' : 'border-amber-200'} flex flex-wrap gap-1.5">
+                                        {#each fact.keywords as kw}
+                                            <span class="text-xs px-1.5 py-0.5 rounded {fact.category === 'historical' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">
+                                                <strong>{kw.word}</strong> — {kw.translation}
+                                            </span>
+                                        {/each}
+                                    </div>
+                                {/if}
                             </div>
                         {/each}
                     </div>

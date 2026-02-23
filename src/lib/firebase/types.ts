@@ -20,9 +20,21 @@ export interface Dialogue {
 	lines: DialogueLine[];
 }
 
+export interface FactKeyword {
+	word: string;
+	translation: string;
+}
+
+export interface StopFact {
+	text: string;
+	category: 'cultural' | 'historical';
+	keywords: FactKeyword[];
+}
+
 export interface TeachingMaterial {
 	vocabulary: VocabularyItem[];
 	dialogues: Dialogue[];
+	facts?: StopFact[];
 	generatedAt: number;
 	languageTaught: string;
 	instructionLanguage: string;
