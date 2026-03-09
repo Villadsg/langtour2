@@ -67,20 +67,20 @@ export const sendRatingNotificationEmail = functions.https.onCall(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'LangTour <noreply@langtour.com>',
+          from: 'Talktrail <noreply@talktrail.com>',
           to: email,
           subject: `Rate your experience on ${tourName}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Thanks for joining ${tourName}!</h2>
               <p>Hi ${userName || 'there'},</p>
-              <p>We hope you enjoyed your language learning tour. Your feedback helps other learners find great experiences.</p>
+              <p>We hope you enjoyed your language learning trail. Your feedback helps other learners find great experiences.</p>
               <p>
                 <a href="${ratingUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px;">
                   Rate Your Experience
                 </a>
               </p>
-              <p>Thank you for being part of the LangTour community!</p>
+              <p>Thank you for being part of the Talktrail community!</p>
             </div>
           `
         }),

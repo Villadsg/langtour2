@@ -468,7 +468,7 @@ Example prompt your favorite LLM with this:
               id="field-name"
               bind:value={tourName}
               on:change={updateParsedData}
-              placeholder="e.g., Copenhagen Coffee Culture Tour"
+              placeholder="e.g., Copenhagen Coffee Culture Trail"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </div>
@@ -547,14 +547,14 @@ Example prompt your favorite LLM with this:
               bind:value={description}
               on:change={updateParsedData}
               rows="3"
-              placeholder="Describe your tour..."
+              placeholder="Describe your trail..."
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
             ></textarea>
           </div>
 
           <div>
             <label for="field-tourType" class="block text-gray-700 text-sm font-medium mb-1">
-              Tour Type
+              Trail Type
             </label>
             <select
               id="field-tourType"

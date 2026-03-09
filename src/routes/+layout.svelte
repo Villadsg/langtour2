@@ -16,7 +16,7 @@
 		<div class="container mx-auto px-6">
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 				<div>
-					<h3 class="text-lg font-medium mb-4">LangTour</h3>
+					<h3 class="text-lg font-medium mb-4">Talktrail</h3>
 					<p class="text-slate-400 text-sm leading-relaxed">
 						Language learning in the wild
 					</p>
@@ -42,7 +42,7 @@
 			</div>
 			
 			<div class="border-t border-slate-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
-				<p class="text-sm text-slate-500">&copy; 2026 LangTour. All rights reserved.</p>
+				<p class="text-sm text-slate-500">&copy; 2026 Talktrail. All rights reserved.</p>
 				<div class="flex space-x-4 mt-4 md:mt-0">
 					<a href="https://twitter.com" class="text-slate-400 hover:text-white transition-colors duration-150">
 						<span class="sr-only">Twitter</span>

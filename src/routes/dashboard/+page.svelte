@@ -65,7 +65,7 @@
   // getTourData is now imported from $lib/tourValidation
   
   async function handleCancelSchedule(scheduleId: string, tourName: string) {
-    if (!confirm(`Are you sure you want to cancel the scheduled tour: ${tourName || 'Unknown Tour'}?`)) {
+    if (!confirm(`Are you sure you want to cancel the scheduled trail: ${tourName || 'Unknown Trail'}?`)) {
       return; // User cancelled the operation
     }
     
@@ -80,7 +80,7 @@
         cancelError = `Failed to cancel schedule: ${result.error?.message || 'Unknown error'}`;
         console.error('Error cancelling schedule:', result.error);
       } else {
-        successMessage = `Successfully cancelled the scheduled tour: ${tourName || 'Unknown Tour'}`;
+        successMessage = `Successfully cancelled the scheduled trail: ${tourName || 'Unknown Trail'}`;
         
         // Remove the cancelled schedule from the list
         upcomingScheduledTours = upcomingScheduledTours.filter(s => s.id !== scheduleId);
@@ -95,7 +95,7 @@
   
   // Function to handle tour deletion
   async function handleDeleteTour(tourId: string, tourName: string) {
-    if (!confirm(`Are you sure you want to delete the tour "${tourName}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete the trail "${tourName}"? This action cannot be undone.`)) {
       return; // User cancelled the operation
     }
     
@@ -110,9 +110,9 @@
       // Update the list of tours
       userCreatedTours.update(tours => tours.filter(tour => (tour.id || tour.$id) !== tourId));
       
-      deleteSuccess = `Successfully deleted tour: ${tourName}`;
+      deleteSuccess = `Successfully deleted trail: ${tourName}`;
     } catch (err: any) {
-      deleteError = `Failed to delete tour: ${err?.message || 'Unknown error'}`;
+      deleteError = `Failed to delete trail: ${err?.message || 'Unknown error'}`;
       console.error('Error deleting tour:', err);
     } finally {
       deletingTourId = null;
@@ -139,9 +139,9 @@
     </div>
   {:else}
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-slate-800">Created Tours</h2>
+      <h2 class="text-2xl font-bold text-slate-800">Created Trails</h2>
       <a href="/dashboard/create" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors">
-        Create New Tour
+        Create New Trail
       </a>
     </div>
     
@@ -165,7 +165,7 @@
         
     {#if $userCreatedTours.length === 0}
       <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
-        <p class="text-slate-600">You haven't created any tours yet.</p>
+        <p class="text-slate-600">You haven't created any trails yet.</p>
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -180,17 +180,17 @@
               <p class="text-slate-600 mb-4 line-clamp-2">{tourData.description}</p>
               <div class="flex space-x-4 justify-end mb-2">
                 <a href={`/dashboard/edit/${tour.id || tour.$id}`} class="text-green-600 hover:text-green-700 font-medium transition-colors">
-                  Edit Tour
+                  Edit Trail
                 </a>
                 <a href={`/dashboard/tours/${tour.id || tour.$id}/schedule`} class="text-orange-500 hover:text-orange-600 font-medium transition-colors">
-                  Schedule Tour
+                  Schedule Trail
                 </a>
                 <button
                   class="text-red-500 hover:text-red-600 cursor-pointer font-medium transition-colors {deletingTourId === (tour.id || tour.$id) ? 'opacity-50 cursor-not-allowed' : ''}"
                   on:click={() => handleDeleteTour(tour.id || tour.$id, tourData.name)}
                   disabled={deletingTourId !== null}
                 >
-                  {deletingTourId === (tour.id || tour.$id) ? 'Deleting...' : 'Delete Tour'}
+                  {deletingTourId === (tour.id || tour.$id) ? 'Deleting...' : 'Delete Trail'}
                 </button>
               </div>
             </div>
@@ -222,14 +222,14 @@
       
       {#if upcomingScheduledTours.length === 0}
         <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-          <p class="text-slate-600">No upcoming scheduled tours.</p>
+          <p class="text-slate-600">No upcoming scheduled trails.</p>
         </div>
       {:else}
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white rounded-lg overflow-hidden border border-slate-200">
             <thead class="bg-slate-50 text-slate-700">
               <tr>
-                <th class="py-3 px-4 text-left">Tour</th>
+                <th class="py-3 px-4 text-left">Trail</th>
                 <th class="py-3 px-4 text-left">Date</th>
                 <th class="py-3 px-4 text-left">Participants</th>
                 <th class="py-3 px-4 text-left">Actions</th>
@@ -243,7 +243,7 @@
                       {@const tourData = getTourData(schedule.tours)}
                       <span class="text-slate-700">{tourData.name}</span>
                     {:else}
-                      <span class="text-slate-400">Unknown Tour</span>
+                      <span class="text-slate-400">Unknown Trail</span>
                     {/if}
                   </td>
                   <td class="py-3 px-4">{formatDate(schedule.scheduled_date)}</td>

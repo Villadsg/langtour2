@@ -90,12 +90,17 @@
                                 </span>
                                 <p class="text-sm {fact.category === 'historical' ? 'text-blue-800' : 'text-amber-800'}">{fact.text}</p>
                                 {#if fact.keywords && fact.keywords.length > 0}
-                                    <div class="mt-2 pt-2 border-t {fact.category === 'historical' ? 'border-blue-200' : 'border-amber-200'} flex flex-wrap gap-1.5">
-                                        {#each fact.keywords as kw}
-                                            <span class="text-xs px-1.5 py-0.5 rounded {fact.category === 'historical' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">
-                                                <strong>{kw.word}</strong> — {kw.translation}
-                                            </span>
-                                        {/each}
+                                    <div class="mt-2 pt-2 border-t {fact.category === 'historical' ? 'border-blue-200' : 'border-amber-200'}">
+                                        <p class="text-xs font-medium mb-1.5 {fact.category === 'historical' ? 'text-blue-600' : 'text-amber-600'}">Key vocabulary</p>
+                                        <div class="space-y-1">
+                                            {#each fact.keywords as kw}
+                                                <div class="flex items-baseline gap-2 text-sm">
+                                                    <span class="font-semibold {fact.category === 'historical' ? 'text-blue-800' : 'text-amber-800'}">{kw.word}</span>
+                                                    <span class="text-xs {fact.category === 'historical' ? 'text-blue-400' : 'text-amber-400'}">—</span>
+                                                    <span class="{fact.category === 'historical' ? 'text-blue-600' : 'text-amber-600'}">{kw.translation}</span>
+                                                </div>
+                                            {/each}
+                                        </div>
                                     </div>
                                 {/if}
                             </div>

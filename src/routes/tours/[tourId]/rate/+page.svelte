@@ -43,9 +43,9 @@
       hasRated = await ConvexService.hasUserRatedTour(user.id, tourId);
       
       if (!canRate) {
-        error = 'You can only rate tours that you have attended.';
+        error = 'You can only rate trails that you have attended.';
       } else if (hasRated) {
-        success = 'You have already rated this tour. Thank you for your feedback!';
+        success = 'You have already rated this trail. Thank you for your feedback!';
       }
       
       isLoading = false;
@@ -68,7 +68,7 @@
       
       const user = $currentUser;
       if (!user) {
-        error = 'You must be logged in to rate a tour';
+        error = 'You must be logged in to rate a trail';
         isSubmitting = false;
         return;
       }
@@ -84,7 +84,7 @@
       );
       
       hasRated = true;
-      success = 'Thank you for rating this tour!';
+      success = 'Thank you for rating this trail!';
     } catch (err: any) {
       error = err.message || 'Failed to submit ratings';
     } finally {
@@ -145,18 +145,18 @@
     {@const tourData = getTourData(tour)}
     
     <div class="bg-white rounded-lg shadow-md p-6">
-      <h1 class="text-2xl font-bold mb-4">Rate Tour: {tourData.name}</h1>
+      <h1 class="text-2xl font-bold mb-4">Rate Trail: {tourData.name}</h1>
       
       {#if !canRate}
         <div class="bg-yellow-100 p-4 rounded-lg">
-          <p class="text-yellow-800">You can only rate tours that you have attended.</p>
+          <p class="text-yellow-800">You can only rate trails that you have attended.</p>
           <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
             Back to Dashboard
           </a>
         </div>
       {:else if hasRated}
         <div class="bg-green-100 p-4 rounded-lg">
-          <p class="text-green-800">You have already rated this tour. Thank you for your feedback!</p>
+          <p class="text-green-800">You have already rated this trail. Thank you for your feedback!</p>
           <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
             Back to Dashboard
           </a>
@@ -164,7 +164,7 @@
       {:else}
         <form on:submit|preventDefault={handleSubmit} class="space-y-6">
           <div>
-            <h2 class="text-lg font-semibold mb-3">How well did this tour help with language learning?</h2>
+            <h2 class="text-lg font-semibold mb-3">How well did this trail help with language learning?</h2>
             <div class="flex items-center space-x-2">
               {#each Array(5) as _, i}
                 <button 
@@ -195,7 +195,7 @@
           </div>
           
           <div>
-            <h2 class="text-lg font-semibold mb-3">How informative/interesting was the tour?</h2>
+            <h2 class="text-lg font-semibold mb-3">How informative/interesting was the trail?</h2>
             <div class="flex items-center space-x-2">
               {#each Array(5) as _, i}
                 <button 
@@ -226,7 +226,7 @@
           </div>
           
           <div>
-            <h2 class="text-lg font-semibold mb-3">How fun was the tour?</h2>
+            <h2 class="text-lg font-semibold mb-3">How fun was the trail?</h2>
             <div class="flex items-center space-x-2">
               {#each Array(5) as _, i}
                 <button 
@@ -279,7 +279,7 @@
                   id="comment"
                   bind:value={comment}
                   rows="4"
-                  placeholder="Share your experience with this tour..."
+                  placeholder="Share your experience with this trail..."
                   class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400"
                 ></textarea>
               </div>
@@ -300,7 +300,7 @@
     </div>
   {:else}
     <div class="bg-red-100 p-8 rounded-lg text-center">
-      <p class="text-red-600">Tour not found. Please return to the dashboard.</p>
+      <p class="text-red-600">Trail not found. Please return to the dashboard.</p>
       <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
         Back to Dashboard
       </a>

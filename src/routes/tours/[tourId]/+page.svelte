@@ -86,7 +86,7 @@
                     bookingName = $currentUser.username || '';
                 }
             } else {
-                error = 'Tour not found';
+                error = 'Trail not found';
             }
             isLoading = false;
         } catch (err: any) {
@@ -161,7 +161,7 @@
     // Handle booking submission
     const handleBooking = async () => {
         if (!selectedScheduleId) {
-            bookingMessage = 'Please select a scheduled tour';
+            bookingMessage = 'Please select a scheduled trail';
             bookingSuccess = false;
             return;
         }
@@ -188,10 +188,10 @@
             );
             
             if (response.error) {
-                bookingMessage = response.error?.message || 'Failed to book tour';
+                bookingMessage = response.error?.message || 'Failed to book trail';
                 bookingSuccess = false;
             } else {
-                bookingMessage = 'Tour booked successfully! You will receive a confirmation email shortly.';
+                bookingMessage = 'Trail booked successfully! You will receive a confirmation email shortly.';
                 bookingSuccess = true;
                 
                 // Reset form
@@ -200,7 +200,7 @@
                 bookingNotes = '';
                 
                 // Show fly notification and redirect after 5 seconds
-                flyMessage = 'Tour booked successfully! You will receive a confirmation email shortly.';
+                flyMessage = 'Trail booked successfully! You will receive a confirmation email shortly.';
                 showFlyNotification = true;
             }
         } catch (err: any) {
@@ -219,7 +219,7 @@
         }
         
         if (!tour) {
-            notificationMessage = 'Tour information not available.';
+            notificationMessage = 'Trail information not available.';
             return;
         }
         
@@ -231,11 +231,11 @@
                 console.error('Error saving notification:', response.error);
                 notificationMessage = response.error?.message || 'Failed to save notification. Please try again.';
             } else {
-                notificationMessage = 'Thank you! We will notify you when this tour is scheduled.';
+                notificationMessage = 'Thank you! We will notify you when this trail is scheduled.';
                 notificationEmail = '';
                 
                 // Show fly notification and redirect after 5 seconds
-                flyMessage = 'Thank you! We will notify you when this tour is scheduled.';
+                flyMessage = 'Thank you! We will notify you when this trail is scheduled.';
                 showFlyNotification = true;
             }
         } catch (err: any) {
@@ -251,7 +251,7 @@
         }
         
         if (!tour) {
-            error = 'Tour information not available.';
+            error = 'Trail information not available.';
             return;
         }
         
@@ -353,7 +353,7 @@
                     
                     {#if $currentUser}
                         <div class="mb-6">
-                            <h3 class="text-lg font-semibold mb-2">Rate this tour:</h3>
+                            <h3 class="text-lg font-semibold mb-2">Rate this trail:</h3>
                             <div class="flex items-center space-x-1">
                                 {#each Array(5) as _, i}
                                     <button 
@@ -385,7 +385,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                                 </svg>
-                                Prepare for this tour
+                                Prepare for this trail
                             </a>
                             <p class="text-sm text-slate-500 mt-1.5">Vocabulary and practice dialogues for {prepStops.length} stop{prepStops.length !== 1 ? 's' : ''}</p>
                         </div>
@@ -407,7 +407,7 @@
                     <!-- Tour Guide Section -->
                     {#if guideProfile}
                         <div class="mt-6 border border-slate-200 rounded-lg p-5">
-                            <h3 class="text-lg font-semibold mb-3">Your Tour Guide</h3>
+                            <h3 class="text-lg font-semibold mb-3">Your Trail Guide</h3>
                             <div class="flex flex-col sm:flex-row gap-4">
                                 <!-- Avatar -->
                                 <div class="flex-shrink-0">
@@ -439,7 +439,7 @@
 
                                         {#if guideTourCount > 0}
                                             <span class="text-xs text-slate-400">|</span>
-                                            <span class="text-sm text-slate-500">{guideTourCount} {guideTourCount === 1 ? 'tour' : 'tours'}</span>
+                                            <span class="text-sm text-slate-500">{guideTourCount} {guideTourCount === 1 ? 'trail' : 'trails'}</span>
                                         {/if}
 
                                         {#if guideProfile.memberSince}
@@ -468,14 +468,14 @@
                     {#if getStops(tour).length > 0}
                         {@const stops = getStops(tour)}
                         <div class="mt-6">
-                            <h3 class="text-lg font-semibold mb-2">Tour Route ({stops.length} stop{stops.length !== 1 ? 's' : ''})</h3>
+                            <h3 class="text-lg font-semibold mb-2">Trail Route ({stops.length} stop{stops.length !== 1 ? 's' : ''})</h3>
                             <TourStopsMap {stops} />
                         </div>
                     {/if}
 
                     <!-- Scheduled Tours Section -->
                     <div class="mt-6">
-                        <h3 class="text-lg font-semibold mb-2">Upcoming Scheduled Tours</h3>
+                        <h3 class="text-lg font-semibold mb-2">Upcoming Scheduled Trails</h3>
                         
                         {#if isLoadingSchedules}
                             <div class="flex justify-center items-center h-16">
@@ -486,13 +486,13 @@
                                 <p>{scheduleError}</p>
                             </div>
                         {:else if scheduledTours.length === 0}
-                            <p class="text-slate-600 mb-3">No upcoming scheduled tours available.</p>
+                            <p class="text-slate-600 mb-3">No upcoming scheduled trails available.</p>
                             
                             {@const tourData = getTourData(tour)}
                             {#if tourData.tourType === 'app'}
                                 <div class="mt-4">
-                                    <h4 class="text-md font-semibold mb-2">App-Guided Tour</h4>
-                                    <p class="text-slate-600 mb-3">This tour is self-guided through our app. Start exploring at your convenience:</p>
+                                    <h4 class="text-md font-semibold mb-2">App-Guided Trail</h4>
+                                    <p class="text-slate-600 mb-3">This trail is self-guided through our app. Start exploring at your convenience:</p>
                                     <div class="flex flex-col gap-3 max-w-md">
                                         <button 
                                             on:click={() => goto(`/tours/${tourId}/start`)}
@@ -502,14 +502,14 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            Open Langtour App
+                                            Open Talktrail App
                                         </button>
                                     </div>
                                 </div>
                             {:else}
                                 <div class="mt-4">
                                     <h4 class="text-md font-semibold mb-2">Get Notified</h4>
-                                    <p class="text-slate-600 mb-3">Enter your email to be notified when this tour is scheduled:</p>
+                                    <p class="text-slate-600 mb-3">Enter your email to be notified when this trail is scheduled:</p>
                                     <div class="flex flex-col gap-3 max-w-md">
                                         <input 
                                             type="email" 

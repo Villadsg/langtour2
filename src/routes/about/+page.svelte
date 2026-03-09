@@ -3,8 +3,8 @@
 </script>
 
 <svelte:head>
-    <title>About Us | Language Tour</title>
-    <meta name="description" content="About the Language Tour platform and its creator" />
+    <title>About Us | Talktrail</title>
+    <meta name="description" content="About the Talktrail platform and its creator" />
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">

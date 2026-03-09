@@ -32,7 +32,7 @@
         try {
             const response = await ConvexService.getTour(tourId);
             if (!response?.data) {
-                error = 'Tour not found';
+                error = 'Trail not found';
                 isLoading = false;
                 return;
             }
@@ -255,7 +255,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to tour
+            Back to trail
         </a>
 
         <!-- Header -->
@@ -294,7 +294,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
-                            Save to Tour
+                            Save to Trail
                         {/if}
                     </button>
                 {/if}
@@ -329,12 +329,17 @@
                                     <span class="inline-block text-xs font-semibold uppercase tracking-wide mb-1">{categoryLabel(fact.category)}</span>
                                     <p class="text-sm">{fact.text}</p>
                                     {#if fact.keywords && fact.keywords.length > 0}
-                                        <div class="mt-2 pt-2 border-t border-current/10 flex flex-wrap gap-1.5">
-                                            {#each fact.keywords as kw}
-                                                <span class="text-xs px-1.5 py-0.5 rounded bg-white/60">
-                                                    <strong>{kw.word}</strong> — {kw.translation}
-                                                </span>
-                                            {/each}
+                                        <div class="mt-2 pt-2 border-t border-current/10">
+                                            <p class="text-xs font-medium mb-1">Key vocabulary</p>
+                                            <div class="space-y-0.5">
+                                                {#each fact.keywords as kw}
+                                                    <div class="flex items-baseline gap-2 text-sm">
+                                                        <span class="font-semibold">{kw.word}</span>
+                                                        <span class="text-xs opacity-50">—</span>
+                                                        <span class="opacity-75">{kw.translation}</span>
+                                                    </div>
+                                                {/each}
+                                            </div>
                                         </div>
                                     {/if}
                                 </div>

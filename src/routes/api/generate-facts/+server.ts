@@ -46,7 +46,7 @@ function buildFactPrompt(
     ? `\nWikipedia excerpt about "${placeName}":\n${wikiExcerpt}\n`
     : '';
 
-  return `You are a tour guide creating short, interesting facts for a language-learning walking tour.
+  return `You are a tour guide creating short, interesting facts for a language-learning walking trail.
 Location: "${placeName}" in ${city}
 Language being taught: ${languageTaught}
 Instruction language: ${instructionLanguage}
@@ -56,11 +56,11 @@ Generate exactly 2 facts about this location:
 - 1 historical fact (category: "historical")
 
 IMPORTANT:
-- Write each fact in ${languageTaught} (the language being learned), 1-3 sentences max.
-- For each fact, list 3-5 key words from the fact with their ${instructionLanguage} translations.
+- Write each fact in ${instructionLanguage} (the common language everyone speaks), 1-3 sentences max.
+- For each fact, list 3-5 key vocabulary words relevant to the fact. Each keyword "word" must be in ${languageTaught} and "translation" must be the ${instructionLanguage} translation.
 
 Respond ONLY with valid JSON in this exact format:
-{"facts": [{"text": "...", "category": "cultural", "keywords": [{"word": "...", "translation": "..."}]}, {"text": "...", "category": "historical", "keywords": [{"word": "...", "translation": "..."}]}]}`;
+{"facts": [{"text": "...", "category": "cultural", "keywords": [{"word": "word in ${languageTaught}", "translation": "translation in ${instructionLanguage}"}]}, {"text": "...", "category": "historical", "keywords": [{"word": "word in ${languageTaught}", "translation": "translation in ${instructionLanguage}"}]}]}`;
 }
 
 function validateFacts(parsed: any): StopFact[] | null {

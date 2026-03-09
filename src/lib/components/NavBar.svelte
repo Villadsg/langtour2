@@ -30,28 +30,28 @@
     <div class="flex justify-between h-16">
       <div class="flex">
         <div class="flex-shrink-0 flex items-center">
-          <a href="/" class={`text-xl font-semibold tracking-tight ${text.primary}`}>LangTour</a>
+          <a href="/" class={`text-xl font-semibold tracking-tight ${text.primary}`}>Talktrail</a>
         </div>
         <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
           <a href="/" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/') ? navbar.activeLink : navbar.link}`}>
-            Book a tour
+            Book a trail
           </a>
           <a href="/dashboard/create" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/dashboard/create') ? navbar.activeLink : navbar.link}`}>
-            Create a tour
+            Create a trail
           </a>
         </div>
       </div>
-      
+
       <div class="hidden sm:ml-6 sm:flex sm:items-center">
         {#if $currentUser}
           <div class="flex items-center space-x-4">
             <span class={`text-sm ${text.muted}`}>Hello, {$currentUser?.username || $currentUser?.email || 'User'}</span>
-           
+
             <a href="/bookings" class={components.button.secondary}>
               Your plans
             </a>
             <a href="/dashboard" class={components.button.secondary}>
-              Manage tours
+              Manage trails
             </a>
             <a href="/profile" class={components.button.secondary}>
               Profile
@@ -97,10 +97,10 @@
     <div class={`sm:hidden ${navbar.mobileBg}`}>
       <div class="py-2 space-y-1">
         <a href="/" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
-          Tours
+          Trails
         </a>
         <a href="/dashboard/create" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
-          Create a tour
+          Create a trail
         </a>
         
         {#if $currentUser}
