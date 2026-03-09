@@ -80,24 +80,31 @@
 
             <!-- Did You Know? Facts -->
             {#if stop.teachingMaterial.facts && stop.teachingMaterial.facts.length > 0}
+                {@const categoryStyles = {
+                    historical: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', label: 'text-blue-700', keyword: 'text-blue-600', sep: 'text-blue-400' },
+                    cultural: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', label: 'text-amber-700', keyword: 'text-amber-600', sep: 'text-amber-400' },
+                    linguistic: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', label: 'text-purple-700', keyword: 'text-purple-600', sep: 'text-purple-400' },
+                    geographical: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800', label: 'text-emerald-700', keyword: 'text-emerald-600', sep: 'text-emerald-400' }
+                }}
                 <div>
                     <h3 class="text-base font-semibold text-slate-800 mb-3">Did You Know?</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {#each stop.teachingMaterial.facts as fact}
-                            <div class="border rounded-lg p-3 {fact.category === 'historical' ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'}">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide mb-1 {fact.category === 'historical' ? 'text-blue-700' : 'text-amber-700'}">
-                                    {fact.category === 'historical' ? 'Historical' : 'Cultural'}
+                            {@const s = categoryStyles[fact.category] || categoryStyles.cultural}
+                            <div class="border rounded-lg p-3 {s.bg} {s.border}">
+                                <span class="inline-block text-xs font-semibold uppercase tracking-wide mb-1 {s.label}">
+                                    {fact.category}
                                 </span>
-                                <p class="text-sm {fact.category === 'historical' ? 'text-blue-800' : 'text-amber-800'}">{fact.text}</p>
+                                <p class="text-sm {s.text}">{fact.text}</p>
                                 {#if fact.keywords && fact.keywords.length > 0}
-                                    <div class="mt-2 pt-2 border-t {fact.category === 'historical' ? 'border-blue-200' : 'border-amber-200'}">
-                                        <p class="text-xs font-medium mb-1.5 {fact.category === 'historical' ? 'text-blue-600' : 'text-amber-600'}">Key vocabulary</p>
+                                    <div class="mt-2 pt-2 border-t {s.border}">
+                                        <p class="text-xs font-medium mb-1.5 {s.keyword}">Key vocabulary</p>
                                         <div class="space-y-1">
                                             {#each fact.keywords as kw}
                                                 <div class="flex items-baseline gap-2 text-sm">
-                                                    <span class="font-semibold {fact.category === 'historical' ? 'text-blue-800' : 'text-amber-800'}">{kw.word}</span>
-                                                    <span class="text-xs {fact.category === 'historical' ? 'text-blue-400' : 'text-amber-400'}">—</span>
-                                                    <span class="{fact.category === 'historical' ? 'text-blue-600' : 'text-amber-600'}">{kw.translation}</span>
+                                                    <span class="font-semibold {s.text}">{kw.word}</span>
+                                                    <span class="text-xs {s.sep}">—</span>
+                                                    <span class="{s.keyword}">{kw.translation}</span>
                                                 </div>
                                             {/each}
                                         </div>

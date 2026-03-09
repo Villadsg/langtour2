@@ -27,7 +27,7 @@ export interface FactKeyword {
 
 export interface StopFact {
 	text: string;
-	category: 'cultural' | 'historical';
+	category: 'cultural' | 'historical' | 'linguistic' | 'geographical';
 	keywords: FactKeyword[];
 }
 

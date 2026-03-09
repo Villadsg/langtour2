@@ -78,6 +78,7 @@
             })),
             languageTaught: tourData.languageTaught || '',
             instructionLanguage: tourData.instructionLanguage || 'English',
+            cefrLevel: tourData.langDifficulty || '',
             city: cityName
         };
 
@@ -225,13 +226,17 @@
     }
 
     function categoryColor(category: string): string {
-        return category === 'historical'
-            ? 'bg-blue-50 border-blue-200 text-blue-800'
-            : 'bg-amber-50 border-amber-200 text-amber-800';
+        switch (category) {
+            case 'historical': return 'bg-blue-50 border-blue-200 text-blue-800';
+            case 'cultural': return 'bg-amber-50 border-amber-200 text-amber-800';
+            case 'linguistic': return 'bg-purple-50 border-purple-200 text-purple-800';
+            case 'geographical': return 'bg-emerald-50 border-emerald-200 text-emerald-800';
+            default: return 'bg-amber-50 border-amber-200 text-amber-800';
+        }
     }
 
     function categoryLabel(category: string): string {
-        return category === 'historical' ? 'Historical' : 'Cultural';
+        return category.charAt(0).toUpperCase() + category.slice(1);
     }
 
     $: completedCount = stopStatuses.filter(s => s.status === 'done').length;

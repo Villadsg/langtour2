@@ -22,7 +22,7 @@ async function searchWikipedia(placeName: string, city: string): Promise<string>
     const title = searchData?.query?.search?.[0]?.title;
     if (!title) return '';
 
-    const extractUrl = `${WIKIPEDIA_API}?action=query&titles=${encodeURIComponent(title)}&prop=extracts&exintro=true&explaintext=true&exsentences=8&format=json&origin=*`;
+    const extractUrl = `${WIKIPEDIA_API}?action=query&titles=${encodeURIComponent(title)}&prop=extracts&explaintext=true&exchars=3000&format=json&origin=*`;
     const extractRes = await fetch(extractUrl, { signal: AbortSignal.timeout(5000) });
     if (!extractRes.ok) return '';
     const extractData = await extractRes.json();
@@ -35,38 +35,62 @@ async function searchWikipedia(placeName: string, city: string): Promise<string>
   }
 }
 
+// Phase 1: Generate facts (text + category only, no keywords)
 function buildFactPrompt(
   placeName: string,
   city: string,
   languageTaught: string,
   instructionLanguage: string,
+  cefrLevel: string,
   wikiExcerpt: string
 ): string {
   const context = wikiExcerpt
     ? `\nWikipedia excerpt about "${placeName}":\n${wikiExcerpt}\n`
     : '';
 
-  return `You are a tour guide creating short, interesting facts for a language-learning walking trail.
-Location: "${placeName}" in ${city}
-Language being taught: ${languageTaught}
-Instruction language: ${instructionLanguage}
+  const levelHint = cefrLevel
+    ? `The reader is a ${cefrLevel} level ${languageTaught} learner (native ${instructionLanguage} speaker). Use ${cefrLevel}-appropriate ${languageTaught} grammar and vocabulary.`
+    : `The reader is learning ${languageTaught} and speaks ${instructionLanguage} natively. Use simple, clear ${languageTaught}.`;
+
+  return `Write 4 interesting facts about "${placeName}" in ${city}. Write in ${languageTaught}. 1-3 sentences each.
+${levelHint}
 ${context}
-Generate exactly 2 facts about this location:
-- 1 cultural fact (category: "cultural")
-- 1 historical fact (category: "historical")
+Categories: cultural, historical, linguistic (about local language/naming), geographical (area/architecture).
 
-IMPORTANT:
-- Write each fact in ${instructionLanguage} (the common language everyone speaks), 1-3 sentences max.
-- For each fact, list 3-5 key vocabulary words relevant to the fact. Each keyword "word" must be in ${languageTaught} and "translation" must be the ${instructionLanguage} translation.
+Example for Spanish (B1 level):
+{"facts":[{"text":"Este mercado ha sido el corazón de la cultura gastronómica local desde 1882.","category":"cultural"},{"text":"El edificio fue diseñado por el arquitecto Josep Mas en 1876.","category":"historical"},{"text":"El nombre proviene de la antigua palabra latina para reunión.","category":"linguistic"},{"text":"Situado en el casco antiguo, rodeado de estrechas calles medievales.","category":"geographical"}]}
 
-Respond ONLY with valid JSON in this exact format:
-{"facts": [{"text": "...", "category": "cultural", "keywords": [{"word": "word in ${languageTaught}", "translation": "translation in ${instructionLanguage}"}]}, {"text": "...", "category": "historical", "keywords": [{"word": "word in ${languageTaught}", "translation": "translation in ${instructionLanguage}"}]}]}`;
+Write facts about "${placeName}" in ${languageTaught}. Respond ONLY with JSON:`;
 }
+
+// Phase 2: Generate keywords for a single fact
+function buildKeywordsPrompt(
+  factText: string,
+  languageTaught: string,
+  instructionLanguage: string,
+  cefrLevel: string
+): string {
+  const levelHint = cefrLevel
+    ? `The learner is at ${cefrLevel} level. Choose words appropriate for that level.`
+    : '';
+
+  return `Given this ${languageTaught} fact: "${factText}"
+
+List 4 key vocabulary words from the fact in ${languageTaught} with their ${instructionLanguage} translations.
+${levelHint}
+
+Example for Spanish to English:
+{"keywords":[{"word":"mercado","translation":"market"},{"word":"comida","translation":"food"},{"word":"cultura","translation":"culture"},{"word":"antiguo","translation":"ancient"}]}
+
+Now extract ${languageTaught} words with ${instructionLanguage} translations. Respond ONLY with JSON:`;
+}
+
+const VALID_CATEGORIES = ['cultural', 'historical', 'linguistic', 'geographical'];
 
 function validateFacts(parsed: any): StopFact[] | null {
   if (!parsed?.facts || !Array.isArray(parsed.facts)) return null;
   const valid = parsed.facts
-    .filter((f: any) => f.text && typeof f.text === 'string' && ['cultural', 'historical'].includes(f.category))
+    .filter((f: any) => f.text && typeof f.text === 'string' && VALID_CATEGORIES.includes(f.category))
     .map((f: any) => ({
       text: f.text,
       category: f.category,
@@ -77,8 +101,15 @@ function validateFacts(parsed: any): StopFact[] | null {
   return valid.length > 0 ? valid : null;
 }
 
+function validateKeywords(parsed: any): { word: string; translation: string }[] {
+  if (!parsed?.keywords || !Array.isArray(parsed.keywords)) return [];
+  return parsed.keywords
+    .filter((k: any) => k.word && k.translation)
+    .map((k: any) => ({ word: k.word, translation: k.translation }));
+}
+
 export const POST: RequestHandler = async ({ request }) => {
-  const { stops, languageTaught, instructionLanguage, city } = await request.json();
+  const { stops, languageTaught, instructionLanguage, cefrLevel, city } = await request.json();
 
   if (!stops || !Array.isArray(stops) || stops.length === 0) {
     throw error(400, 'Missing or empty stops array');
@@ -103,30 +134,60 @@ export const POST: RequestHandler = async ({ request }) => {
         const placeName = stop.placeName || `Stop ${i + 1}`;
 
         try {
-          // Search phase
+          // Phase 1: Search Wikipedia
           send('progress', { stopId: stop.id, status: 'searching', stopIndex: i });
           const wikiExcerpt = await searchWikipedia(placeName, city);
           const hasWebContext = wikiExcerpt.length > 0;
 
-          // Generate phase
+          // Phase 2: Generate facts (text + category)
           send('progress', { stopId: stop.id, status: 'generating', stopIndex: i });
-          const prompt = buildFactPrompt(placeName, city, languageTaught, instructionLanguage, wikiExcerpt);
-          const raw = await callOllama(OLLAMA_MODEL, prompt, 0.7);
-          let parsed = extractJson(raw);
-          let facts = validateFacts(parsed);
+          const factPrompt = buildFactPrompt(placeName, city, languageTaught, instructionLanguage, cefrLevel || '', wikiExcerpt);
+          const factRaw = await callOllama(OLLAMA_MODEL, factPrompt, 0.7);
+          console.log(`[generate-facts] Stop "${placeName}" facts raw:`, factRaw.substring(0, 500));
+          let factsParsed = extractJson(factRaw);
+          let facts = validateFacts(factsParsed);
 
           // Retry once on parse failure
           if (!facts) {
-            const retryRaw = await callOllama(OLLAMA_MODEL, prompt, 0.5);
-            parsed = extractJson(retryRaw);
-            facts = validateFacts(parsed);
+            const retryRaw = await callOllama(OLLAMA_MODEL, factPrompt, 0.5);
+            factsParsed = extractJson(retryRaw);
+            facts = validateFacts(factsParsed);
           }
 
-          if (facts) {
-            send('facts', { stopId: stop.id, facts, stopIndex: i, hadWebContext: hasWebContext });
-          } else {
+          if (!facts) {
             send('error', { stopId: stop.id, error: 'Failed to generate valid facts', stopIndex: i });
+            continue;
           }
+
+          // Phase 3: Generate keywords for each fact separately
+          for (let j = 0; j < facts.length; j++) {
+            const fact = facts[j];
+            try {
+              const kwPrompt = buildKeywordsPrompt(fact.text, languageTaught, instructionLanguage, cefrLevel || '');
+              const kwRaw = await callOllama(OLLAMA_MODEL, kwPrompt, 0.7);
+              console.log(`[generate-facts] Stop "${placeName}" fact ${j} keywords raw:`, kwRaw.substring(0, 300));
+              const kwParsed = extractJson(kwRaw);
+              const keywords = validateKeywords(kwParsed);
+
+              if (keywords.length > 0) {
+                facts[j] = { ...fact, keywords };
+              } else {
+                // Retry once
+                const kwRetry = await callOllama(OLLAMA_MODEL, kwPrompt, 0.5);
+                const kwRetryParsed = extractJson(kwRetry);
+                const retryKeywords = validateKeywords(kwRetryParsed);
+                if (retryKeywords.length > 0) {
+                  facts[j] = { ...fact, keywords: retryKeywords };
+                }
+              }
+            } catch (kwErr: any) {
+              console.error(`[generate-facts] Keywords failed for fact ${j}:`, kwErr.message);
+              // Continue without keywords for this fact
+            }
+          }
+
+          console.log(`[generate-facts] Stop "${placeName}" final:`, JSON.stringify(facts).substring(0, 800));
+          send('facts', { stopId: stop.id, facts, stopIndex: i, hadWebContext: hasWebContext });
         } catch (err: any) {
           send('error', { stopId: stop.id, error: err.message || 'Unknown error', stopIndex: i });
         }
