@@ -140,9 +140,14 @@
   {:else}
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-slate-800">Created Trails</h2>
-      <a href="/dashboard/create" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors">
-        Create New Trail
-      </a>
+      <div class="flex gap-3">
+        <a href="/dashboard/create" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors">
+          Create New Trail
+        </a>
+        <a href="/dashboard/create-with-ai" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-5 rounded-lg transition-colors">
+          Create with AI Chat
+        </a>
+      </div>
     </div>
     
     {#if deleteError}

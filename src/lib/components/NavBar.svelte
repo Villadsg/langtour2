@@ -36,7 +36,7 @@
           <a href="/" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/') ? navbar.activeLink : navbar.link}`}>
             Book a trail
           </a>
-          <a href="/dashboard/create" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/dashboard/create') ? navbar.activeLink : navbar.link}`}>
+          <a href="/dashboard/create-with-ai" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/dashboard/create-with-ai') ? navbar.activeLink : navbar.link}`}>
             Create a trail
           </a>
         </div>
@@ -99,7 +99,7 @@
         <a href="/" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Trails
         </a>
-        <a href="/dashboard/create" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
+        <a href="/dashboard/create-with-ai" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Create a trail
         </a>
         
