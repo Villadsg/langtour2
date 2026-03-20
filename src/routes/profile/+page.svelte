@@ -151,7 +151,7 @@
   <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
     <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
       {#if success}
-        <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+        <div class="mb-4 bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded">
           <p class="font-medium">Profile updated successfully!</p>
         </div>
       {/if}
@@ -187,7 +187,7 @@
             <button
               on:click={uploadAvatarFile}
               disabled={uploadingAvatar}
-              class="py-1.5 px-4 rounded-lg text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 border border-green-200 disabled:opacity-50 transition-colors"
+              class="py-1.5 px-4 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 disabled:opacity-50 transition-colors"
             >
               {uploadingAvatar ? 'Uploading...' : 'Upload'}
             </button>
@@ -204,7 +204,7 @@
             <span class="block text-sm font-medium text-slate-700">Email Address</span>
             <div class="mt-1 flex items-center">
               <span class="text-sm text-slate-800">{userEmail}</span>
-              <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+              <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
                 Verified
               </span>
             </div>
@@ -232,7 +232,7 @@
               type="text"
               autocomplete="username"
               bind:value={username}
-              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-green-400 focus:border-green-400 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-slate-300 focus:border-slate-300 sm:text-sm"
             />
           </div>
         </div>
@@ -248,7 +248,7 @@
               maxlength="300"
               rows="3"
               placeholder="Tell trail-goers about yourself..."
-              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-green-400 focus:border-green-400 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-slate-300 focus:border-slate-300 sm:text-sm"
             ></textarea>
             <p class="mt-1 text-xs text-slate-400">{bio.length}/300</p>
           </div>
@@ -264,7 +264,7 @@
               type="text"
               bind:value={languagesSpoken}
               placeholder="e.g. English, Spanish, French"
-              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-green-400 focus:border-green-400 sm:text-sm"
+              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-slate-300 focus:border-slate-300 sm:text-sm"
             />
             <p class="mt-1 text-xs text-slate-400">Separate languages with commas</p>
           </div>
@@ -274,7 +274,7 @@
           <button
             type="submit"
             disabled={loading}
-            class="py-2.5 px-8 rounded-lg text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 border border-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 disabled:opacity-50 transition-colors"
+            class="py-2.5 px-8 rounded-lg text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 disabled:opacity-50 transition-colors"
           >
             {loading ? 'Updating...' : 'Update Profile'}
           </button>

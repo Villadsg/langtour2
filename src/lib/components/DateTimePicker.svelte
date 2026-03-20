@@ -68,7 +68,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="date-field">
           <label for="date-input" class="flex items-center text-sm font-medium text-slate-700 mb-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Date {required ? '*' : ''}
@@ -77,7 +77,7 @@
             <input
               id="date-input"
               type="date"
-              class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400 bg-white"
+              class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-slate-300 focus:border-slate-300 bg-white"
               value={dateString}
               min={minDateString}
               on:change={handleDateChange}
@@ -88,7 +88,7 @@
         
         <div class="time-field">
           <label for="time-input" class="flex items-center text-sm font-medium text-slate-700 mb-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Time {required ? '*' : ''}
@@ -97,7 +97,7 @@
             <input
               id="time-input"
               type="time"
-              class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400 bg-white"
+              class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-slate-300 focus:border-slate-300 bg-white"
               bind:value={selectedTime}
               on:change={handleTimeChange}
               {required}

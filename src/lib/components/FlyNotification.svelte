@@ -24,7 +24,7 @@
     
     // Determine background color based on type
     $: bgColor = type === 'success' 
-        ? 'bg-green-100 border-green-400 text-green-700' 
+        ? 'bg-slate-100 border-slate-300 text-slate-700' 
         : type === 'error' 
             ? 'bg-red-100 border-red-400 text-red-700' 
             : 'bg-blue-100 border-blue-400 text-blue-700';

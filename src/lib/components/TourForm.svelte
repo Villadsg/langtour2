@@ -205,7 +205,7 @@
             type="text"
             id="name"
             bind:value={tour.name}
-            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-colors"
             required
         />
     </div>
@@ -217,7 +217,7 @@
         <select
             id="cityId"
             bind:value={tour.cityId}
-            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-colors"
             required
         >
             <option value="" disabled>Select a city</option>
@@ -234,7 +234,7 @@
         <select
             id="language"
             bind:value={tour.language}
-            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-colors"
             required
         >
             <option value="" disabled>Select a language</option>
@@ -251,7 +251,7 @@
         <textarea
             id="description"
             bind:value={tour.description}
-            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors h-32"
+            class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-colors h-32"
             required
         ></textarea>
     </div>
@@ -286,8 +286,8 @@
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-lg file:border-0
                     file:text-sm file:font-medium
-                    file:bg-green-50 file:text-green-700
-                    hover:file:bg-green-100"
+                    file:bg-slate-50 file:text-slate-700
+                    hover:file:bg-slate-100"
             />
         </div>
         
@@ -312,11 +312,11 @@
     <div class="flex items-center justify-between">
         <button
             type="submit"
-            class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2.5 px-5 rounded-lg transition-colors flex items-center"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium py-2.5 px-5 rounded-lg transition-colors flex items-center"
             disabled={isUploading}
         >
             {#if isUploading}
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>

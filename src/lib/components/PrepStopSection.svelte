@@ -8,8 +8,8 @@
 {#if stop.teachingMaterial}
     <section class="print-break-avoid mb-8">
         <!-- Header -->
-        <div class="flex items-center gap-3 bg-green-100 text-green-800 border border-green-200 px-4 py-3 rounded-t-lg">
-            <span class="inline-flex items-center justify-center w-8 h-8 bg-green-600 text-white font-bold text-sm rounded-full">
+        <div class="flex items-center gap-3 bg-slate-100 text-slate-800 border border-slate-200 px-4 py-3 rounded-t-lg">
+            <span class="inline-flex items-center justify-center w-8 h-8 bg-slate-800 text-white font-bold text-sm rounded-full">
                 {stopNumber}
             </span>
             <h2 class="text-lg font-semibold">{stop.location?.placeName || stop.location?.address || `Stop ${stopNumber}`}</h2>
@@ -62,10 +62,10 @@
                                     {#each dialogue.lines as line, lineIndex}
                                         {@const isEven = lineIndex % 2 === 0}
                                         <div class="flex gap-3 {isEven ? '' : 'flex-row-reverse'}">
-                                            <div class="flex-shrink-0 w-20 text-xs font-semibold {isEven ? 'text-green-700' : 'text-blue-700'} pt-1 {isEven ? 'text-left' : 'text-right'}">
+                                            <div class="flex-shrink-0 w-20 text-xs font-semibold {isEven ? 'text-slate-700' : 'text-blue-700'} pt-1 {isEven ? 'text-left' : 'text-right'}">
                                                 {line.speaker}
                                             </div>
-                                            <div class="flex-1 {isEven ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'} border rounded-lg px-3 py-2">
+                                            <div class="flex-1 {isEven ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-200'} border rounded-lg px-3 py-2">
                                                 <p class="text-sm text-slate-800">{line.text}</p>
                                                 <p class="text-xs text-slate-500 mt-1 italic">{line.translation}</p>
                                             </div>

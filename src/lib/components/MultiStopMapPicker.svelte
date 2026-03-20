@@ -379,7 +379,7 @@
       bind:this={searchInput}
       type="text"
       placeholder="Search to add a stop and press Enter..."
-      class="w-full p-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+      class="w-full p-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent"
       on:keydown={handleSearchKeydown}
       {required}
     />

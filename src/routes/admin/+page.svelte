@@ -74,7 +74,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Manage Trails</h1>
-        <a href="/dashboard/create" class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
+        <a href="/dashboard/create" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded">
             Create New Trail
         </a>
     </div>
@@ -87,7 +87,7 @@
     
     {#if isLoading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
         </div>
     {:else}
         {#if tours.length === 0}
@@ -112,7 +112,7 @@
                                 <td class="py-3 px-4">{tour.cityId}</td>
                                 <td class="py-3 px-4">{tour.language}</td>
                                 <td class="py-3 px-4 flex space-x-2">
-                                    <a href="/admin/edit/{tour.$id}" class="text-green-600 hover:text-green-700">
+                                    <a href="/admin/edit/{tour.$id}" class="text-slate-600 hover:text-slate-700">
                                         Edit
                                     </a>
                                     <button 

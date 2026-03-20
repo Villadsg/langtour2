@@ -273,7 +273,7 @@ Important:
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     {#if isLoading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
         </div>
     {:else if error && !tour}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -283,7 +283,7 @@ Important:
         {@const tourData = getTourData(tour)}
 
         <!-- Back link -->
-        <a href="/tours/{tourId}" class="inline-flex items-center gap-1 text-sm text-green-700 hover:text-green-800 mb-6">
+        <a href="/tours/{tourId}" class="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-800 mb-6">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -302,14 +302,14 @@ Important:
                     {@const currentIndex = step === 'prompt' ? 0 : step === 'paste' ? 1 : 2}
                     <div class="flex items-center gap-2">
                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
-                            {stepIndex <= currentIndex ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-500'}">
+                            {stepIndex <= currentIndex ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-500'}">
                             {stepIndex < currentIndex ? '✓' : stepIndex + 1}
                         </span>
                         <span class="text-sm {stepIndex === currentIndex ? 'font-medium text-slate-900' : 'text-slate-400'}">
                             {label}
                         </span>
                         {#if i < 2}
-                            <div class="w-8 h-px {stepIndex < currentIndex ? 'bg-green-400' : 'bg-slate-200'}"></div>
+                            <div class="w-8 h-px {stepIndex < currentIndex ? 'bg-slate-400' : 'bg-slate-200'}"></div>
                         {/if}
                     </div>
                 {/each}
@@ -337,7 +337,7 @@ Important:
                         class="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium py-1.5 px-3 rounded-md shadow-sm transition-colors"
                     >
                         {#if copied}
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
                             Copied!
@@ -353,7 +353,7 @@ Important:
                 <div class="mt-4 flex gap-3">
                     <button
                         on:click={handleCopy}
-                        class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
@@ -384,7 +384,7 @@ Important:
                 <textarea
                     bind:value={pastedJson}
                     placeholder="Paste the JSON response here..."
-                    class="w-full h-64 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    class="w-full h-64 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                 ></textarea>
 
                 {#if parseError}
@@ -406,7 +406,7 @@ Important:
                     <button
                         on:click={handleParse}
                         disabled={!pastedJson.trim()}
-                        class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -438,7 +438,7 @@ Important:
                         <button
                             on:click={handleSave}
                             disabled={isSaving}
-                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                            class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                         >
                             {#if isSaving}
                                 <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
@@ -461,7 +461,7 @@ Important:
                         <!-- Stop header -->
                         <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
                             <div class="flex items-center gap-3">
-                                <span class="inline-flex items-center justify-center w-7 h-7 bg-green-600 text-white font-bold text-xs rounded-full">
+                                <span class="inline-flex items-center justify-center w-7 h-7 bg-slate-800 text-white font-bold text-xs rounded-full">
                                     {i + 1}
                                 </span>
                                 <span class="font-medium text-slate-800">{result.placeName}</span>
@@ -504,7 +504,7 @@ Important:
                 <button
                     on:click={handleSave}
                     disabled={isSaving}
-                    class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                    class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                 >
                     {#if isSaving}
                         <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>

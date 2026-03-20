@@ -347,21 +347,21 @@
   <div class="mb-6">
     <div class="flex items-center justify-between text-sm">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'input' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700'}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'input' ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700'}">
           1
         </div>
         <span class="{currentPhase === 'input' ? 'font-medium' : 'text-gray-500'}">Paste Tour Plan</span>
       </div>
       <div class="flex-1 h-px bg-gray-200 mx-2"></div>
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'review' ? 'bg-green-500 text-white' : parsedData ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-400'}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'review' ? 'bg-slate-700 text-white' : parsedData ? 'bg-slate-100 text-slate-700' : 'bg-gray-200 text-gray-400'}">
           2
         </div>
         <span class="{currentPhase === 'review' ? 'font-medium' : parsedData ? 'text-gray-500' : 'text-gray-400'}">Review & Fix</span>
       </div>
       <div class="flex-1 h-px bg-gray-200 mx-2"></div>
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'confirm' ? 'bg-green-500 text-white' : canCreate ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-400'}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center {currentPhase === 'confirm' ? 'bg-slate-700 text-white' : canCreate ? 'bg-slate-100 text-slate-700' : 'bg-gray-200 text-gray-400'}">
           3
         </div>
         <span class="{currentPhase === 'confirm' ? 'font-medium' : 'text-gray-400'}">Create</span>
@@ -389,7 +389,7 @@
 Example prompt your favorite LLM with this:
 
 &quot;Create a tour description with [n] stops in Madrid which begins in [location]&quot;"
-          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 font-mono text-sm"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 font-mono text-sm"
         ></textarea>
 
         {#if parseError}
@@ -411,7 +411,7 @@ Example prompt your favorite LLM with this:
           type="button"
           on:click={handleParse}
           disabled={!rawText.trim() || isParsing}
-          class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          class="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
         >
           {#if isParsing}
             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -469,7 +469,7 @@ Example prompt your favorite LLM with this:
               bind:value={tourName}
               on:change={updateParsedData}
               placeholder="e.g., Copenhagen Coffee Culture Trail"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             />
           </div>
 
@@ -481,7 +481,7 @@ Example prompt your favorite LLM with this:
               id="field-languageTaught"
               bind:value={languageTaught}
               on:change={updateParsedData}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             >
               <option value="">Select language...</option>
               {#each allLanguages as lang}
@@ -498,7 +498,7 @@ Example prompt your favorite LLM with this:
               id="field-instructionLanguage"
               bind:value={instructionLanguage}
               on:change={updateParsedData}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             >
               <option value="">Select language...</option>
               {#each allLanguages as lang}
@@ -515,7 +515,7 @@ Example prompt your favorite LLM with this:
               id="field-langDifficulty"
               bind:value={langDifficulty}
               on:change={updateParsedData}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             >
               <option value="">Select level...</option>
               {#each difficultyLevels as level}
@@ -534,7 +534,7 @@ Example prompt your favorite LLM with this:
               bind:value={cityName}
               on:change={() => { updateParsedData(); if (parsedData && parsedData.stops.length > 0) geocodeStops(); }}
               placeholder="e.g., Copenhagen, Denmark"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             />
           </div>
 
@@ -548,7 +548,7 @@ Example prompt your favorite LLM with this:
               on:change={updateParsedData}
               rows="3"
               placeholder="Describe your trail..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             ></textarea>
           </div>
 
@@ -560,7 +560,7 @@ Example prompt your favorite LLM with this:
               id="field-tourType"
               bind:value={tourType}
               on:change={updateParsedData}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             >
               {#each tourTypes as type}
                 <option value={type.value}>{type.label}</option>
@@ -580,7 +580,7 @@ Example prompt your favorite LLM with this:
                 step="1"
                 bind:value={price}
                 placeholder="e.g., 25"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
               />
             </div>
           {/if}
@@ -604,7 +604,7 @@ Example prompt your favorite LLM with this:
               bind:value={startingLocation}
               on:change={handleStartingLocationChange}
               placeholder="e.g., Plaza Mayor"
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
             />
           </div>
           <p class="text-xs text-gray-500 mt-1">Added as the first tour stop</p>
@@ -622,7 +622,7 @@ Example prompt your favorite LLM with this:
                 <div class="p-4 bg-white">
                   <div class="flex items-start gap-3">
                     <!-- Stop number -->
-                    <div class="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    <div class="flex-shrink-0 w-8 h-8 bg-slate-700 text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {index + 1}
                     </div>
 
@@ -635,13 +635,13 @@ Example prompt your favorite LLM with this:
                             value={stop.placeName}
                             on:input={(e) => updateStopField(index, 'placeName', e.currentTarget.value)}
                             placeholder="Stop name"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
                           />
                         </div>
                         <select
                           value={stop.placeType || ''}
                           on:change={(e) => updateStopField(index, 'placeType', e.currentTarget.value)}
-                          class="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                          class="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
                         >
                           <option value="">Type...</option>
                           {#each placeTypes as type}
@@ -655,14 +655,14 @@ Example prompt your favorite LLM with this:
                         value={stop.addressOrDescription}
                         on:input={(e) => updateStopField(index, 'addressOrDescription', e.currentTarget.value)}
                         placeholder="Address or description"
-                        class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                        class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
                       />
 
                       <!-- Location status -->
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                           {#if stop.geocodeStatus === 'found'}
-                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700 rounded-full">
                               <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                               </svg>
@@ -694,7 +694,7 @@ Example prompt your favorite LLM with this:
 
                           <!-- Teaching content status -->
                           {#if stop.teachingMaterial?.vocabulary && stop.teachingMaterial.vocabulary.length > 0}
-                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700 rounded-full">
                               {stop.teachingMaterial.vocabulary.length} vocab
                             </span>
                           {/if}
@@ -789,7 +789,7 @@ Example prompt your favorite LLM with this:
           type="button"
           on:click={goToConfirm}
           disabled={!canCreate}
-          class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          class="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           Continue to Create
         </button>
@@ -844,7 +844,7 @@ Example prompt your favorite LLM with this:
         <div class="space-y-2">
           {#each parsedData.stops as stop, index}
             <div class="flex items-center gap-3 p-3 bg-gray-50 border border-slate-200 rounded-lg">
-              <div class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <div class="w-6 h-6 bg-slate-700 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 {index + 1}
               </div>
               <div class="flex-1 min-w-0">
@@ -852,7 +852,7 @@ Example prompt your favorite LLM with this:
                 <p class="text-xs text-gray-500">{stop.placeType || 'Location'}</p>
               </div>
               {#if stop.teachingMaterial?.vocabulary && stop.teachingMaterial.vocabulary.length > 0}
-                <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                <span class="px-2 py-1 text-xs bg-slate-100 text-slate-700 rounded">
                   {stop.teachingMaterial.vocabulary.length} vocab, {stop.teachingMaterial.dialogues?.length ?? 0} dialogues
                 </span>
               {:else}
@@ -886,7 +886,7 @@ Example prompt your favorite LLM with this:
             type="button"
             on:click={handleCreate}
             disabled={isSubmitting || !canCreate}
-            class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center"
+            class="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center"
           >
             {#if isSubmitting}
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">

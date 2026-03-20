@@ -149,7 +149,7 @@
 
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
-    <a href="/dashboard" class="text-green-600 hover:text-green-700 inline-flex items-center">
+    <a href="/dashboard" class="text-slate-600 hover:text-slate-700 inline-flex items-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
       </svg>
@@ -164,14 +164,14 @@
   {/if}
   
   {#if success}
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+    <div class="bg-slate-100 border border-slate-300 text-slate-700 px-4 py-3 rounded mb-4" role="alert">
       <p>{success}</p>
     </div>
   {/if}
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
     </div>
   {:else if schedule && tour}
     {@const tourData = getTourData(tour)}
@@ -226,7 +226,7 @@
                   <td class="py-3 px-4">{formatDate(booking.created_at)}</td>
                   <td class="py-3 px-4">
                     <span class={`px-2 py-1 rounded-full text-xs font-medium
-                      ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                      ${booking.status === 'confirmed' ? 'bg-slate-100 text-slate-800' : 
                         booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
                         booking.status === 'attended' ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>
                       {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Pending'}
@@ -234,7 +234,7 @@
                   </td>
                   <td class="py-3 px-4">
                     {#if booking.attended || booking.status === 'attended'}
-                      <span class="text-green-600 text-xs font-medium">
+                      <span class="text-slate-600 text-xs font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
@@ -242,7 +242,7 @@
                       </span>
                     {:else}
                       <button 
-                        class="bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 text-xs font-bold py-1 px-2 rounded"
+                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold py-1 px-2 rounded"
                         on:click={() => markAsAttended(booking.id, booking.name)}
                       >
                         Mark as Attended
@@ -259,7 +259,7 @@
   {:else}
     <div class="bg-red-100 p-8 rounded-lg text-center">
       <p class="text-red-600">Schedule not found. Please return to the dashboard.</p>
-      <a href="/dashboard" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
+      <a href="/dashboard" class="inline-block mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded">
         Back to Dashboard
       </a>
     </div>

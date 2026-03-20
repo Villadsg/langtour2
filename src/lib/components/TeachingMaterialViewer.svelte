@@ -155,7 +155,7 @@
       <button
         type="button"
         on:click={handleRegenerate}
-        class="px-3 py-1.5 text-sm bg-green-100 text-green-700 border border-green-200 rounded hover:bg-green-200 transition-colors"
+        class="px-3 py-1.5 text-sm bg-slate-100 text-slate-700 border border-slate-200 rounded hover:bg-slate-200 transition-colors"
       >
         Regenerate
       </button>
@@ -177,7 +177,7 @@
       <button
         type="button"
         on:click={handleRegenerate}
-        class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+        class="mt-4 px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-800 transition-colors"
       >
         Generate Content
       </button>
@@ -247,7 +247,7 @@
                 {:else}
                   <div class="flex items-start justify-between">
                     <div>
-                      <span class="font-medium text-green-700">{item.word}</span>
+                      <span class="font-medium text-slate-700">{item.word}</span>
                       {#if item.pronunciation}
                         <span class="text-gray-400 text-sm ml-1">[{item.pronunciation}]</span>
                       {/if}
@@ -266,7 +266,7 @@
               <button
                 type="button"
                 on:click={addVocabularyItem}
-                class="w-full py-2 text-sm text-green-600 border border-dashed border-green-300 rounded hover:bg-green-50"
+                class="w-full py-2 text-sm text-slate-600 border border-dashed border-slate-300 rounded hover:bg-slate-50"
               >
                 + Add vocabulary item
               </button>
@@ -311,7 +311,7 @@
 
                 <div class="space-y-2">
                   {#each dialogue.lines as line, lIndex}
-                    <div class="pl-2 border-l-2 {line.speaker === dialogue.participants[0] ? 'border-blue-400' : 'border-green-400'}">
+                    <div class="pl-2 border-l-2 {line.speaker === dialogue.participants[0] ? 'border-blue-400' : 'border-slate-300'}">
                       {#if isEditing}
                         <div class="flex items-center gap-2 mb-1">
                           <select
@@ -359,7 +359,7 @@
                     <button
                       type="button"
                       on:click={() => addDialogueLine(dIndex)}
-                      class="text-xs text-green-600 hover:text-green-700"
+                      class="text-xs text-slate-600 hover:text-slate-700"
                     >
                       + Add line
                     </button>
@@ -385,7 +385,7 @@
         <input
           type="checkbox"
           bind:checked={isEditing}
-          class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+          class="w-4 h-4 text-slate-600 border-gray-300 rounded focus:ring-slate-400"
         />
         <span class="text-sm text-gray-600">Edit mode</span>
       </label>

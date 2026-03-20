@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { ConvexService } from '$lib/firebaseService';
+    import { currentUser, ConvexService } from '$lib/firebaseService';
     import { citiesStore } from '$lib/stores/tourStore';
     import { batchGeocode } from '$lib/geocodingService';
     import type { ParsedStopData, TourStop } from '$lib/firebase/types';
@@ -9,7 +8,7 @@
     import StopLocationPicker from '$lib/components/StopLocationPicker.svelte';
     import type { TourStopLocation } from '$lib/firebase/types';
 
-    let isLoading = true;
+    let isLoading = false;
     let error = '';
 
     // Step tracking
@@ -76,20 +75,6 @@ Rules:
 - Respond with ONLY the JSON at the end, no markdown formatting
 
 Let's start! Which city is your trail in?`;
-
-    onMount(async () => {
-        try {
-            const user = await ConvexService.getAccount();
-            if (!user) {
-                goto('/login');
-                return;
-            }
-        } catch {
-            // continue
-        } finally {
-            isLoading = false;
-        }
-    });
 
     function handleCopy() {
         navigator.clipboard.writeText(LLM_PROMPT);
@@ -204,6 +189,13 @@ Let's start! Which city is your trail in?`;
 
     async function handleCreate() {
         if (!allStopsResolved) return;
+
+        if (!$currentUser) {
+            const returnUrl = encodeURIComponent('/create-with-ai');
+            goto(`/login?redirect=${returnUrl}`);
+            return;
+        }
+
         isCreating = true;
         error = '';
 
@@ -245,20 +237,20 @@ Let's start! Which city is your trail in?`;
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     {#if isLoading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
         </div>
     {:else}
         <!-- Back link -->
-        <a href="/dashboard" class="inline-flex items-center gap-1 text-sm text-green-700 hover:text-green-800 mb-6">
+        <a href={$currentUser ? '/dashboard' : '/'} class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-600 mb-6">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to dashboard
+            {$currentUser ? 'Back to dashboard' : 'Back to trails'}
         </a>
 
         <!-- Header -->
         <div class="bg-white border border-slate-200 rounded-lg p-6 mb-8">
-            <h1 class="text-2xl font-bold text-slate-900">Create Trail with External Chat</h1>
+            <h1 class="text-2xl font-medium text-slate-700">Create Trail with External Chat</h1>
             <p class="text-sm text-slate-500 mt-1">Copy the prompt into any external chatbot, paste back the JSON result</p>
 
             <!-- Step indicator -->
@@ -266,15 +258,15 @@ Let's start! Which city is your trail in?`;
                 {#each ['Copy Prompt', 'Paste Result', 'Review & Create'] as label, i}
                     {@const currentIndex = step === 'prompt' ? 0 : step === 'paste' ? 1 : 2}
                     <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
-                            {i <= currentIndex ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-500'}">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium
+                            {i <= currentIndex ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-400'}">
                             {i < currentIndex ? '✓' : i + 1}
                         </span>
-                        <span class="text-sm {i === currentIndex ? 'font-medium text-slate-900' : 'text-slate-400'}">
+                        <span class="text-sm {i === currentIndex ? 'font-medium text-slate-700' : 'text-slate-400'}">
                             {label}
                         </span>
                         {#if i < 2}
-                            <div class="w-8 h-px {i < currentIndex ? 'bg-green-400' : 'bg-slate-200'}"></div>
+                            <div class="w-8 h-px {i < currentIndex ? 'bg-slate-400' : 'bg-slate-200'}"></div>
                         {/if}
                     </div>
                 {/each}
@@ -293,19 +285,19 @@ Let's start! Which city is your trail in?`;
         <!-- Step 1: Copy Prompt -->
         {#if step === 'prompt'}
             <div class="bg-white border border-slate-200 rounded-lg p-6">
-                <h2 class="text-lg font-semibold text-slate-900 mb-2">Step 1: Copy the prompt</h2>
+                <h2 class="text-lg font-medium text-slate-700 mb-2">Step 1: Copy the prompt</h2>
                 <p class="text-sm text-slate-600 mb-4">
                     Copy this prompt and paste it into any external chatbot (ChatGPT, Claude, Gemini, etc.). Chat with it to design your trail, and it will output JSON at the end.
                 </p>
 
                 <div class="relative">
-                    <pre class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">{LLM_PROMPT}</pre>
+                    <pre class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">{LLM_PROMPT}</pre>
                     <button
                         on:click={handleCopy}
-                        class="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium py-1.5 px-3 rounded-md shadow-sm transition-colors"
+                        class="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium py-1.5 px-3 rounded-md shadow-sm transition-colors"
                     >
                         {#if copied}
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
                             Copied!
@@ -321,7 +313,7 @@ Let's start! Which city is your trail in?`;
                 <div class="mt-4 flex gap-3">
                     <button
                         on:click={handleCopy}
-                        class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
@@ -330,7 +322,7 @@ Let's start! Which city is your trail in?`;
                     </button>
                     <button
                         on:click={() => { step = 'paste'; }}
-                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         Next: Paste Result
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -344,7 +336,7 @@ Let's start! Which city is your trail in?`;
         <!-- Step 2: Paste JSON -->
         {#if step === 'paste'}
             <div class="bg-white border border-slate-200 rounded-lg p-6">
-                <h2 class="text-lg font-semibold text-slate-900 mb-2">Step 2: Paste the AI response</h2>
+                <h2 class="text-lg font-medium text-slate-700 mb-2">Step 2: Paste the AI response</h2>
                 <p class="text-sm text-slate-600 mb-4">
                     Copy the JSON that was generated and paste it below. The app will look up all the stop locations automatically.
                 </p>
@@ -352,7 +344,7 @@ Let's start! Which city is your trail in?`;
                 <textarea
                     bind:value={pastedJson}
                     placeholder="Paste the JSON response here..."
-                    class="w-full h-64 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    class="w-full h-64 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                 ></textarea>
 
                 {#if parseError}
@@ -364,7 +356,7 @@ Let's start! Which city is your trail in?`;
                 <div class="mt-4 flex gap-3">
                     <button
                         on:click={() => { step = 'prompt'; parseError = ''; }}
-                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -374,7 +366,7 @@ Let's start! Which city is your trail in?`;
                     <button
                         on:click={handleImport}
                         disabled={!pastedJson.trim()}
-                        class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -391,14 +383,14 @@ Let's start! Which city is your trail in?`;
             {#if isGeocoding && geocodeProgress}
                 <div class="bg-white border border-slate-200 rounded-lg p-6 mb-6">
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-500"></div>
-                        <span class="text-sm font-medium text-slate-700">
+                        <div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-slate-500"></div>
+                        <span class="text-sm font-normal text-slate-600">
                             Looking up locations... {geocodeProgress.completed}/{geocodeProgress.total}
                         </span>
                     </div>
                     <div class="w-full bg-slate-100 rounded-full h-2">
                         <div
-                            class="bg-green-500 h-2 rounded-full transition-all"
+                            class="bg-slate-500 h-2 rounded-full transition-all"
                             style="width: {(geocodeProgress.completed / geocodeProgress.total) * 100}%"
                         ></div>
                     </div>
@@ -410,11 +402,11 @@ Let's start! Which city is your trail in?`;
                 <!-- Trail summary -->
                 <div class="bg-white border border-slate-200 rounded-lg p-6 mb-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-slate-900">Review Trail</h2>
+                        <h2 class="text-lg font-medium text-slate-700">Review Trail</h2>
                         <div class="flex gap-3">
                             <button
                                 on:click={() => { step = 'paste'; }}
-                                class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                                class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -424,7 +416,7 @@ Let's start! Which city is your trail in?`;
                             <button
                                 on:click={handleCreate}
                                 disabled={!allStopsResolved || isCreating}
-                                class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                                class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                             >
                                 {#if isCreating}
                                     <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
@@ -439,27 +431,27 @@ Let's start! Which city is your trail in?`;
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                         <div>
                             <span class="text-slate-500">Name</span>
-                            <p class="font-medium text-slate-800">{trailName}</p>
+                            <p class="font-normal text-slate-600">{trailName}</p>
                         </div>
                         <div>
                             <span class="text-slate-500">City</span>
-                            <p class="font-medium text-slate-800">{cityName || 'N/A'}</p>
+                            <p class="font-normal text-slate-600">{cityName || 'N/A'}</p>
                         </div>
                         <div>
                             <span class="text-slate-500">Teaching</span>
-                            <p class="font-medium text-slate-800">{languageTaught}</p>
+                            <p class="font-normal text-slate-600">{languageTaught}</p>
                         </div>
                         <div>
                             <span class="text-slate-500">Instructions in</span>
-                            <p class="font-medium text-slate-800">{instructionLanguage}</p>
+                            <p class="font-normal text-slate-600">{instructionLanguage}</p>
                         </div>
                         <div>
                             <span class="text-slate-500">Difficulty</span>
-                            <p class="font-medium text-slate-800">{langDifficulty}</p>
+                            <p class="font-normal text-slate-600">{langDifficulty}</p>
                         </div>
                         <div>
                             <span class="text-slate-500">Stops</span>
-                            <p class="font-medium text-slate-800">{stops.length}</p>
+                            <p class="font-normal text-slate-600">{stops.length}</p>
                         </div>
                     </div>
 
@@ -480,11 +472,11 @@ Let's start! Which city is your trail in?`;
                         <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
                             <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
                                 <div class="flex items-center gap-3">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 bg-green-600 text-white font-bold text-xs rounded-full">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 bg-slate-500 text-white font-medium text-xs rounded-full">
                                         {i + 1}
                                     </span>
                                     <div>
-                                        <span class="font-medium text-slate-800">{stop.placeName}</span>
+                                        <span class="font-normal text-slate-600">{stop.placeName}</span>
                                         {#if stop.placeType && stop.placeType !== 'other'}
                                             <span class="ml-2 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{stop.placeType}</span>
                                         {/if}
@@ -492,7 +484,7 @@ Let's start! Which city is your trail in?`;
                                 </div>
                                 <div class="flex items-center gap-2">
                                     {#if statusIcon(stop.geocodeStatus) === 'found'}
-                                        <span class="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded-full">
+                                        <span class="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 border border-slate-200 px-2 py-1 rounded-full">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                             </svg>
@@ -519,14 +511,14 @@ Let's start! Which city is your trail in?`;
                                     {#if stop.geocodeStatus !== 'found' || (stop.geocodeStatus === 'found' && fixingStopIndex === i)}
                                         <button
                                             on:click={() => { fixingStopIndex = fixingStopIndex === i ? null : i; }}
-                                            class="text-xs text-green-700 hover:text-green-800 font-medium px-2 py-1 rounded hover:bg-green-50 transition-colors"
+                                            class="text-xs text-slate-500 hover:text-slate-600 font-medium px-2 py-1 rounded hover:bg-slate-50 transition-colors"
                                         >
                                             {fixingStopIndex === i ? 'Close map' : 'Fix location'}
                                         </button>
                                     {:else}
                                         <button
                                             on:click={() => { fixingStopIndex = i; }}
-                                            class="text-xs text-slate-500 hover:text-slate-700 font-medium px-2 py-1 rounded hover:bg-slate-50 transition-colors"
+                                            class="text-xs text-slate-400 hover:text-slate-600 font-normal px-2 py-1 rounded hover:bg-slate-50 transition-colors"
                                         >
                                             Adjust
                                         </button>
@@ -559,7 +551,7 @@ Let's start! Which city is your trail in?`;
                     <button
                         on:click={handleCreate}
                         disabled={!allStopsResolved || isCreating}
-                        class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
                     >
                         {#if isCreating}
                             <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>

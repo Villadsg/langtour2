@@ -146,7 +146,7 @@
                 id="tour-name"
                 type="text"
                 bind:value={name}
-                class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
             />
         </div>
 
@@ -157,7 +157,7 @@
                 type="text"
                 bind:value={cityId}
                 placeholder="e.g., Copenhagen, Denmark"
-                class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
             />
         </div>
 
@@ -167,7 +167,7 @@
                 <select
                     id="tour-language-taught"
                     bind:value={languageTaught}
-                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
                 >
                     <option value="">Select language</option>
                     {#each languages as lang}
@@ -181,7 +181,7 @@
                 <select
                     id="tour-instruction-language"
                     bind:value={instructionLanguage}
-                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
                 >
                     <option value="">Select language</option>
                     {#each languages as lang}
@@ -195,7 +195,7 @@
                 <select
                     id="tour-lang-difficulty"
                     bind:value={langDifficulty}
-                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
                 >
                     <option value="">Select level</option>
                     {#each cefrLevels as level}
@@ -211,7 +211,7 @@
                 id="tour-description"
                 bind:value={description}
                 rows="4"
-                class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
             ></textarea>
         </div>
 
@@ -221,7 +221,7 @@
                 <select
                     id="tour-type"
                     bind:value={tourType}
-                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                    class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
                     required
                 >
                     <option value="" disabled>Select a trail type</option>
@@ -243,7 +243,7 @@
                         min="0"
                         step="1"
                         bind:value={price}
-                        class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 rounded-lg"
+                        class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
                         required
                     />
                 </div>
@@ -272,7 +272,7 @@
                     <div class="border border-slate-200 rounded-lg overflow-hidden">
                         <!-- Stop Header -->
                         <div class="p-3 bg-slate-50 flex items-start gap-3">
-                            <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 text-white text-sm font-bold flex items-center justify-center">
+                            <span class="flex-shrink-0 w-7 h-7 rounded-full bg-slate-700 text-white text-sm font-bold flex items-center justify-center">
                                 {index + 1}
                             </span>
                             <div class="flex-1 min-w-0 space-y-2">
@@ -282,12 +282,12 @@
                                         value={stop.location.placeName || ''}
                                         on:input={(e) => updateStopPlaceName(stop.id, e.currentTarget.value)}
                                         placeholder="Stop name"
-                                        class="flex-1 px-2 py-1 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-400 bg-white"
+                                        class="flex-1 px-2 py-1 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 bg-white"
                                     />
                                     <select
                                         value={stop.location.placeType || ''}
                                         on:change={(e) => updateStopPlaceType(stop.id, e.currentTarget.value)}
-                                        class="px-2 py-1 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-400 bg-white"
+                                        class="px-2 py-1 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 bg-white"
                                     >
                                         <option value="">Type...</option>
                                         {#each placeTypes as type}
@@ -303,7 +303,7 @@
                                 <!-- Status badges -->
                                 <div class="flex items-center gap-2 flex-wrap">
                                     {#if stop.location.lat && stop.location.lng}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-700">
                                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
                                             Located
                                         </span>
@@ -386,7 +386,7 @@
         <button
             type="button"
             on:click={handleSaveChanges}
-            class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 flex items-center"
+            class="bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-5 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 flex items-center"
             disabled={isSubmitting}
         >
             {#if isSubmitting}

@@ -117,12 +117,12 @@
     }
 </script>
 
-<a href="/tours/{tour.id}" class="block border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white mb-6 w-full">
+<a href="/tours/{tour.id}" class="block border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-300 bg-white mb-6 w-full">
     {#if tour.imageUrl}
-        <img src={tour.imageUrl} alt={tour.name} class="w-full h-40 object-cover" />
+        <img src={tour.imageUrl} alt={tour.name} class="w-full h-48 object-cover" />
     {:else}
-        <div class="w-full h-40 bg-gradient-to-br from-green-50 to-slate-100 flex items-center justify-center">
-            <svg class="w-12 h-12 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-full h-48 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+            <svg class="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         </div>
@@ -132,13 +132,13 @@
             <!-- Left side: Tour information -->
             <div class="flex-1">
                 <div class="flex flex-wrap items-center gap-3 mb-2">
-                    <h3 class="text-xl font-medium text-slate-800">{tour.name}</h3>
+                    <h3 class="text-xl font-semibold text-slate-800">{tour.name}</h3>
                     
                 </div>
                 <div class="flex flex-wrap items-center gap-3 mb-2">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-sm mr-3 border border-green-200 rounded-md">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-600 text-sm mr-3 border border-slate-200 rounded-md">
                         <span class="font-medium">{tour.languageTaught || 'Not specified'}</span>
-                        <span class="text-green-500">in</span>
+                        <span class="text-slate-400">in</span>
                         <span>{tour.instructionLanguage || 'English'}</span>
                     </div>
 
@@ -176,9 +176,9 @@
 
                  <!-- Next scheduled tour badge -->
                  {#if nextSchedule}
-                 <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-200">
+                 <div class="mt-4 inline-flex items-center px-3 py-1.5 bg-slate-50 text-slate-600 text-sm font-medium rounded-lg border border-slate-200">
 
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                      </svg>
                      <span class="font-medium">Next Time: {formatDateToDayOfWeek(nextSchedule.scheduled_date)}</span>
@@ -189,7 +189,7 @@
             </div>
             
             <!-- Right side: Creator & price -->
-            <div class="mt-4 md:mt-0 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 flex flex-col items-start md:items-center justify-center gap-3">
+            <div class="mt-4 md:mt-0 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 flex flex-col items-start md:items-center justify-center gap-3">
                 <!-- Creator info -->
                 {#if creatorUsername}
                     <div class="flex items-center gap-1.5 text-sm text-slate-500">
@@ -210,24 +210,24 @@
 
                 <!-- Tour Type Marker -->
                 {#if effectiveTourType === 'app'}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200">
-                        <svg class="h-4 w-4 mr-1 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-xs font-medium border border-slate-200">
+                        <svg class="h-4 w-4 mr-1 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <rect x="7" y="2" width="10" height="20" rx="2" />
                             <circle cx="12" cy="18" r="1" />
                         </svg>
                         App-guide
                     </span>
                 {:else}
-                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
-                        <svg class="h-4 w-4 mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-xs font-medium border border-slate-200">
+                        <svg class="h-4 w-4 mr-1 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        Trail Guided Class
+                        Trail Guide
                     </span>
                 {/if}
 
                 <!-- Price tag -->
-                <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
+                <span class="bg-slate-100 text-slate-700 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
                     {#if effectiveTourType === 'app'}
                         Free
                     {:else if nextSchedule && nextSchedule.price !== null && nextSchedule.price !== undefined}

@@ -41,10 +41,10 @@
     }
 
     function getScoreMessage(percent: number): { text: string; color: string } {
-        if (percent === 100) return { text: 'Perfect! You caught every single fact!', color: 'text-green-700' };
-        if (percent >= 75) return { text: 'Great job! You picked up most of the facts.', color: 'text-green-600' };
+        if (percent === 100) return { text: 'Perfect! You caught every single fact!', color: 'text-slate-700' };
+        if (percent >= 75) return { text: 'Great job! You picked up most of the facts.', color: 'text-slate-600' };
         if (percent >= 50) return { text: 'Not bad! You got about half of them.', color: 'text-amber-600' };
-        if (percent >= 25) return { text: 'Keep exploring! There\'s more to discover next time.', color: 'text-orange-600' };
+        if (percent >= 25) return { text: 'Keep exploring! There\'s more to discover next time.', color: 'text-slate-600' };
         return { text: 'Time for another walk? The trail has lots to teach!', color: 'text-red-600' };
     }
 
@@ -80,7 +80,7 @@
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     {#if isLoading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
         </div>
     {:else if error}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -90,7 +90,7 @@
         {@const tourData = getTourData(tour)}
 
         <!-- Back link -->
-        <a href="/tours/{tourId}" class="no-print inline-flex items-center gap-1 text-sm text-green-700 hover:text-green-800 mb-6">
+        <a href="/tours/{tourId}" class="no-print inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-800 mb-6">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -105,7 +105,7 @@
                     <p class="text-sm text-slate-500 mt-1">Preparation Materials</p>
                     <div class="flex flex-wrap gap-2 mt-3">
                         {#if tourData.languageTaught}
-                            <span class="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 text-xs font-medium border border-green-200 rounded-md">
+                            <span class="inline-flex items-center px-2.5 py-1 bg-slate-50 text-slate-700 text-xs font-medium border border-slate-200 rounded-md">
                                 {tourData.languageTaught}
                             </span>
                         {/if}
@@ -119,7 +119,7 @@
                 <div class="flex items-center gap-2">
                     <button
                         on:click={handlePrint}
-                        class="no-print inline-flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-medium py-2 px-4 rounded-lg text-sm transition-colors"
+                        class="no-print inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium py-2 px-4 rounded-lg text-sm transition-colors"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -166,7 +166,7 @@
                     </div>
                     <div class="w-full bg-slate-200 rounded-full h-2.5">
                         <div
-                            class="h-2.5 rounded-full transition-all duration-300 {scorePercent === 100 ? 'bg-green-500' : scorePercent >= 50 ? 'bg-amber-500' : 'bg-slate-400'}"
+                            class="h-2.5 rounded-full transition-all duration-300 {scorePercent === 100 ? 'bg-slate-700' : scorePercent >= 50 ? 'bg-amber-500' : 'bg-slate-400'}"
                             style="width: {scorePercent}%"
                         ></div>
                     </div>
@@ -176,7 +176,7 @@
                     {#if stop.teachingMaterial?.facts && stop.teachingMaterial.facts.length > 0}
                         <div class="mb-6">
                             <div class="flex items-center gap-3 mb-3">
-                                <span class="inline-flex items-center justify-center w-7 h-7 bg-green-600 text-white font-bold text-xs rounded-full">
+                                <span class="inline-flex items-center justify-center w-7 h-7 bg-slate-800 text-white font-bold text-xs rounded-full">
                                     {stopIdx + 1}
                                 </span>
                                 <h3 class="text-base font-semibold text-slate-800">
@@ -194,7 +194,7 @@
                                     >
                                         <div class="flex items-start gap-3">
                                             <div class="flex-shrink-0 mt-0.5">
-                                                <div class="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors {isChecked ? 'bg-green-600 border-green-600' : 'border-slate-300 bg-white'}">
+                                                <div class="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors {isChecked ? 'bg-slate-800 border-slate-800' : 'border-slate-300 bg-white'}">
                                                     {#if isChecked}
                                                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -221,7 +221,7 @@
                     {#if !showResults}
                         <button
                             on:click={() => showResults = true}
-                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors"
+                            class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors"
                         >
                             See my score
                         </button>

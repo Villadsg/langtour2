@@ -12,11 +12,11 @@
 		{@render children()}
 	</main>
 
-	<footer class="bg-slate-900 text-white py-12 border-t border-slate-800">
+	<footer class="bg-gradient-to-b from-slate-800 to-slate-900 text-white py-12 border-t border-slate-700">
 		<div class="container mx-auto px-6">
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 				<div>
-					<h3 class="text-lg font-medium mb-4">Talktrail</h3>
+					<h3 class="text-xl font-bold mb-4">Talktrail</h3>
 					<p class="text-slate-400 text-sm leading-relaxed">
 						Language learning in the wild
 					</p>

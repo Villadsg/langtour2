@@ -164,7 +164,7 @@
       value={value}
       on:input={(e) => value = e.currentTarget.value}
       placeholder="Search for a location"
-      class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-green-400 focus:border-green-400"
+      class="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-slate-300 focus:border-slate-300"
       {required}
     />
   </div>

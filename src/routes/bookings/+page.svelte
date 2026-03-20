@@ -132,23 +132,23 @@
   {/if}
   
   {#if successMessage}
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+    <div class="bg-slate-100 border border-slate-300 text-slate-700 px-4 py-3 rounded mb-4" role="alert">
       <p>{successMessage}</p>
       <button class="absolute top-0 right-0 mt-2 mr-2" on:click={() => successMessage = ''}>
-        <span class="text-green-500 hover:text-green-700">×</span>
+        <span class="text-slate-500 hover:text-slate-700">×</span>
       </button>
     </div>
   {/if}
   
   {#if isLoading}
     <div class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
     </div>
   {:else}
     {#if userBookings.length === 0}
       <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
         <p class="text-slate-600">You haven't booked any trails yet.</p>
-        <a href="/" class="inline-block mt-4 bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 font-bold py-2 px-4 rounded">
+        <a href="/" class="inline-block mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded">
           Browse Trails
         </a>
       </div>
@@ -168,7 +168,7 @@
               <tr class="hover:bg-slate-50">
                 <td class="py-3 px-4">
                   {#if booking.schedules && booking.schedules.tours}
-                    <a href="/tours/{booking.schedules.tours.id}" class="text-green-600 hover:text-green-700 font-medium">
+                    <a href="/tours/{booking.schedules.tours.id}" class="text-slate-600 hover:text-slate-700 font-medium">
                       {booking.schedules.tours.description?.name || booking.schedules.tours.name || 'Unnamed Trail'}
                     </a>
                   {:else}
@@ -178,7 +178,7 @@
                 <td class="py-3 px-4">{formatDate(booking.schedules?.scheduled_date)}</td>
                 <td class="py-3 px-4">
                   <span class={`px-2 py-1 rounded-full text-xs font-medium
-                    ${getBookingStatus(booking) === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                    ${getBookingStatus(booking) === 'confirmed' ? 'bg-slate-100 text-slate-800' : 
                       getBookingStatus(booking) === 'cancelled' ? 'bg-red-100 text-red-800' : 
                       getBookingStatus(booking) === 'attended' ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>
                     {getBookingStatus(booking).charAt(0).toUpperCase() + getBookingStatus(booking).slice(1)}
@@ -197,7 +197,7 @@
                   {#if booking.attended_at}
                     <a 
                       href={`/tours/${booking.schedules?.tours?.id}/rate`} 
-                      class="text-orange-500 hover:text-orange-600 font-medium ml-2"
+                      class="text-slate-500 hover:text-slate-600 font-medium ml-2"
                     >
                       Rate Trail
                     </a>

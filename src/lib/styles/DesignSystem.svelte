@@ -45,11 +45,11 @@
     }
   };
 
-  // Gradient backgrounds - Subtle and minimal
+  // Gradient backgrounds
   export const gradients = {
-    hero: 'bg-gradient-to-b from-white to-slate-50',
+    hero: 'bg-gradient-to-b from-slate-50 to-white',
     card: 'bg-white',
-    accent: 'bg-gradient-to-r from-green-100 to-green-200',
+    accent: 'bg-gradient-to-r from-slate-50 to-slate-100',
     subtle: 'bg-slate-50'
   };
 
@@ -77,9 +77,9 @@
   };
 
   export const navbar = {
-    bg: 'bg-white border-b border-slate-200',
-    link: 'text-slate-500 hover:text-green-500 transition-colors',
-    activeLink: 'text-green-500 border-b-2 border-green-300',
+    bg: 'bg-white border-b border-slate-200 shadow-sm',
+    link: 'text-slate-400 hover:text-slate-700 transition-colors',
+    activeLink: 'text-slate-800 border-b-2 border-slate-800',
     mobileBg: 'bg-white border-t border-slate-200'
   };
 
@@ -97,28 +97,28 @@
   // Components
   export const components = {
     card: {
-      base: 'border border-slate-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white',
-      highlight: 'border border-green-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow duration-200 bg-white'
+      base: 'border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 bg-white',
+      highlight: 'border border-slate-300 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 bg-white'
     },
     button: {
-      primary: 'bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
-      secondary: 'bg-slate-50 text-slate-600 border border-slate-200 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-slate-100 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
-      accent: 'bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
-      outline: 'border border-green-300 text-green-600 hover:bg-green-50 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
-      ghost: 'bg-green-100 hover:bg-green-200 text-green-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-green-200 disabled:opacity-60 disabled:cursor-not-allowed'
+      primary: 'bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-5 shadow-sm hover:shadow-md transition-all duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      secondary: 'bg-white text-slate-600 border border-slate-200 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out hover:bg-slate-50 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      accent: 'bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-2.5 px-5 transition-all duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      outline: 'border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg disabled:opacity-60 disabled:cursor-not-allowed',
+      ghost: 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-5 transition-colors duration-150 ease-in-out rounded-lg border border-slate-200 disabled:opacity-60 disabled:cursor-not-allowed'
     },
     tag: {
-      primary: 'inline-block px-2.5 py-1 bg-green-50 text-green-600 text-sm border border-green-200 rounded-md',
-      accent: 'inline-block px-2.5 py-1 bg-orange-50 text-orange-600 text-sm border border-orange-200 rounded-md',
+      primary: 'inline-block px-2.5 py-1 bg-slate-50 text-slate-700 text-sm border border-slate-200 rounded-md',
+      accent: 'inline-block px-2.5 py-1 bg-amber-50 text-amber-700 text-sm border border-amber-200 rounded-md',
       secondary: 'inline-block px-2.5 py-1 bg-slate-50 text-slate-500 text-sm border border-slate-200 rounded-md'
     },
     input: {
-      base: 'block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors duration-150 ease-in-out rounded-lg'
+      base: 'block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 focus:border-slate-400 transition-colors duration-150 ease-in-out rounded-lg'
     },
     section: {
       light: 'bg-white',
       dark: 'bg-slate-800 text-white',
-      accent: 'bg-green-100 text-green-700',
+      accent: 'bg-slate-100 text-slate-700',
       muted: 'bg-slate-50'
     }
   };

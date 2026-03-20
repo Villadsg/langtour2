@@ -122,7 +122,7 @@
     <div class="mt-3 space-y-1">
       {#each [...stops].sort((a, b) => a.order - b.order) as stop, i}
         <div class="flex items-center gap-2 text-sm text-slate-600">
-          <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-xs font-bold shrink-0">{i + 1}</span>
+          <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-700 text-white text-xs font-bold shrink-0">{i + 1}</span>
           <span>{stop.location.placeName || `Stop ${i + 1}`}</span>
         </div>
       {/each}

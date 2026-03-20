@@ -27,7 +27,7 @@
 
 <nav class={navbar.bg}>
   <div class="container mx-auto px-4">
-    <div class="flex justify-between h-16">
+    <div class="flex justify-between h-18">
       <div class="flex">
         <div class="flex-shrink-0 flex items-center">
           <a href="/" class={`text-xl font-semibold tracking-tight ${text.primary}`}>Talktrail</a>
@@ -36,7 +36,7 @@
           <a href="/" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/') ? navbar.activeLink : navbar.link}`}>
             Book a trail
           </a>
-          <a href="/dashboard/create-with-ai" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/dashboard/create-with-ai') ? navbar.activeLink : navbar.link}`}>
+          <a href="/create-with-ai" class={`inline-flex items-center px-1 pt-1 text-sm font-medium ${isActive('/create-with-ai') ? navbar.activeLink : navbar.link}`}>
             Create a trail
           </a>
         </div>
@@ -62,7 +62,7 @@
             <a href="/login" class={components.button.secondary}>
               Login
             </a>
-            <a href="/signup" class={components.button.secondary}>
+            <a href="/signup" class={components.button.primary}>
               Sign Up
             </a>
           </div>
@@ -74,7 +74,7 @@
         <button
           on:click={toggleMenu}
           type="button"
-          class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-green-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-400 transition-colors"
+          class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-300 transition-colors"
           aria-expanded="false"
         >
           <span class="sr-only">{isMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
@@ -99,7 +99,7 @@
         <a href="/" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Trails
         </a>
-        <a href="/dashboard/create-with-ai" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
+        <a href="/create-with-ai" on:click={closeMenu} class={`block px-4 py-2 text-base font-medium`}>
           Create a trail
         </a>
         

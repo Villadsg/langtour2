@@ -35,7 +35,7 @@
 
 {#if isLoading}
   <div class="flex justify-center items-center h-screen">
-    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-slate-300"></div>
   </div>
 {:else}
   <NavBar />

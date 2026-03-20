@@ -58,17 +58,17 @@
     <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
       {#if status === 'loading'}
         <div class="animate-pulse flex flex-col items-center">
-          <div class="rounded-full bg-green-400 h-12 w-12 mb-4"></div>
+          <div class="rounded-full bg-slate-400 h-12 w-12 mb-4"></div>
           <p class="text-slate-700">{message}</p>
         </div>
       {:else if status === 'success'}
         <div class="text-center">
-          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-100 mb-4">
+            <svg class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
           </div>
-          <p class="text-green-700 font-medium">{message}</p>
+          <p class="text-slate-700 font-medium">{message}</p>
           <p class="mt-2 text-sm text-slate-500">Redirecting you...</p>
         </div>
       {:else}
@@ -80,7 +80,7 @@
           </div>
           <p class="text-red-700 font-medium">{message}</p>
           <p class="mt-4">
-            <a href="/login" class="font-medium text-green-600 hover:text-green-500">
+            <a href="/login" class="font-medium text-slate-600 hover:text-slate-600">
               Return to login
             </a>
           </p>
