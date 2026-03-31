@@ -18,7 +18,7 @@
 				<div>
 					<h3 class="text-xl font-bold mb-4">Talktrail</h3>
 					<p class="text-slate-400 text-sm leading-relaxed">
-						Language learning in the wild
+						
 					</p>
 				</div>
 				
@@ -27,7 +27,6 @@
 					<ul class="space-y-2">
 						<li><a href="/about" class="text-slate-400 hover:text-white text-sm transition-colors duration-150">About Us</a></li>
 						<li><a href="/faq" class="text-slate-400 hover:text-white text-sm transition-colors duration-150">FAQ</a></li>
-						<li><a href="/become-guide" class="text-slate-400 hover:text-white text-sm transition-colors duration-150">Become a Guide</a></li>
 					</ul>
 				</div>
 				

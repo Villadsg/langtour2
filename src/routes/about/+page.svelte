@@ -16,7 +16,7 @@
                 <div class="w-full md:w-2/3">
                     <h2 class="text-xl font-semibold mb-4">Hi, I am Villads</h2>
                     <p class="mb-4">
-                        Welcome to Language Tour! Feeling bored? then make a tour!
+           
                     <p class="mb-4">
                         Feel free to contact me with any questions or feedback.
                     </p>
@@ -24,7 +24,7 @@
                         <h3 class="text-lg font-medium mb-2">Contact Information:</h3>
                         <p class="flex items-center mb-2">
                             <span class="font-medium mr-2">Phone:</span> 
-                            <a href="tel:+4593841447" class="text-blue-600 hover:underline">+45 93 84 14 47</a>
+                            <a href="tel:+4593841447" class="text-blue-600 hover:underline">+34 634226178</a>
                         </p>
                     </div>
                 </div>
