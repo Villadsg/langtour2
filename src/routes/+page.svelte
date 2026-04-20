@@ -115,7 +115,7 @@
 			</div>
 		</h1>
 		<p class="text-lg md:text-xl text-white/95 mb-10 max-w-2xl leading-relaxed">
-			Language learning routes built by local bilingual teachers.
+			Language learning routes guided by local bilingual teachers.
 		</p>
 		<div class="flex flex-col sm:flex-row gap-3 justify-start">
 			<button
