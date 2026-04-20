@@ -27,7 +27,7 @@
     let languageTaught = '';
     let instructionLanguage = '';
     let langDifficulty = 'B1';
-    let tourType = 'app';
+    let tourType = 'person';
     let price = 0;
     let stops: ParsedStopData[] = [];
 
@@ -41,40 +41,29 @@
     // Creating
     let isCreating = false;
 
-    const LLM_PROMPT = `You are a ClassRoute creation assistant. Help me create a language-learning walking route by asking me a few questions, then output the result as JSON.
+    const LLM_PROMPT = `Help me create a language-learning walking route. Ask one at a time, conversationally:
+1. City?
+2. Language to teach?
+3. Language the learner speaks?
+4. Stops (first one is the starting location). Only list stops I explicitly mention — never invent or pad.
 
-Ask me these questions (one at a time, keep it conversational):
-1. Which city is the route in?
-2. What language should the route teach? (English, Spanish, German, French, Italian, or Danish)
-3. What language does the learner speak? (same options)
-4. What stops/places should be on the route? (suggest 4-6 popular ones based on the city if I want ideas)
+You may auto-fill: name, description, langDifficulty (A1–C2), placeType.
 
-You can auto-generate: route name, description, difficulty level, and place types.
-
-When ready, output ONLY this JSON:
-
+Then output ONLY this JSON (no markdown):
 {
-  "name": "Route Name",
-  "cityName": "City Name",
-  "languageTaught": "Spanish",
-  "instructionLanguage": "English",
+  "name": "...",
+  "cityName": "...",
+  "languageTaught": "...",
+  "instructionLanguage": "...",
   "langDifficulty": "B1",
-  "description": "Short description...",
-  "tourType": "app",
-  "price": 0,
-  "stops": [
-    { "placeName": "Plaza Mayor", "placeType": "square" },
-    { "placeName": "Mercado de San Miguel", "placeType": "market" }
-  ]
+  "description": "...",
+  "stops": [ { "placeName": "...", "placeType": "square" } ]
 }
 
-Rules:
-- placeType: cafe, restaurant, museum, market, landmark, park, shop, neighborhood, station, square, or other
-- languageTaught/instructionLanguage: English, Spanish, German, French, Italian, or Danish
-- langDifficulty: A1, A2, B1, B2, C1, or C2
-- Respond with ONLY the JSON at the end, no markdown formatting
+placeType: cafe, restaurant, museum, market, landmark, park, shop, neighborhood, station, square, or other.
+Languages: write the English name in title case (e.g. Japanese, Portuguese).
 
-Let's start! Which city is your route in?`;
+Start: which city?`;
 
     function handleCopy() {
         navigator.clipboard.writeText(LLM_PROMPT);
@@ -130,8 +119,9 @@ Let's start! Which city is your route in?`;
             languageTaught = parsed.languageTaught;
             instructionLanguage = parsed.instructionLanguage;
             langDifficulty = parsed.langDifficulty || 'B1';
-            tourType = parsed.tourType || 'app';
-            price = parsed.price ?? 0;
+            // tourType and price are app defaults, not AI-controlled
+            tourType = 'person';
+            price = 0;
 
             // Convert stops to ParsedStopData
             stops = parsed.stops.map((s: any) => ({
@@ -174,6 +164,15 @@ Let's start! Which city is your route in?`;
         };
         stops = stops;
         fixingStopIndex = null;
+    }
+
+    function deleteStop(index: number) {
+        stops = stops.filter((_, i) => i !== index);
+        if (fixingStopIndex === index) {
+            fixingStopIndex = null;
+        } else if (fixingStopIndex !== null && fixingStopIndex > index) {
+            fixingStopIndex = fixingStopIndex - 1;
+        }
     }
 
     function statusIcon(status: ParsedStopData['geocodeStatus']): string {
@@ -523,6 +522,17 @@ Let's start! Which city is your route in?`;
                                             Adjust
                                         </button>
                                     {/if}
+
+                                    <button
+                                        on:click={() => deleteStop(i)}
+                                        title="Delete stop"
+                                        aria-label="Delete stop"
+                                        class="text-xs text-red-500 hover:text-red-700 font-normal p-1 rounded hover:bg-red-50 transition-colors"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
 

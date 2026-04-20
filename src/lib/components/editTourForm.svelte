@@ -20,7 +20,7 @@
 
     const dispatch = createEventDispatcher();
 
-    const languages = ['Danish', 'Spanish', 'English', 'French', 'German', 'Italian'];
+    const languageSuggestions = ['Danish', 'English', 'French', 'German', 'Italian', 'Spanish', 'Portuguese', 'Dutch', 'Swedish', 'Norwegian', 'Japanese', 'Mandarin', 'Korean', 'Arabic', 'Turkish', 'Polish', 'Greek', 'Czech', 'Hungarian', 'Russian'];
 
     const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -164,30 +164,31 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
                 <label for="tour-language-taught" class="block text-sm font-medium text-slate-700 mb-1">Language Taught</label>
-                <select
+                <input
                     id="tour-language-taught"
+                    type="text"
+                    list="edit-language-suggestions"
                     bind:value={languageTaught}
+                    placeholder="Any language"
                     class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
-                >
-                    <option value="">Select language</option>
-                    {#each languages as lang}
-                        <option value={lang}>{lang}</option>
-                    {/each}
-                </select>
+                />
             </div>
 
             <div>
                 <label for="tour-instruction-language" class="block text-sm font-medium text-slate-700 mb-1">Instruction Language</label>
-                <select
+                <input
                     id="tour-instruction-language"
+                    type="text"
+                    list="edit-language-suggestions"
                     bind:value={instructionLanguage}
+                    placeholder="Any language"
                     class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
-                >
-                    <option value="">Select language</option>
-                    {#each languages as lang}
-                        <option value={lang}>{lang}</option>
+                />
+                <datalist id="edit-language-suggestions">
+                    {#each languageSuggestions as lang}
+                        <option value={lang}></option>
                     {/each}
-                </select>
+                </datalist>
             </div>
 
             <div>

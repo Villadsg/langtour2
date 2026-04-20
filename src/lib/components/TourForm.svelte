@@ -27,7 +27,7 @@
     ];
     
     // Language options
-    const languages = ['Danish', 'Spanish', 'English', 'French', 'German', 'Italian'];
+    const languageSuggestions = ['Danish', 'English', 'French', 'German', 'Italian', 'Spanish', 'Portuguese', 'Dutch', 'Swedish', 'Norwegian', 'Japanese', 'Mandarin', 'Korean', 'Arabic', 'Turkish', 'Polish', 'Greek', 'Czech', 'Hungarian', 'Russian'];
     
     onMount(() => {
         // Set the current image URL for preview if editing
@@ -231,17 +231,20 @@
         <label for="language" class="block text-slate-700 text-sm font-medium mb-2">
             Language *
         </label>
-        <select
+        <input
             id="language"
+            type="text"
+            list="tourform-language-suggestions"
             bind:value={tour.language}
+            placeholder="Type any language (e.g. Japanese, Portuguese)"
             class="appearance-none border border-slate-200 rounded-lg w-full py-2.5 px-3 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-colors"
             required
-        >
-            <option value="" disabled>Select a language</option>
-            {#each languages as language}
-                <option value={language}>{language}</option>
+        />
+        <datalist id="tourform-language-suggestions">
+            {#each languageSuggestions as language}
+                <option value={language}></option>
             {/each}
-        </select>
+        </datalist>
     </div>
 
     <div class="mb-4">

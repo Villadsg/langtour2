@@ -16,7 +16,7 @@
   const dispatch = createEventDispatcher();
 
   // Available languages
-  const allLanguages = ['English', 'Spanish', 'German', 'French', 'Italian', 'Danish'];
+  const allLanguages = ['Danish', 'English', 'French', 'German', 'Italian', 'Spanish', 'Portuguese', 'Dutch', 'Swedish', 'Norwegian', 'Japanese', 'Mandarin', 'Korean', 'Arabic', 'Turkish', 'Polish', 'Greek', 'Czech', 'Hungarian', 'Russian'];
   const difficultyLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
   const tourTypes = [
     { value: 'person', label: 'Guided tour by a person' },
@@ -477,34 +477,35 @@ Example prompt your favorite LLM with this:
             <label for="field-languageTaught" class="block text-gray-700 text-sm font-medium mb-1">
               Language to Teach <span class="text-red-500">*</span>
             </label>
-            <select
+            <input
               id="field-languageTaught"
+              type="text"
+              list="textinput-language-suggestions"
               bind:value={languageTaught}
               on:change={updateParsedData}
+              placeholder="Type any language"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
-            >
-              <option value="">Select language...</option>
-              {#each allLanguages as lang}
-                <option value={lang}>{lang}</option>
-              {/each}
-            </select>
+            />
           </div>
 
           <div>
             <label for="field-instructionLanguage" class="block text-gray-700 text-sm font-medium mb-1">
               Instruction Language <span class="text-red-500">*</span>
             </label>
-            <select
+            <input
               id="field-instructionLanguage"
+              type="text"
+              list="textinput-language-suggestions"
               bind:value={instructionLanguage}
               on:change={updateParsedData}
+              placeholder="Type any language"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
-            >
-              <option value="">Select language...</option>
+            />
+            <datalist id="textinput-language-suggestions">
               {#each allLanguages as lang}
-                <option value={lang}>{lang}</option>
+                <option value={lang}></option>
               {/each}
-            </select>
+            </datalist>
           </div>
 
           <div>
