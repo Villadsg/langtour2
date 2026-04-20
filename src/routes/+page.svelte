@@ -24,7 +24,7 @@
 		{ city: 'Rome', language: 'Italian' },
 		{ city: 'Paris', language: 'French' },
 		{ city: 'Berlin', language: 'German' },
-		{ city: 'anywhere', language: 'English' }
+		{ city: 'Anywhere', language: 'English' }
 	];
 	let heroIdx = 0;
 	let heroInterval: ReturnType<typeof setInterval> | null = null;
@@ -99,22 +99,23 @@
 	<div class="relative container mx-auto px-6 py-24 text-left text-white hero-text max-w-3xl">
 		<h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 space-y-1">
 			<div>
-				Learn
+				Let
 				<span class="inline-grid align-baseline text-amber-300">
-					{#key hero.language}
-						<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.language}</span>
+					{#key hero.city}
+						<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.city}</span>
 					{/key}
 				</span>
 			</div>
-			<div>on the streets of</div>
+			<div>teach you
 			<div class="inline-grid text-amber-300">
-				{#key hero.city}
-					<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.city}</span>
+				{#key hero.language}
+					<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.language}</span>
 				{/key}
+			</div>
 			</div>
 		</h1>
 		<p class="text-lg md:text-xl text-white/95 mb-10 max-w-2xl leading-relaxed">
-			Bilingual walking routes built by local teachers.
+			Language learning routes built by local bilingual teachers.
 		</p>
 		<div class="flex flex-col sm:flex-row gap-3 justify-start">
 			<button
