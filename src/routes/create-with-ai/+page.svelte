@@ -41,6 +41,31 @@
     // Creating
     let isCreating = false;
 
+    // Inline editing on review step
+    let editingField: string | null = null;
+    function startEdit(field: string) {
+        editingField = field;
+    }
+    function commitEdit() {
+        if (editingField === 'cityName') {
+            cityId = resolveCityId(cityName);
+        }
+        editingField = null;
+    }
+    function editKey(e: KeyboardEvent) {
+        if (e.key === 'Enter' && !(e.shiftKey && (e.target as HTMLElement).tagName === 'TEXTAREA')) {
+            e.preventDefault();
+            commitEdit();
+        } else if (e.key === 'Escape') {
+            editingField = null;
+        }
+    }
+    function autofocus(node: HTMLElement) {
+        (node as HTMLInputElement).focus();
+        if ('select' in node) (node as HTMLInputElement).select();
+    }
+    const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
     const LLM_PROMPT = `Help me create a language-learning walking route. Ask one at a time, conversationally:
 1. City?
 2. Language to teach?
@@ -427,26 +452,56 @@ Start: which city?`;
                         </div>
                     </div>
 
+                    <p class="text-xs text-slate-400 mb-2">Double-click any value to edit</p>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                         <div>
                             <span class="text-slate-500">Name</span>
-                            <p class="font-normal text-slate-600">{trailName}</p>
+                            {#if editingField === 'name'}
+                                <input type="text" bind:value={trailName} on:blur={commitEdit} on:keydown={editKey} use:autofocus
+                                    class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                            {:else}
+                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('name')}>{trailName}</p>
+                            {/if}
                         </div>
                         <div>
                             <span class="text-slate-500">City</span>
-                            <p class="font-normal text-slate-600">{cityName || 'N/A'}</p>
+                            {#if editingField === 'cityName'}
+                                <input type="text" bind:value={cityName} on:blur={commitEdit} on:keydown={editKey} use:autofocus
+                                    class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                            {:else}
+                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('cityName')}>{cityName || 'N/A'}</p>
+                            {/if}
                         </div>
                         <div>
                             <span class="text-slate-500">Teaching</span>
-                            <p class="font-normal text-slate-600">{languageTaught}</p>
+                            {#if editingField === 'languageTaught'}
+                                <input type="text" bind:value={languageTaught} on:blur={commitEdit} on:keydown={editKey} use:autofocus
+                                    class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                            {:else}
+                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('languageTaught')}>{languageTaught}</p>
+                            {/if}
                         </div>
                         <div>
                             <span class="text-slate-500">Instructions in</span>
-                            <p class="font-normal text-slate-600">{instructionLanguage}</p>
+                            {#if editingField === 'instructionLanguage'}
+                                <input type="text" bind:value={instructionLanguage} on:blur={commitEdit} on:keydown={editKey} use:autofocus
+                                    class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                            {:else}
+                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('instructionLanguage')}>{instructionLanguage}</p>
+                            {/if}
                         </div>
                         <div>
                             <span class="text-slate-500">Difficulty</span>
-                            <p class="font-normal text-slate-600">{langDifficulty}</p>
+                            {#if editingField === 'langDifficulty'}
+                                <select bind:value={langDifficulty} on:blur={commitEdit} on:change={commitEdit} use:autofocus
+                                    class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                                    {#each CEFR_LEVELS as level}
+                                        <option value={level}>{level}</option>
+                                    {/each}
+                                </select>
+                            {:else}
+                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('langDifficulty')}>{langDifficulty}</p>
+                            {/if}
                         </div>
                         <div>
                             <span class="text-slate-500">Stops</span>
@@ -454,8 +509,14 @@ Start: which city?`;
                         </div>
                     </div>
 
-                    {#if trailDescription}
-                        <p class="text-sm text-slate-600 mt-3 border-t border-slate-100 pt-3">{trailDescription}</p>
+                    {#if editingField === 'description'}
+                        <textarea bind:value={trailDescription} on:blur={commitEdit} on:keydown={editKey} use:autofocus
+                            class="text-sm text-slate-600 mt-3 border-t border-slate-100 pt-3 w-full border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                            rows="3"></textarea>
+                    {:else if trailDescription}
+                        <p class="text-sm text-slate-600 mt-3 border-t border-slate-100 pt-3 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('description')}>{trailDescription}</p>
+                    {:else}
+                        <p class="text-sm text-slate-400 italic mt-3 border-t border-slate-100 pt-3 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('description')}>Double-click to add description</p>
                     {/if}
 
                     {#if !allStopsResolved}

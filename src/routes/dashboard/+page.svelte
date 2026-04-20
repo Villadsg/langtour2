@@ -311,13 +311,9 @@
 				<h2 class="text-xl font-medium text-slate-700">Routes You Created</h2>
 				<div class="flex gap-2">
 					<a
-						href="/dashboard/create"
+						href="/create-with-ai"
 						class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
 					>Create New Route</a>
-					<a
-						href="/create-with-ai"
-						class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
-					>Create with AI</a>
 				</div>
 			</div>
 

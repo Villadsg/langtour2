@@ -53,9 +53,7 @@
 						<span class={`text-sm ${text.muted}`}
 							>Hello, {$currentUser?.username || $currentUser?.email || 'User'}</span
 						>
-						<a href="/bookings" class={components.button.secondary}>Your plans</a>
-						<a href="/dashboard" class={components.button.secondary}>Manage routes</a>
-						<a href="/profile" class={components.button.secondary}>Profile</a>
+						<a href="/dashboard" class={components.button.secondary}>Dashboard</a>
 					</div>
 				{:else}
 					<div class="flex items-center space-x-4">
@@ -107,9 +105,7 @@
 						</div>
 					</div>
 					<div class="space-y-1">
-						<a href="/bookings" onclick={closeMenu} class="block px-4 py-2 text-base font-medium">Your plans</a>
-						<a href="/dashboard" onclick={closeMenu} class="block px-4 py-2 text-base font-medium">Manage routes</a>
-						<a href="/profile" onclick={closeMenu} class="block px-4 py-2 text-base font-medium">Profile</a>
+						<a href="/dashboard" onclick={closeMenu} class="block px-4 py-2 text-base font-medium">Dashboard</a>
 					</div>
 				{:else}
 					<div class="space-y-1">
