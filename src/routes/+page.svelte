@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import { citiesStore } from '$lib/stores/tourStore';
 	import { ConvexService, currentUser } from '$lib/firebaseService';
 	import Section from '$lib/components/Section.svelte';
-	import FeatureCard from '$lib/components/FeatureCard.svelte';
 	import TourMapView from '$lib/components/TourMapView.svelte';
 	import type { TourListTour } from '$lib/components/TourListItem.svelte';
 
-	import { gradients, text } from '$lib/styles/DesignSystem.svelte';
+	import { text } from '$lib/styles/DesignSystem.svelte';
 	import { getTourData, getStops } from '$lib/tourValidation';
 
 	let allTours: (TourListTour & { tourType?: string; creatorId?: string })[] = [];
@@ -15,6 +15,33 @@
 	let tourTypeFilter: 'all' | 'person' | 'app' = 'all';
 	let isLoading = true;
 	let error = '';
+
+	// Hero: single Madrid photo, rotating text pairs
+	const heroImage = 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=1920&q=80&auto=format&fit=crop';
+	const heroPairs: { city: string; language: string }[] = [
+		{ city: 'Madrid', language: 'Spanish' },
+		{ city: 'Copenhagen', language: 'Danish' },
+		{ city: 'Rome', language: 'Italian' },
+		{ city: 'Paris', language: 'French' },
+		{ city: 'Berlin', language: 'German' },
+		{ city: 'anywhere', language: 'English' }
+	];
+	let heroIdx = 0;
+	let heroInterval: ReturnType<typeof setInterval> | null = null;
+	$: hero = heroPairs[heroIdx];
+
+	onMount(() => {
+		heroInterval = setInterval(() => {
+			heroIdx = (heroIdx + 1) % heroPairs.length;
+		}, 4500);
+	});
+	onDestroy(() => {
+		if (heroInterval) clearInterval(heroInterval);
+	});
+
+	function scrollToRoutes() {
+		document.getElementById('available-routes')?.scrollIntoView({ behavior: 'smooth' });
+	}
 
 	onMount(async () => {
 		try {
@@ -57,32 +84,64 @@
 	);
 </script>
 
+<svelte:head>
+	{#if !$currentUser}
+		<link rel="preload" as="image" href={heroImage} />
+	{/if}
+</svelte:head>
 {#if !$currentUser}
-<div class={`${gradients.hero} ${text.primary} pt-24 pb-16`}>
-	<div class="container mx-auto px-6">
-		<div class="max-w-4xl mx-auto text-center">
-			<h1 class="text-4xl md:text-5xl lg:text-6xl font-medium leading-tight mb-5 text-slate-700">
-				Language learning city routes
-			</h1>
-			<p class="text-lg text-slate-500 mb-8 max-w-2xl mx-auto leading-relaxed">Learn a language while exploring a city</p>
+<section
+	class="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-center bg-cover"
+	style={`background-image: url('${heroImage}');`}
+>
+	<div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/75" aria-hidden="true"></div>
 
-			<div class="grid md:grid-cols-2 gap-4 md:gap-6 mt-4">
-				<FeatureCard
-					icon="<svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' /></svg>"
-					title="Discover Cities Through Language"
-					description="Improve your language skills from the preparation material and the bilingual route guide, while exploring the city"
-				/>
-				<FeatureCard
-					icon="<svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' /></svg>"
-					title="Become a Language Guide"
-					description="Create your own language routes and share your expertise with others while earning income."
-				/>
+	<div class="relative container mx-auto px-6 py-24 text-left text-white hero-text max-w-3xl">
+		<h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 space-y-1">
+			<div>
+				Learn
+				<span class="inline-grid align-baseline text-amber-300">
+					{#key hero.language}
+						<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.language}</span>
+					{/key}
+				</span>
 			</div>
+			<div>on the streets of</div>
+			<div class="inline-grid text-amber-300">
+				{#key hero.city}
+					<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.city}</span>
+				{/key}
+			</div>
+		</h1>
+		<p class="text-lg md:text-xl text-white/95 mb-10 max-w-2xl leading-relaxed">
+			Bilingual walking routes built by local teachers.
+		</p>
+		<div class="flex flex-col sm:flex-row gap-3 justify-start">
+			<button
+				on:click={scrollToRoutes}
+				class="bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
+			>
+				Browse routes
+			</button>
+			<a
+				href="/signup"
+				class="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+			>
+				Become a guide
+			</a>
 		</div>
 	</div>
-</div>
+</section>
 {/if}
 
+<style>
+	.hero-text :global(h1),
+	.hero-text :global(p) {
+		text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+</style>
+
+<div id="available-routes"></div>
 <Section variant="muted">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
 		<div>
