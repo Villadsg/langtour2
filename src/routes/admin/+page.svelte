@@ -60,7 +60,7 @@
     });
     
     const deleteTour = async (tourId: string) => {
-        if (confirm('Are you sure you want to delete this trail?')) {
+        if (confirm('Are you sure you want to delete this route?')) {
             try {
                 await ConvexService.deleteTour(tourId);
                 tours = tours.filter(tour => tour.$id !== tourId);
@@ -73,9 +73,9 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Manage Trails</h1>
+        <h1 class="text-3xl font-bold">Manage Routes</h1>
         <a href="/dashboard/create" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded">
-            Create New Trail
+            Create New Route
         </a>
     </div>
     
@@ -92,7 +92,7 @@
     {:else}
         {#if tours.length === 0}
             <div class="bg-slate-50 p-8 border border-slate-200 rounded-lg text-center">
-                <p class="text-slate-600">No trails found. Create your first trail!</p>
+                <p class="text-slate-600">No routes found. Create your first route!</p>
             </div>
         {:else}
             <div class="overflow-x-auto">

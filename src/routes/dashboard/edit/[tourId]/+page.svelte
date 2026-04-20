@@ -47,7 +47,7 @@
 
             const creatorId = await ConvexService.getTourCreatorId(tourId);
             if (creatorId !== user.id) {
-                error = "You don't have permission to edit this trail";
+                error = "You don't have permission to edit this route";
                 isLoading = false;
                 return;
             }

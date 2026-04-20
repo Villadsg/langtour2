@@ -41,7 +41,7 @@
         try {
             const response = await ConvexService.getTour(tourId);
             if (!response?.data) {
-                error = 'Trail not found';
+                error = 'Route not found';
                 isLoading = false;
                 return;
             }
@@ -90,10 +90,10 @@
             ? `The learner is at ${cefrLevel} level.`
             : '';
 
-        return `I am creating language learning material for a walking trail in ${cityName}.
+        return `I am creating language learning material for a walking route in ${cityName}.
 The learner speaks ${instructionLanguage} and is learning ${languageTaught}. ${levelHint}
 
-The trail has ${stopInfos.length} stops:
+The route has ${stopInfos.length} stops:
 ${stopList}
 
 For EACH stop, write 4 interesting facts about the place. Each fact should be:
@@ -287,7 +287,7 @@ Important:
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to trail
+            Back to route
         </a>
 
         <!-- Header -->
@@ -327,7 +327,7 @@ Important:
             <div class="bg-white border border-slate-200 rounded-lg p-6 mb-6">
                 <h2 class="text-lg font-semibold text-slate-900 mb-2">Step 1: Copy the prompt</h2>
                 <p class="text-sm text-slate-600 mb-4">
-                    Copy this prompt and paste it into any AI chatbot (ChatGPT, Claude, Gemini, etc.). The AI will generate facts and vocabulary for each stop on your trail.
+                    Copy this prompt and paste it into any AI chatbot (ChatGPT, Claude, Gemini, etc.). The AI will generate facts and vocabulary for each stop on your route.
                 </p>
 
                 <div class="relative">
@@ -447,7 +447,7 @@ Important:
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
-                                Save to Trail
+                                Save to Route
                             {/if}
                         </button>
                     </div>
@@ -513,7 +513,7 @@ Important:
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                         </svg>
-                        Save to Trail
+                        Save to Route
                     {/if}
                 </button>
             </div>

@@ -231,13 +231,13 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
       <div>
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-4">Schedule a New Trail Session</h2>
+          <h2 class="text-xl font-semibold mb-4">Schedule a New Route Session</h2>
           
           <form on:submit|preventDefault={handleSubmit} class="space-y-4">
             <DateTimePicker 
               bind:selectedDate
               bind:selectedTime
-              label="When will this trail take place?"
+              label="When will this route take place?"
               required={true}
               minDate={new Date()}
             />

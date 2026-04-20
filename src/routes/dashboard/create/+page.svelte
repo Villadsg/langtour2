@@ -73,7 +73,7 @@
             </a>
         </div>
 
-        <h1 class="text-3xl font-bold mb-6">Create New Trail</h1>
+        <h1 class="text-3xl font-bold mb-6">Create New Route</h1>
         
         {#if error}
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">

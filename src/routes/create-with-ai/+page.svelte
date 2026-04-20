@@ -19,7 +19,7 @@
     let pastedJson = '';
     let parseError = '';
 
-    // Parsed trail data
+    // Parsed route data
     let trailName = '';
     let trailDescription = '';
     let cityName = '';
@@ -41,20 +41,20 @@
     // Creating
     let isCreating = false;
 
-    const LLM_PROMPT = `You are a TalkTrail creation assistant. Help me create a language-learning walking trail by asking me a few questions, then output the result as JSON.
+    const LLM_PROMPT = `You are a ClassRoute creation assistant. Help me create a language-learning walking route by asking me a few questions, then output the result as JSON.
 
 Ask me these questions (one at a time, keep it conversational):
-1. Which city is the trail in?
-2. What language should the trail teach? (English, Spanish, German, French, Italian, or Danish)
+1. Which city is the route in?
+2. What language should the route teach? (English, Spanish, German, French, Italian, or Danish)
 3. What language does the learner speak? (same options)
-4. What stops/places should be on the trail? (suggest 4-6 popular ones based on the city if I want ideas)
+4. What stops/places should be on the route? (suggest 4-6 popular ones based on the city if I want ideas)
 
-You can auto-generate: trail name, description, difficulty level, and place types.
+You can auto-generate: route name, description, difficulty level, and place types.
 
 When ready, output ONLY this JSON:
 
 {
-  "name": "Trail Name",
+  "name": "Route Name",
   "cityName": "City Name",
   "languageTaught": "Spanish",
   "instructionLanguage": "English",
@@ -74,7 +74,7 @@ Rules:
 - langDifficulty: A1, A2, B1, B2, C1, or C2
 - Respond with ONLY the JSON at the end, no markdown formatting
 
-Let's start! Which city is your trail in?`;
+Let's start! Which city is your route in?`;
 
     function handleCopy() {
         navigator.clipboard.writeText(LLM_PROMPT);
@@ -227,7 +227,7 @@ Let's start! Which city is your trail in?`;
             await ConvexService.createTour(tourData);
             goto('/dashboard');
         } catch (e: any) {
-            error = e.message || 'Failed to create trail';
+            error = e.message || 'Failed to create route';
         } finally {
             isCreating = false;
         }
@@ -245,12 +245,12 @@ Let's start! Which city is your trail in?`;
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            {$currentUser ? 'Back to dashboard' : 'Back to trails'}
+            {$currentUser ? 'Back to dashboard' : 'Back to routes'}
         </a>
 
         <!-- Header -->
         <div class="bg-white border border-slate-200 rounded-lg p-6 mb-8">
-            <h1 class="text-2xl font-medium text-slate-700">Create Trail with External Chat</h1>
+            <h1 class="text-2xl font-medium text-slate-700">Create Route with External Chat</h1>
             <p class="text-sm text-slate-500 mt-1">Copy the prompt into any external chatbot, paste back the JSON result</p>
 
             <!-- Step indicator -->
@@ -287,7 +287,7 @@ Let's start! Which city is your trail in?`;
             <div class="bg-white border border-slate-200 rounded-lg p-6">
                 <h2 class="text-lg font-medium text-slate-700 mb-2">Step 1: Copy the prompt</h2>
                 <p class="text-sm text-slate-600 mb-4">
-                    Copy this prompt and paste it into any external chatbot (ChatGPT, Claude, Gemini, etc.). Chat with it to design your trail, and it will output JSON at the end.
+                    Copy this prompt and paste it into any external chatbot (ChatGPT, Claude, Gemini, etc.). Chat with it to design your route, and it will output JSON at the end.
                 </p>
 
                 <div class="relative">
@@ -399,10 +399,10 @@ Let's start! Which city is your trail in?`;
             {/if}
 
             {#if !isGeocoding}
-                <!-- Trail summary -->
+                <!-- Route summary -->
                 <div class="bg-white border border-slate-200 rounded-lg p-6 mb-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-medium text-slate-700">Review Trail</h2>
+                        <h2 class="text-lg font-medium text-slate-700">Review Route</h2>
                         <div class="flex gap-3">
                             <button
                                 on:click={() => { step = 'paste'; }}
@@ -422,7 +422,7 @@ Let's start! Which city is your trail in?`;
                                     <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                                     Creating...
                                 {:else}
-                                    Create Trail
+                                    Create Route
                                 {/if}
                             </button>
                         </div>
@@ -461,7 +461,7 @@ Let's start! Which city is your trail in?`;
 
                     {#if !allStopsResolved}
                         <div class="mt-4 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg text-sm">
-                            Some stops need their location fixed before you can create the trail.
+                            Some stops need their location fixed before you can create the route.
                         </div>
                     {/if}
                 </div>
@@ -557,7 +557,7 @@ Let's start! Which city is your trail in?`;
                             <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                             Creating...
                         {:else}
-                            Create Trail
+                            Create Route
                         {/if}
                     </button>
                 </div>

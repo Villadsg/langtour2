@@ -13,7 +13,7 @@ const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
 
 const NOMINATIM_HEADERS = {
 	'Accept-Language': 'en',
-	'User-Agent': 'Talktrail/1.0'
+	'User-Agent': 'ClassRoute/1.0'
 };
 
 // Rate limiter - ensures 1 second between requests

@@ -199,7 +199,7 @@
 <form on:submit|preventDefault={handleSubmit} class="bg-white border border-slate-200 rounded-lg p-6">
     <div class="mb-4">
         <label for="name" class="block text-slate-700 text-sm font-medium mb-2">
-            Trail Name *
+            Route Name *
         </label>
         <input
             type="text"
@@ -258,7 +258,7 @@
     
     <div class="mb-6">
         <span id="tourImageLabel" class="block text-slate-700 text-sm font-medium mb-2">
-            Trail Image <span class="text-slate-400 font-normal">(optional)</span>
+            Route Image <span class="text-slate-400 font-normal">(optional)</span>
         </span>
         
         <!-- Current image preview (if editing) -->
@@ -266,7 +266,7 @@
             <div class="mb-3">
                 <p class="text-sm text-slate-600 mb-2">Current image:</p>
                 <div class="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden">
-                    <img src={currentImageUrl} alt="Trail view" class="w-full h-full object-cover" />
+                    <img src={currentImageUrl} alt="Route view" class="w-full h-full object-cover" />
                 </div>
             </div>
         {/if}
@@ -296,7 +296,7 @@
             <div class="mb-3">
                 <p class="text-sm text-slate-600 mb-2">New image preview:</p>
                 <div class="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden">
-                    <img src={filePreview} alt="Trail preview" class="w-full h-full object-cover" />
+                    <img src={filePreview} alt="Route preview" class="w-full h-full object-cover" />
                 </div>
             </div>
         {/if}
@@ -322,7 +322,7 @@
                 </svg>
                 Uploading...
             {:else}
-                {isEditing ? 'Update Trail' : 'Create Trail'}
+                {isEditing ? 'Update Route' : 'Create Route'}
             {/if}
         </button>
         <button

@@ -247,7 +247,7 @@
               bind:value={bio}
               maxlength="300"
               rows="3"
-              placeholder="Tell trail-goers about yourself..."
+              placeholder="Tell route-goers about yourself..."
               class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-slate-300 focus:border-slate-300 sm:text-sm"
             ></textarea>
             <p class="mt-1 text-xs text-slate-400">{bio.length}/300</p>

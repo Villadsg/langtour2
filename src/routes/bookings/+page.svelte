@@ -147,9 +147,9 @@
   {:else}
     {#if userBookings.length === 0}
       <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
-        <p class="text-slate-600">You haven't booked any trails yet.</p>
+        <p class="text-slate-600">You haven't booked any routes yet.</p>
         <a href="/" class="inline-block mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-2 px-4 rounded">
-          Browse Trails
+          Browse Routes
         </a>
       </div>
     {:else}
@@ -157,7 +157,7 @@
         <table class="min-w-full bg-white rounded-lg overflow-hidden border border-slate-200">
           <thead class="bg-slate-50 text-slate-700">
             <tr>
-              <th class="py-3 px-4 text-left">Trail</th>
+              <th class="py-3 px-4 text-left">Route</th>
               <th class="py-3 px-4 text-left">Date</th>
               <th class="py-3 px-4 text-left">Status</th>
               <th class="py-3 px-4 text-left">Actions</th>
@@ -169,10 +169,10 @@
                 <td class="py-3 px-4">
                   {#if booking.schedules && booking.schedules.tours}
                     <a href="/tours/{booking.schedules.tours.id}" class="text-slate-600 hover:text-slate-700 font-medium">
-                      {booking.schedules.tours.description?.name || booking.schedules.tours.name || 'Unnamed Trail'}
+                      {booking.schedules.tours.description?.name || booking.schedules.tours.name || 'Unnamed Route'}
                     </a>
                   {:else}
-                    <span>Trail not found</span>
+                    <span>Route not found</span>
                   {/if}
                 </td>
                 <td class="py-3 px-4">{formatDate(booking.schedules?.scheduled_date)}</td>
@@ -199,7 +199,7 @@
                       href={`/tours/${booking.schedules?.tours?.id}/rate`} 
                       class="text-slate-500 hover:text-slate-600 font-medium ml-2"
                     >
-                      Rate Trail
+                      Rate Route
                     </a>
                   {/if}
                 </td>

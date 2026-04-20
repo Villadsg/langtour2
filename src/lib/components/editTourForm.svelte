@@ -141,7 +141,7 @@
     <!-- Tour Details -->
     <div class="mb-6 grid grid-cols-1 gap-4">
         <div>
-            <label for="tour-name" class="block text-sm font-medium text-slate-700 mb-1">Trail Name</label>
+            <label for="tour-name" class="block text-sm font-medium text-slate-700 mb-1">Route Name</label>
             <input
                 id="tour-name"
                 type="text"
@@ -217,20 +217,20 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label for="tour-type" class="block text-sm font-medium text-slate-700 mb-1">Trail Type <span class="text-red-500">*</span></label>
+                <label for="tour-type" class="block text-sm font-medium text-slate-700 mb-1">Route Type <span class="text-red-500">*</span></label>
                 <select
                     id="tour-type"
                     bind:value={tourType}
                     class="block w-full p-3 text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-300 rounded-lg"
                     required
                 >
-                    <option value="" disabled>Select a trail type</option>
+                    <option value="" disabled>Select a route type</option>
                     {#each tourTypes as type}
                         <option value={type.value}>{type.label}</option>
                     {/each}
                 </select>
                 {#if !tourType}
-                    <p class="text-red-500 text-xs mt-1">Please select a trail type</p>
+                    <p class="text-red-500 text-xs mt-1">Please select a route type</p>
                 {/if}
             </div>
 
