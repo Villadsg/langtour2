@@ -126,7 +126,7 @@
 			</button>
 			<a
 				href="/signup"
-				class="bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+				class="bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
 			>
 				Become a guide
 			</a>
