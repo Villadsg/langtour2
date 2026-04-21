@@ -323,6 +323,32 @@
             </div>
         {/if}
 
+        {#if prepStops.length > 0}
+            <div class="mb-6 bg-white border border-slate-200 rounded-lg px-4 py-3 flex flex-wrap items-center gap-3 shadow-sm">
+                <div class="flex items-center gap-2 text-sm text-slate-700 font-medium mr-auto">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                    </svg>
+                    Preparation material available · {prepStops.length} stop{prepStops.length !== 1 ? 's' : ''}
+                </div>
+                <a
+                    href="/tours/{tourId}/prepare"
+                    class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium py-1.5 px-3 rounded-md text-xs transition-colors"
+                >
+                    View prep material
+                </a>
+                {#if $currentUser && creatorId && $currentUser.id === creatorId}
+                    <a href="/tours/{tourId}/generate-material"
+                       class="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-1.5 px-3 rounded-md text-xs transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                        </svg>
+                        Edit prep material
+                    </a>
+                {/if}
+            </div>
+        {/if}
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:items-start">
         <!-- Left column: intro + map -->
         <div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">
@@ -359,30 +385,6 @@
                 </div>
 
                 <p class="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">{tourData.description}</p>
-
-                {#if prepStops.length > 0}
-                    <div class="mt-4 flex flex-wrap items-center gap-2">
-                        <a
-                            href="/tours/{tourId}/prepare"
-                            class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium py-1.5 px-3 rounded-md text-xs transition-colors"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                            </svg>
-                            Prepare · {prepStops.length} stop{prepStops.length !== 1 ? 's' : ''}
-                        </a>
-
-                        {#if $currentUser && creatorId && $currentUser.id === creatorId}
-                            <a href="/tours/{tourId}/generate-material"
-                               class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium py-1.5 px-3 rounded-md text-xs transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                                </svg>
-                                Edit prep material
-                            </a>
-                        {/if}
-                    </div>
-                {/if}
             </div>
 
             {#if stops.length > 0}
@@ -399,7 +401,7 @@
                     <div class="flex items-center justify-between gap-3 mb-3">
                         <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Your Route Guide</h3>
                         {#if $currentUser}
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-col items-end gap-1">
                                 <span class="text-xs text-slate-500">Rate this route</span>
                                 <div class="flex items-center">
                                     {#each Array(5) as _, i}

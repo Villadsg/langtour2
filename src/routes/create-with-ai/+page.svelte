@@ -97,6 +97,47 @@ Start: which city?`;
         setTimeout(() => { copied = false; }, 2000);
     }
 
+    function handleSkipToManual() {
+        trailName = '';
+        trailDescription = '';
+        cityName = '';
+        cityId = '';
+        languageTaught = '';
+        instructionLanguage = '';
+        langDifficulty = 'B1';
+        tourType = 'person';
+        price = 0;
+        stops = [];
+        isGeocoding = false;
+        geocodeProgress = null;
+        step = 'review';
+    }
+
+    function addManualStop() {
+        stops = [...stops, {
+            placeName: 'New stop',
+            addressOrDescription: '',
+            placeType: 'other',
+            geocodeStatus: 'not_found' as const
+        }];
+        fixingStopIndex = stops.length - 1;
+    }
+
+    let editingStopIndex: number | null = null;
+    let editingStopField: 'placeName' | null = null;
+    function startStopEdit(i: number, field: 'placeName') {
+        editingStopIndex = i;
+        editingStopField = field;
+    }
+    function commitStopEdit() {
+        editingStopIndex = null;
+        editingStopField = null;
+    }
+    function stopEditKey(e: KeyboardEvent) {
+        if (e.key === 'Enter') { e.preventDefault(); commitStopEdit(); }
+        else if (e.key === 'Escape') { editingStopIndex = null; editingStopField = null; }
+    }
+
     function resolveCityId(name: string): string {
         const cities = $citiesStore;
         const normalized = name.toLowerCase().trim();
@@ -355,6 +396,12 @@ Start: which city?`;
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
+                    <button
+                        on:click={handleSkipToManual}
+                        class="ml-auto inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium py-2.5 px-3 transition-colors"
+                    >
+                        Skip — fill manually
+                    </button>
                 </div>
             </div>
         {/if}
@@ -538,7 +585,12 @@ Start: which city?`;
                                         {i + 1}
                                     </span>
                                     <div>
-                                        <span class="font-normal text-slate-600">{stop.placeName}</span>
+                                        {#if editingStopIndex === i && editingStopField === 'placeName'}
+                                            <input type="text" bind:value={stops[i].placeName} on:blur={commitStopEdit} on:keydown={stopEditKey} use:autofocus
+                                                class="font-normal text-slate-600 border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                                        {:else}
+                                            <span class="font-normal text-slate-600 cursor-pointer hover:bg-white rounded px-1" on:dblclick={() => startStopEdit(i, 'placeName')}>{stop.placeName}</span>
+                                        {/if}
                                         {#if stop.placeType && stop.placeType !== 'other'}
                                             <span class="ml-2 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{stop.placeType}</span>
                                         {/if}
@@ -617,6 +669,18 @@ Start: which city?`;
                             {/if}
                         </div>
                     {/each}
+                </div>
+
+                <div class="mt-4">
+                    <button
+                        on:click={addManualStop}
+                        class="inline-flex items-center gap-2 bg-white border border-dashed border-slate-300 hover:bg-slate-50 text-slate-600 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add stop
+                    </button>
                 </div>
 
                 <!-- Bottom create button -->

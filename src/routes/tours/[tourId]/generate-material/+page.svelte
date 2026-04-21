@@ -129,6 +129,25 @@ Important:
         step = 'paste';
     }
 
+    function handleSkipToManual() {
+        stopResults = stopInfos.map(s => ({
+            stopId: s.id,
+            placeName: s.placeName,
+            keywords: [{ word: '', translation: '' }],
+            teacherPlan: ''
+        }));
+        step = 'preview';
+    }
+
+    function addKeyword(i: number) {
+        stopResults[i].keywords = [...stopResults[i].keywords, { word: '', translation: '' }];
+        stopResults = stopResults;
+    }
+    function removeKeyword(stopIdx: number, kwIdx: number) {
+        stopResults[stopIdx].keywords = stopResults[stopIdx].keywords.filter((_, i) => i !== kwIdx);
+        stopResults = stopResults;
+    }
+
     function handleParse() {
         parseError = '';
         try {
@@ -316,6 +335,12 @@ Important:
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
+                    <button
+                        on:click={handleSkipToManual}
+                        class="ml-auto inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium py-2.5 px-3 transition-colors"
+                    >
+                        Skip — fill manually
+                    </button>
                 </div>
             </div>
         {/if}
@@ -399,30 +424,45 @@ Important:
                         </div>
 
                         <div class="p-4 space-y-4">
-                            {#if result.keywords.length > 0}
-                                <div>
-                                    <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Student keywords</h4>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        {#each result.keywords as kw}
-                                            <div class="flex items-baseline justify-between gap-3 border border-slate-200 bg-slate-50 rounded-lg px-3 py-2">
-                                                <span class="font-semibold text-slate-900">{kw.word}</span>
-                                                <span class="text-sm text-slate-600">{kw.translation}</span>
-                                            </div>
-                                        {/each}
-                                    </div>
+                            <div>
+                                <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Student keywords</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {#each result.keywords as kw, ki}
+                                        <div class="flex items-center gap-2 border border-slate-200 bg-slate-50 rounded-lg px-2 py-1.5">
+                                            <input type="text" bind:value={stopResults[i].keywords[ki].word}
+                                                placeholder="word"
+                                                class="flex-1 min-w-0 font-semibold text-slate-900 bg-transparent border-0 focus:outline-none focus:ring-0 text-sm" />
+                                            <span class="text-slate-300">·</span>
+                                            <input type="text" bind:value={stopResults[i].keywords[ki].translation}
+                                                placeholder="translation"
+                                                class="flex-1 min-w-0 text-sm text-slate-600 bg-transparent border-0 focus:outline-none focus:ring-0" />
+                                            <button on:click={() => removeKeyword(i, ki)}
+                                                aria-label="Remove keyword"
+                                                class="text-slate-400 hover:text-red-500 p-1 rounded">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    {/each}
                                 </div>
-                            {:else}
-                                <p class="text-sm text-amber-600">No keywords for this stop</p>
-                            {/if}
+                                <button on:click={() => addKeyword(i)}
+                                    class="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 font-medium py-1 px-2 rounded hover:bg-slate-50 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add keyword
+                                </button>
+                            </div>
 
-                            {#if result.teacherPlan}
-                                <div class="border border-amber-200 bg-amber-50 rounded-lg p-3">
-                                    <h4 class="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1">Guide plan (only you see this)</h4>
-                                    <p class="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">{result.teacherPlan}</p>
-                                </div>
-                            {:else}
-                                <p class="text-sm text-amber-600">No guide plan for this stop</p>
-                            {/if}
+                            <div class="border border-amber-200 bg-amber-50 rounded-lg p-3">
+                                <h4 class="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1">Guide plan (only you see this)</h4>
+                                <textarea bind:value={stopResults[i].teacherPlan}
+                                    rows="4"
+                                    placeholder="What will you talk about at this stop? 3-6 sentences."
+                                    class="w-full text-sm text-amber-900 bg-transparent border-0 focus:outline-none focus:ring-0 resize-y leading-relaxed"
+                                ></textarea>
+                            </div>
                         </div>
                     </div>
                 {/each}
