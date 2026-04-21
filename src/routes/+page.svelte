@@ -120,13 +120,13 @@
 		<div class="flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center sm:justify-start">
 			<button
 				on:click={scrollToRoutes}
-				class="bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
+				class="w-56 sm:w-auto text-center bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
 			>
 				Browse routes
 			</button>
 			<a
 				href="/signup"
-				class="bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+				class="w-56 sm:w-auto text-center bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
 			>
 				Become a guide
 			</a>
