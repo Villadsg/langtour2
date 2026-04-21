@@ -172,7 +172,7 @@
 	}
 
 	let listed = $derived.by(() => {
-		const filtered = tours.filter(t => visibleIds.has(t.id) && matchesSearch(t));
+		const filtered = tours.filter(t => matchesSearch(t));
 		const loc = $userLocation;
 		if (!loc) return filtered;
 		return [...filtered].sort((a, b) => {

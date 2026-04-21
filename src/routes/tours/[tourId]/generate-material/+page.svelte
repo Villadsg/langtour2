@@ -85,38 +85,22 @@
 
         const levelHint = cefrLevel ? `The learner is at ${cefrLevel} level.` : '';
 
-        return `I am creating preparation material for a walking language tour in ${cityName}.
-The learner speaks ${instructionLanguage} and is learning ${languageTaught}. ${levelHint}
+        return `Preparation material for a walking language tour in ${cityName}. Learner speaks ${instructionLanguage}, learning ${languageTaught}. ${levelHint}
 
-The route has ${stopInfos.length} stops:
+Stops (${stopInfos.length}, in order):
 ${stopList}
 
-For EACH stop, produce TWO things:
+For each stop, produce:
+1. "keywords": 6-10 entries, each { word (in ${languageTaught}), translation (in ${instructionLanguage}) }. Words specific enough that a student studying them can GUESS the guide's topic without spoilers. Prefer everyday, transferable vocabulary (travel, food, work, conversation) over proper nouns or niche jargon, while staying natural to the guide's talk at that stop.
+2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so keywords faithfully preview the talk.
 
-1. "keywords": 6-10 key words or short phrases that will come up when the guide talks at that stop. Each keyword is a word/phrase in ${languageTaught} with its ${instructionLanguage} translation. Pick words that are specific and evocative enough that a student who studies them before the tour can GUESS what the guide will talk about — but don't give the whole story away.
-
-2. "teacherPlan": a concise plan (3-6 sentences, written in ${instructionLanguage}) for the guide describing what to talk about at the stop. This must use/touch every keyword above so the keywords are a faithful preview of the talk. Only the guide will see this; students will only see the keywords and have to guess.
-
-Respond ONLY with valid JSON in this exact format:
-
+Respond with ONLY valid JSON, no other text:
 {
   "stops": [
-    {
-      "placeName": "Name of stop 1",
-      "keywords": [
-        { "word": "word in ${languageTaught}", "translation": "translation in ${instructionLanguage}" }
-      ],
-      "teacherPlan": "Plan for the guide in ${instructionLanguage}, 3-6 sentences, referencing the keywords above."
-    }
+    { "placeName": "...", "keywords": [{ "word": "...", "translation": "..." }], "teacherPlan": "..." }
   ]
 }
-
-Important:
-- One entry per stop, in the same order as listed above
-- 6-10 keywords per stop
-- Keywords are in ${languageTaught}, translations in ${instructionLanguage}
-- teacherPlan is written in ${instructionLanguage}
-- Respond with ONLY the JSON, no other text`;
+One entry per stop in the listed order.`;
     }
 
     function handleCopy() {
