@@ -12,7 +12,8 @@
     let error = '';
 
     // Step tracking
-    let step: 'prompt' | 'paste' | 'review' = 'prompt';
+    let step: 'prompt' | 'paste' | 'review' | 'done' = 'prompt';
+    let createdTourId: string | null = null;
     let copied = false;
 
     // Paste step
@@ -248,8 +249,9 @@ Start: which city?`;
                 stops: tourStops
             };
 
-            await ConvexService.createTour(tourData);
-            goto('/dashboard');
+            const created = await ConvexService.createTour(tourData);
+            createdTourId = created?.id || created?._id || null;
+            step = 'done';
         } catch (e: any) {
             error = e.message || 'Failed to create route';
         } finally {
@@ -633,6 +635,46 @@ Start: which city?`;
                     </button>
                 </div>
             {/if}
+        {/if}
+
+        {#if step === 'done'}
+            <div class="bg-white border border-slate-200 rounded-lg p-6 sm:p-8 text-center">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 mb-4">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-slate-900 mb-1">Route created</h2>
+                <p class="text-sm text-slate-600 max-w-lg mx-auto">
+                    Next, generate preparation material for your students: key words for each stop (that they study before the tour) and a private plan for you as the guide.
+                </p>
+
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    {#if createdTourId}
+                        <a
+                            href="/tours/{createdTourId}/generate-material"
+                            class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                            </svg>
+                            Create preparation material
+                        </a>
+                        <a
+                            href="/tours/{createdTourId}"
+                            class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        >
+                            View route
+                        </a>
+                    {/if}
+                    <button
+                        on:click={() => goto('/dashboard')}
+                        class="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium py-2.5 px-3 transition-colors"
+                    >
+                        Skip for now
+                    </button>
+                </div>
+            </div>
         {/if}
     {/if}
 </div>

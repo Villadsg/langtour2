@@ -35,6 +35,8 @@ export interface TeachingMaterial {
 	vocabulary: VocabularyItem[];
 	dialogues: Dialogue[];
 	facts?: StopFact[];
+	keywords?: FactKeyword[];
+	teacherPlan?: string;
 	generatedAt: number;
 	languageTaught: string;
 	instructionLanguage: string;

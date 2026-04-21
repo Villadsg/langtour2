@@ -229,6 +229,9 @@ export const FirebaseService = {
 					s.teachingMaterial = {
 						vocabulary: stop.teachingMaterial.vocabulary || [],
 						dialogues: stop.teachingMaterial.dialogues || [],
+						facts: stop.teachingMaterial.facts || [],
+						keywords: stop.teachingMaterial.keywords || [],
+						teacherPlan: stop.teachingMaterial.teacherPlan || '',
 						generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
 						languageTaught: stop.teachingMaterial.languageTaught || '',
 						instructionLanguage: stop.teachingMaterial.instructionLanguage || '',
@@ -295,6 +298,8 @@ export const FirebaseService = {
 							vocabulary: stop.teachingMaterial.vocabulary || [],
 							dialogues: stop.teachingMaterial.dialogues || [],
 							facts: stop.teachingMaterial.facts || [],
+							keywords: stop.teachingMaterial.keywords || [],
+							teacherPlan: stop.teachingMaterial.teacherPlan || '',
 							generatedAt: stop.teachingMaterial.generatedAt || Date.now(),
 							languageTaught: stop.teachingMaterial.languageTaught || '',
 							instructionLanguage: stop.teachingMaterial.instructionLanguage || '',
