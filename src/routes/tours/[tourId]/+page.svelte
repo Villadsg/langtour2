@@ -310,12 +310,33 @@
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h3 class="text-base font-semibold text-amber-900">Your route has no preparation material yet</h3>
-                    <p class="text-sm text-amber-800 mt-0.5">Generate key words and a private guide plan for each stop so students can study before the tour.</p>
+                    <h3 class="text-base font-semibold text-amber-900">Your route has no preparation material</h3>
+                    <p class="text-sm text-amber-800 mt-0.5">Create keywords for the students to prepare for each stop</p>
                 </div>
                 <a href="/tours/{tourId}/generate-material"
                    class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-5 rounded-lg text-sm shadow-sm transition-colors shrink-0">
                     Create preparation material
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        {/if}
+
+        {#if !isLoadingSchedules && scheduledTours.length === 0 && tourData.tourType !== 'app' && $currentUser && creatorId && $currentUser.id === creatorId}
+            <div class="mb-6 bg-amber-50 border border-amber-300 rounded-lg p-5 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-base font-semibold text-amber-900">Your route is not scheduled</h3>
+                    <p class="text-sm text-amber-800 mt-0.5">Set a date and meeting point so students can book a spot on your route.</p>
+                </div>
+                <a href="/dashboard/tours/{tourId}/schedule"
+                   class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-5 rounded-lg text-sm shadow-sm transition-colors shrink-0">
+                    Schedule route
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>

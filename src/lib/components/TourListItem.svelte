@@ -79,8 +79,8 @@
 					<span class="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{tour.langDifficulty}</span>
 				{/if}
 			</div>
-			<h3 class="text-sm font-semibold text-slate-800 truncate">{tour.name}</h3>
-			<p class="text-xs text-slate-500 mt-0.5 truncate">
+			<h3 class="text-base font-semibold text-slate-800 truncate">{tour.name}</h3>
+			<p class="text-sm text-slate-500 mt-0.5 truncate">
 				{tour.languageTaught} <span class="text-slate-400">→ {tour.instructionLanguage}</span>
 				{#if tour.stops?.length}<span class="text-slate-400"> · {tour.stops.length} stops</span>{/if}
 				{#if locationName}<span class="text-slate-400"> · {locationName}</span>{/if}

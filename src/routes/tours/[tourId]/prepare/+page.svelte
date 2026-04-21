@@ -42,9 +42,6 @@
         }
     });
 
-    function handlePrint() {
-        window.print();
-    }
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -65,6 +62,31 @@
             </svg>
             Back to route
         </a>
+
+        {#if isCreator}
+            <div class="no-print flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-4 mb-6">
+                <div class="text-sm">
+                    <p class="font-medium">Guide view</p>
+                    <p class="text-amber-800">Only you (the guide) can see the teaching plan for each stop.</p>
+                </div>
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={showTeacherPlan}
+                    on:click={() => (showTeacherPlan = !showTeacherPlan)}
+                    class="inline-flex items-center gap-2 text-sm font-medium select-none"
+                >
+                    <span
+                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {showTeacherPlan ? 'bg-amber-600' : 'bg-slate-300'}"
+                    >
+                        <span
+                            class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform {showTeacherPlan ? 'translate-x-5' : 'translate-x-0.5'}"
+                        ></span>
+                    </span>
+                    Show plan
+                </button>
+            </div>
+        {/if}
 
         <div class="bg-white border border-slate-200 rounded-lg p-6 mb-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -87,32 +109,8 @@
                         {/if}
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button
-                        on:click={handlePrint}
-                        class="no-print inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium py-2 px-4 rounded-lg text-sm transition-colors"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Download PDF
-                    </button>
-                </div>
             </div>
         </div>
-
-        {#if isCreator}
-            <div class="no-print flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-4 mb-6">
-                <div class="text-sm">
-                    <p class="font-medium">Guide view</p>
-                    <p class="text-amber-800">Only you (the guide) can see the teaching plan for each stop. Students only see the key words.</p>
-                </div>
-                <label class="inline-flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                    <input type="checkbox" bind:checked={showTeacherPlan} class="w-4 h-4 accent-amber-700" />
-                    Show plan
-                </label>
-            </div>
-        {/if}
 
         {#if stopsWithMaterial.length === 0}
             <div class="text-center py-16">

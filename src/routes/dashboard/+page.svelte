@@ -234,12 +234,22 @@
 				<div class="flex flex-col items-end gap-2 shrink-0">
 					<button
 						onclick={() => editingProfile = !editingProfile}
-						class="text-xs font-medium text-slate-600 hover:text-slate-800"
-					>{editingProfile ? 'Close' : 'Edit profile'}</button>
+						class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-medium py-2 px-4 rounded-lg text-sm transition-colors whitespace-nowrap"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+						</svg>
+						{editingProfile ? 'Close' : 'Edit profile'}
+					</button>
 					<button
 						onclick={handleLogout}
-						class="text-xs font-medium text-red-500 hover:text-red-700"
-					>Log out</button>
+						class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-300 font-medium py-2 px-4 rounded-lg text-sm transition-colors whitespace-nowrap"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+						</svg>
+						Log out
+					</button>
 				</div>
 			</div>
 
@@ -334,24 +344,39 @@
 				<div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
 					{#each $userCreatedTours as tour}
 						{@const lt = toListTour(tour)}
-						<div class="flex items-stretch border-b border-slate-100 last:border-b-0">
+						<div class="flex flex-col sm:flex-row sm:items-stretch border-b-2 border-slate-200 last:border-b-0">
 							<div class="flex-1 min-w-0">
 								<TourListItem tour={lt} ownership="own" />
 							</div>
-							<div class="flex flex-col justify-center gap-1 px-3 py-2 border-l border-slate-100 bg-slate-50/40">
+							<div class="flex flex-row items-center justify-end gap-2 px-3 py-2">
 								<a
 									href="/dashboard/edit/{lt.id}"
-									class="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap"
-								>Edit</a>
+									class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-medium py-2 px-4 rounded-lg text-sm transition-colors whitespace-nowrap"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+									</svg>
+									Edit
+								</a>
 								<a
 									href="/dashboard/tours/{lt.id}/schedule"
-									class="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap"
-								>Schedule</a>
+									class="inline-flex items-center justify-center gap-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-200 font-semibold py-2 px-4 rounded-lg text-sm transition-colors whitespace-nowrap"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+									</svg>
+									Schedule
+								</a>
 								<button
-									class="text-xs font-medium text-red-400 hover:text-red-600 transition-colors whitespace-nowrap disabled:opacity-50 text-left"
+									class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-300 font-medium py-2 px-4 rounded-lg text-sm transition-colors whitespace-nowrap disabled:opacity-50"
 									onclick={() => handleDeleteTour(lt.id, lt.name)}
 									disabled={deletingTourId !== null}
-								>{deletingTourId === lt.id ? 'Deleting...' : 'Delete'}</button>
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+									</svg>
+									{deletingTourId === lt.id ? 'Deleting...' : 'Delete'}
+								</button>
 							</div>
 						</div>
 					{/each}
@@ -359,14 +384,14 @@
 			{/if}
 		</div>
 
-		<!-- Routes You Booked -->
+		<!-- Routes You Joined -->
 		<div class="mb-10">
-			<h2 class="text-xl font-medium text-slate-700 mb-4">Routes You Booked</h2>
+			<h2 class="text-xl font-medium text-slate-700 mb-4">Routes You Joined</h2>
 
 			{#if userBookings.length === 0}
 				<div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
 					<p class="text-slate-600">
-						You haven't booked any routes yet. <a href="/" class="text-slate-700 underline">Browse routes</a>
+						You haven't joined any routes yet. <a href="/" class="text-slate-700 underline">Browse routes</a>
 					</p>
 				</div>
 			{:else}
@@ -374,70 +399,14 @@
 					{#each userBookings as booking}
 						{#if booking.tour}
 							{@const lt = toListTour(booking.tour)}
-							<TourListItem tour={lt} ownership="open" />
+							<div class="border-b-2 border-slate-200 last:border-b-0">
+								<TourListItem tour={lt} ownership="open" />
+							</div>
 						{/if}
 					{/each}
 				</div>
 			{/if}
 		</div>
 
-		<!-- Your Scheduled Routes -->
-		<div>
-			<h2 class="text-xl font-medium text-slate-700 mb-4">Scheduled Routes</h2>
-
-			{#if cancelMessage}
-				<div class="bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded-lg mb-4 flex justify-between items-center">
-					<p class="text-sm">{cancelMessage}</p>
-					<button class="text-slate-400 hover:text-slate-600" onclick={() => cancelMessage = ''}>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-					</button>
-				</div>
-			{/if}
-
-			{#if upcomingScheduledTours.length === 0}
-				<div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-200">
-					<p class="text-slate-600">No upcoming scheduled routes.</p>
-				</div>
-			{:else}
-				<div class="overflow-x-auto border border-slate-200 rounded-lg bg-white">
-					<table class="min-w-full">
-						<thead class="bg-slate-50 text-slate-600 text-sm">
-							<tr>
-								<th class="py-3 px-4 text-left font-medium">Route</th>
-								<th class="py-3 px-4 text-left font-medium">Date</th>
-								<th class="py-3 px-4 text-left font-medium">Participants</th>
-								<th class="py-3 px-4 text-left font-medium">Actions</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-slate-100 text-sm">
-							{#each upcomingScheduledTours as schedule}
-								<tr class="hover:bg-slate-50">
-									<td class="py-3 px-4 text-slate-600">
-										{#if schedule.tours}
-											{getTourData(schedule.tours).name}
-										{:else}
-											<span class="text-slate-400">Unknown Route</span>
-										{/if}
-									</td>
-									<td class="py-3 px-4 text-slate-600">{formatDate(schedule.scheduled_date || schedule.scheduledDate)}</td>
-									<td class="py-3 px-4 text-slate-600">0 / {schedule.max_participants || schedule.maxParticipants}</td>
-									<td class="py-3 px-4">
-										<a
-											href="/dashboard/schedules/{schedule.id}/manage"
-											class="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors mr-3"
-										>Manage</a>
-										<button
-											class="text-xs font-medium text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
-											onclick={() => handleCancelSchedule(schedule.id, schedule.tours ? getTourData(schedule.tours).name : 'Unknown')}
-											disabled={cancellingScheduleId !== null}
-										>{cancellingScheduleId === schedule.id ? 'Cancelling...' : 'Cancel'}</button>
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{/if}
-		</div>
 	{/if}
 </div>

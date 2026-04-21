@@ -508,8 +508,10 @@ Start: which city?`;
                             {#if editingField === 'name'}
                                 <input type="text" bind:value={trailName} on:blur={commitEdit} on:keydown={editKey} use:autofocus
                                     class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
-                            {:else}
+                            {:else if trailName}
                                 <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('name')}>{trailName}</p>
+                            {:else}
+                                <p class="font-normal text-slate-400 italic cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('name')}>Double-click to add</p>
                             {/if}
                         </div>
                         <div>
@@ -517,8 +519,10 @@ Start: which city?`;
                             {#if editingField === 'cityName'}
                                 <input type="text" bind:value={cityName} on:blur={commitEdit} on:keydown={editKey} use:autofocus
                                     class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                            {:else if cityName}
+                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('cityName')}>{cityName}</p>
                             {:else}
-                                <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('cityName')}>{cityName || 'N/A'}</p>
+                                <p class="font-normal text-slate-400 italic cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('cityName')}>Double-click to add</p>
                             {/if}
                         </div>
                         <div>
@@ -526,8 +530,10 @@ Start: which city?`;
                             {#if editingField === 'languageTaught'}
                                 <input type="text" bind:value={languageTaught} on:blur={commitEdit} on:keydown={editKey} use:autofocus
                                     class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
-                            {:else}
+                            {:else if languageTaught}
                                 <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('languageTaught')}>{languageTaught}</p>
+                            {:else}
+                                <p class="font-normal text-slate-400 italic cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('languageTaught')}>Double-click to add</p>
                             {/if}
                         </div>
                         <div>
@@ -535,8 +541,10 @@ Start: which city?`;
                             {#if editingField === 'instructionLanguage'}
                                 <input type="text" bind:value={instructionLanguage} on:blur={commitEdit} on:keydown={editKey} use:autofocus
                                     class="font-normal text-slate-600 w-full border border-slate-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400" />
-                            {:else}
+                            {:else if instructionLanguage}
                                 <p class="font-normal text-slate-600 cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('instructionLanguage')}>{instructionLanguage}</p>
+                            {:else}
+                                <p class="font-normal text-slate-400 italic cursor-pointer hover:bg-slate-50 rounded" on:dblclick={() => startEdit('instructionLanguage')}>Double-click to add</p>
                             {/if}
                         </div>
                         <div>
