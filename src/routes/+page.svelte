@@ -117,7 +117,7 @@
 		<p class="text-lg md:text-xl text-white/95 mb-10 max-w-2xl leading-relaxed">
 			Language learning routes guided by local bilingual teachers.
 		</p>
-		<div class="flex flex-col sm:flex-row gap-3 justify-start">
+		<div class="flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center sm:justify-start">
 			<button
 				on:click={scrollToRoutes}
 				class="bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
