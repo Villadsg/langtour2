@@ -173,7 +173,7 @@
 			<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
 			</svg>
-			Route Guide
+			In-Person Guide
 		</button>
 		<button
 			class={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all ${tourTypeFilter === 'app' ? 'bg-slate-600 text-white' : 'bg-white text-slate-500 hover:text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
@@ -183,7 +183,7 @@
 				<rect x="7" y="2" width="10" height="20" rx="2" />
 				<circle cx="12" cy="18" r="1" />
 			</svg>
-			App-guide
+			App-Guided
 		</button>
 	</div>
 
