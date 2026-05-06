@@ -91,13 +91,24 @@ Stops (${stopInfos.length}, in order):
 ${stopList}
 
 For each stop, produce:
-1. "keywords": 6-10 entries, each { word (in ${languageTaught}), translation (in ${instructionLanguage}) }. Words specific enough that a student studying them can GUESS the guide's topic without spoilers. Prefer everyday, transferable vocabulary (travel, food, work, conversation) over proper nouns or niche jargon, while staying natural to the guide's talk at that stop.
-2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so keywords faithfully preview the talk.
+1. "keywords": 12-15 entries, each {
+     word (the keyword in ${languageTaught}),
+     translation (the keyword in ${instructionLanguage}),
+     sentence (a SHORT, natural example sentence in ${languageTaught} that uses the keyword — Duolingo-style, ${cefrLevel || 'beginner'}-appropriate, max ~10 words),
+     sentenceTranslation (that sentence in ${instructionLanguage})
+   }. Together the sentences form a Duolingo-sized study set (~12-15 short sentences) that lets a student GUESS the guide's topic for that stop without spoilers. Prefer everyday, transferable vocabulary (travel, food, work, conversation) over proper nouns or niche jargon, while staying natural to the guide's talk at that stop. Each sentence must contain its keyword.
+2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so the study sentences faithfully preview the talk.
 
 Respond with ONLY valid JSON, no other text:
 {
   "stops": [
-    { "placeName": "...", "keywords": [{ "word": "...", "translation": "..." }], "teacherPlan": "..." }
+    {
+      "placeName": "...",
+      "keywords": [
+        { "word": "...", "translation": "...", "sentence": "...", "sentenceTranslation": "..." }
+      ],
+      "teacherPlan": "..."
+    }
   ]
 }
 One entry per stop in the listed order.`;
@@ -159,7 +170,12 @@ One entry per stop in the listed order.`;
                 const keywords: FactKeyword[] = Array.isArray(pStop.keywords)
                     ? pStop.keywords
                         .filter((k: any) => k && k.word && k.translation)
-                        .map((k: any) => ({ word: String(k.word), translation: String(k.translation) }))
+                        .map((k: any) => ({
+                            word: String(k.word),
+                            translation: String(k.translation),
+                            sentence: k.sentence ? String(k.sentence) : undefined,
+                            sentenceTranslation: k.sentenceTranslation ? String(k.sentenceTranslation) : undefined
+                        }))
                     : [];
                 const teacherPlan: string = typeof pStop.teacherPlan === 'string' ? pStop.teacherPlan.trim() : '';
 
@@ -410,23 +426,31 @@ One entry per stop in the listed order.`;
                         <div class="p-4 space-y-4">
                             <div>
                                 <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Student keywords</h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div class="space-y-2">
                                     {#each result.keywords as kw, ki}
-                                        <div class="flex items-center gap-2 border border-slate-200 bg-slate-50 rounded-lg px-2 py-1.5">
-                                            <input type="text" bind:value={stopResults[i].keywords[ki].word}
-                                                placeholder="word"
-                                                class="flex-1 min-w-0 font-semibold text-slate-900 bg-transparent border-0 focus:outline-none focus:ring-0 text-sm" />
-                                            <span class="text-slate-300">·</span>
-                                            <input type="text" bind:value={stopResults[i].keywords[ki].translation}
-                                                placeholder="translation"
-                                                class="flex-1 min-w-0 text-sm text-slate-600 bg-transparent border-0 focus:outline-none focus:ring-0" />
-                                            <button on:click={() => removeKeyword(i, ki)}
-                                                aria-label="Remove keyword"
-                                                class="text-slate-400 hover:text-red-500 p-1 rounded">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
+                                        <div class="border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 space-y-1.5">
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" bind:value={stopResults[i].keywords[ki].word}
+                                                    placeholder="word"
+                                                    class="flex-1 min-w-0 font-semibold text-slate-900 bg-transparent border-0 focus:outline-none focus:ring-0 text-sm" />
+                                                <span class="text-slate-300">·</span>
+                                                <input type="text" bind:value={stopResults[i].keywords[ki].translation}
+                                                    placeholder="translation"
+                                                    class="flex-1 min-w-0 text-sm text-slate-600 bg-transparent border-0 focus:outline-none focus:ring-0" />
+                                                <button on:click={() => removeKeyword(i, ki)}
+                                                    aria-label="Remove keyword"
+                                                    class="text-slate-400 hover:text-red-500 p-1 rounded">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <input type="text" bind:value={stopResults[i].keywords[ki].sentence}
+                                                placeholder="example sentence"
+                                                class="w-full text-sm text-slate-800 bg-white border border-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-slate-300" />
+                                            <input type="text" bind:value={stopResults[i].keywords[ki].sentenceTranslation}
+                                                placeholder="sentence translation"
+                                                class="w-full text-xs text-slate-500 bg-white border border-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-slate-300" />
                                         </div>
                                     {/each}
                                 </div>

@@ -23,6 +23,8 @@ export interface Dialogue {
 export interface FactKeyword {
 	word: string;
 	translation: string;
+	sentence?: string;
+	sentenceTranslation?: string;
 }
 
 export interface StopFact {

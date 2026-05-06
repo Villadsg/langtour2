@@ -17,16 +17,40 @@
 
         <div class="border border-t-0 border-slate-200 rounded-b-lg p-5 space-y-6">
             {#if stop.teachingMaterial.keywords && stop.teachingMaterial.keywords.length > 0}
+                {@const hasSentences = stop.teachingMaterial.keywords.some(k => k.sentence)}
                 <div>
-                    <h3 class="text-base font-semibold text-slate-800 mb-3">Key words</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {#each stop.teachingMaterial.keywords as kw}
-                            <div class="flex items-baseline justify-between gap-3 border border-slate-200 bg-slate-50 rounded-lg px-3 py-2">
-                                <span class="font-semibold text-slate-900">{kw.word}</span>
-                                <span class="text-sm text-slate-600">{kw.translation}</span>
-                            </div>
-                        {/each}
-                    </div>
+                    <h3 class="text-base font-semibold text-slate-800 mb-3">
+                        {hasSentences ? 'Study sentences' : 'Key words'}
+                    </h3>
+                    {#if hasSentences}
+                        <ol class="space-y-2 list-decimal list-inside">
+                            {#each stop.teachingMaterial.keywords as kw}
+                                <li class="border border-slate-200 bg-slate-50 rounded-lg px-3 py-2">
+                                    {#if kw.sentence}
+                                        <div class="text-slate-900">{kw.sentence}</div>
+                                        {#if kw.sentenceTranslation}
+                                            <div class="text-sm text-slate-500 mt-0.5">{kw.sentenceTranslation}</div>
+                                        {/if}
+                                        <div class="text-xs text-slate-400 mt-1">
+                                            <span class="font-medium text-slate-600">{kw.word}</span> · {kw.translation}
+                                        </div>
+                                    {:else}
+                                        <span class="font-semibold text-slate-900">{kw.word}</span>
+                                        <span class="text-sm text-slate-600 ml-2">{kw.translation}</span>
+                                    {/if}
+                                </li>
+                            {/each}
+                        </ol>
+                    {:else}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {#each stop.teachingMaterial.keywords as kw}
+                                <div class="flex items-baseline justify-between gap-3 border border-slate-200 bg-slate-50 rounded-lg px-3 py-2">
+                                    <span class="font-semibold text-slate-900">{kw.word}</span>
+                                    <span class="text-sm text-slate-600">{kw.translation}</span>
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
                 </div>
             {/if}
 
