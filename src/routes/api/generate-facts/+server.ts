@@ -76,13 +76,28 @@ function buildKeywordsPrompt(
 
   return `Given this ${languageTaught} fact: "${factText}"
 
-List 4 key vocabulary words from the fact in ${languageTaught} with their ${instructionLanguage} translations.
+List 4 key vocabulary words from the fact in ${languageTaught}, each with a ${instructionLanguage} translation AND a short example sentence.
 ${levelHint}
 
-Example for Spanish to English:
-{"keywords":[{"word":"mercado","translation":"market"},{"word":"comida","translation":"food"},{"word":"cultura","translation":"culture"},{"word":"antiguo","translation":"ancient"}]}
+The example sentence must be something the learner could say OUT LOUD to a friend who is standing here at this place RIGHT NOW. Casual, conversational, in-the-moment.
+- Use "we"/"us"/"let's" or speak directly to the friend ("you", "look", "do you think...")
+- Present tense, casual register
+- Tied to what you can see, feel, smell, or do at this spot
+- Keep it short (5-12 words)
 
-Now extract ${languageTaught} words with ${instructionLanguage} translations. Respond ONLY with JSON:`;
+Good examples (Spanish to English):
+{"keywords":[
+  {"word":"mercado","translation":"market","sentence":"Mira qué grande es este mercado.","sentenceTranslation":"Look how big this market is."},
+  {"word":"comida","translation":"food","sentence":"¿Probamos la comida de aquí?","sentenceTranslation":"Should we try the food here?"},
+  {"word":"antiguo","translation":"ancient","sentence":"Este edificio es muy antiguo, ¿verdad?","sentenceTranslation":"This building is really old, right?"},
+  {"word":"cultura","translation":"culture","sentence":"Aquí se siente la cultura local.","sentenceTranslation":"You can really feel the local culture here."}
+]}
+
+Bad examples (do NOT do this — too textbook/abstract):
+- "El mercado fue construido en 1882." (narrating, not conversational)
+- "La cultura es importante." (generic, not place-specific)
+
+Now extract 4 ${languageTaught} words with ${instructionLanguage} translations and peer-to-peer example sentences a learner would say to a friend at this spot. Respond ONLY with JSON:`;
 }
 
 const VALID_CATEGORIES = ['cultural', 'historical', 'linguistic', 'geographical'];
@@ -101,11 +116,21 @@ function validateFacts(parsed: any): StopFact[] | null {
   return valid.length > 0 ? valid : null;
 }
 
-function validateKeywords(parsed: any): { word: string; translation: string }[] {
+function validateKeywords(parsed: any): { word: string; translation: string; sentence?: string; sentenceTranslation?: string }[] {
   if (!parsed?.keywords || !Array.isArray(parsed.keywords)) return [];
   return parsed.keywords
     .filter((k: any) => k.word && k.translation)
-    .map((k: any) => ({ word: k.word, translation: k.translation }));
+    .map((k: any) => {
+      const out: { word: string; translation: string; sentence?: string; sentenceTranslation?: string } = {
+        word: k.word,
+        translation: k.translation
+      };
+      if (typeof k.sentence === 'string' && k.sentence.trim()) out.sentence = k.sentence.trim();
+      if (typeof k.sentenceTranslation === 'string' && k.sentenceTranslation.trim()) {
+        out.sentenceTranslation = k.sentenceTranslation.trim();
+      }
+      return out;
+    });
 }
 
 export const POST: RequestHandler = async ({ request }) => {

@@ -34,6 +34,7 @@
     let instructionLanguage = 'English';
     let cefrLevel = '';
     let cityName = '';
+    let tourType: 'app' | 'person' = 'person';
 
     onMount(async () => {
         try {
@@ -57,6 +58,7 @@
             languageTaught = tourData.languageTaught || '';
             instructionLanguage = tourData.instructionLanguage || 'English';
             cefrLevel = tourData.langDifficulty || '';
+            tourType = (tour.tourType === 'app' ? 'app' : 'person');
 
             stopInfos = stops.map(s => ({
                 id: s.id,
@@ -84,8 +86,29 @@
         ).join('\n');
 
         const levelHint = cefrLevel ? `The learner is at ${cefrLevel} level.` : '';
+        const isApp = tourType === 'app';
+
+        const audienceBlock = isApp
+            ? `AUDIENCE: This is an APP-GUIDED route. The learner walks alone (or with a friend) and the phone unlocks phrases at each stop. Sentences must be PEER-TO-PEER — things the learner could say OUT LOUD to the friend standing next to them at this place RIGHT NOW.
+- Casual register, present tense, in-the-moment
+- Use "we"/"us"/"let's" or speak directly to the friend ("you", "look", "do you think...")
+- Tied to what you can see, feel, smell, or do at this spot
+- Examples (Spanish): "Mira qué grande es este mercado." / "¿Probamos la comida de aquí?" / "Este edificio es muy antiguo, ¿verdad?"
+- AVOID textbook-style narration ("This market was built in 1882") and abstract statements ("Culture is important").`
+            : `AUDIENCE: This is an IN-PERSON guided route. A human guide walks with the group at each stop. Sentences must be STUDENT-TO-GUIDE — questions or remarks the learner addresses to the guide at this spot.
+- Polite, curious register, addressed to the guide ("you")
+- Question form preferred when natural
+- Tied to what the guide is showing or saying at this stop
+- Examples (Spanish): "¿Por qué construyeron esto aquí?" / "¿Puede repetirlo más despacio, por favor?" / "¿Cómo se llama este barrio?" / "¿Nos puede enseñar una palabra para esto?"
+- AVOID statements that don't invite a response from the guide.`;
+
+        const planBlock = isApp
+            ? `2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, creator-only notes covering the topic of each stop so the study sentences make sense in context.`
+            : `2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so the study sentences faithfully preview the talk.`;
 
         return `Preparation material for a walking language tour in ${cityName}. Learner speaks ${instructionLanguage}, learning ${languageTaught}. ${levelHint}
+
+${audienceBlock}
 
 Stops (${stopInfos.length}, in order):
 ${stopList}
@@ -94,10 +117,10 @@ For each stop, produce:
 1. "keywords": 12-15 entries, each {
      word (the keyword in ${languageTaught}),
      translation (the keyword in ${instructionLanguage}),
-     sentence (a SHORT, natural example sentence in ${languageTaught} that uses the keyword — Duolingo-style, ${cefrLevel || 'beginner'}-appropriate, max ~10 words),
+     sentence (a SHORT, natural ${languageTaught} sentence following the AUDIENCE rules above — ${cefrLevel || 'beginner'}-appropriate, max ~10 words),
      sentenceTranslation (that sentence in ${instructionLanguage})
-   }. Together the sentences form a Duolingo-sized study set (~12-15 short sentences) that lets a student GUESS the guide's topic for that stop without spoilers. Prefer everyday, transferable vocabulary (travel, food, work, conversation) over proper nouns or niche jargon, while staying natural to the guide's talk at that stop. Each sentence must contain its keyword.
-2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so the study sentences faithfully preview the talk.
+   }. Together the sentences form a study set (~12-15 short sentences) that lets the learner ${isApp ? "actually use the language with their friend at this spot" : "engage with the guide at this stop without spoilers"}. Prefer everyday, transferable vocabulary over proper nouns or niche jargon, while staying natural to this stop. Each sentence must contain its keyword.
+${planBlock}
 
 Respond with ONLY valid JSON, no other text:
 {

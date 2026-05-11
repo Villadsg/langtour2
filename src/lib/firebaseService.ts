@@ -408,26 +408,26 @@ export const FirebaseService = {
 	async getTour(tourId: string) {
 		if (!tourId || tourId === 'undefined') {
 			console.error('Invalid tour ID provided to getTour:', tourId);
-			return { data: null, error: new Error('Invalid tour ID provided') };
+			return { data: null as Record<string, any> | null, error: new Error('Invalid tour ID provided') as any };
 		}
 
 		try {
 			const tourDoc = await getDoc(doc(db, 'tours', tourId));
 			if (!tourDoc.exists()) {
-				return { data: null, error: null };
+				return { data: null as Record<string, any> | null, error: null as any };
 			}
 
-			const tour = {
-				...tourDoc.data(),
+			const tour: Record<string, any> = {
+				...(tourDoc.data() as Record<string, any>),
 				id: tourDoc.id,
 				_id: tourDoc.id,
 				$id: tourDoc.id
 			};
 
-			return { data: tour, error: null };
+			return { data: tour as Record<string, any> | null, error: null as any };
 		} catch (error) {
 			console.error('Error getting tour:', error);
-			return { data: null, error };
+			return { data: null as Record<string, any> | null, error: error as any };
 		}
 	},
 
@@ -526,17 +526,17 @@ export const FirebaseService = {
 			);
 			const schedulesSnapshot = await getDocs(schedulesQuery);
 
-			const schedules = schedulesSnapshot.docs.map((doc) => ({
-				...doc.data(),
+			const schedules: Record<string, any>[] = schedulesSnapshot.docs.map((doc) => ({
+				...(doc.data() as Record<string, any>),
 				id: doc.id,
 				_id: doc.id,
 				$id: doc.id
 			}));
 
-			return { data: schedules, error: null };
+			return { data: schedules, error: null as any };
 		} catch (error) {
 			console.error('Error getting scheduled tours:', error);
-			return { data: [], error };
+			return { data: [] as Record<string, any>[], error: error as any };
 		}
 	},
 
@@ -733,17 +733,17 @@ export const FirebaseService = {
 			);
 			const bookingsSnapshot = await getDocs(bookingsQuery);
 
-			const bookings = bookingsSnapshot.docs.map((doc) => ({
-				...doc.data(),
+			const bookings: Record<string, any>[] = bookingsSnapshot.docs.map((doc) => ({
+				...(doc.data() as Record<string, any>),
 				id: doc.id,
 				_id: doc.id,
 				$id: doc.id
 			}));
 
-			return { data: bookings, error: null };
+			return { data: bookings, error: null as any };
 		} catch (error) {
 			console.error('Error getting bookings for schedule:', error);
-			return { data: [], error };
+			return { data: [] as Record<string, any>[], error: error as any };
 		}
 	},
 
@@ -971,17 +971,17 @@ export const FirebaseService = {
 			);
 			const ratingsSnapshot = await getDocs(ratingsQuery);
 
-			const ratings = ratingsSnapshot.docs.map((doc) => ({
-				...doc.data(),
+			const ratings: Record<string, any>[] = ratingsSnapshot.docs.map((doc) => ({
+				...(doc.data() as Record<string, any>),
 				id: doc.id,
 				_id: doc.id,
 				$id: doc.id
 			}));
 
-			return { data: ratings, error: null };
+			return { data: ratings, error: null as any };
 		} catch (error) {
 			console.error('Error getting tour ratings:', error);
-			return { data: [], error };
+			return { data: [] as Record<string, any>[], error: error as any };
 		}
 	},
 
@@ -1178,10 +1178,10 @@ export const FirebaseService = {
 			};
 
 			const docRef = await addDoc(collection(db, 'notifications'), notificationDoc);
-			return { data: { _id: docRef.id }, error: null };
+			return { data: { _id: docRef.id }, error: null as any };
 		} catch (error) {
 			console.error('Error saving notification:', error);
-			return { data: null, error };
+			return { data: null, error: error as any };
 		}
 	},
 

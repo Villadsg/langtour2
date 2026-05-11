@@ -4,7 +4,7 @@
     let envVars = {
         mistralKey: '(not loaded)',
         mistralKeyExists: false,
-        allEnvKeys: []
+        allEnvKeys: /** @type {string[]} */ ([])
     };
     
     onMount(() => {

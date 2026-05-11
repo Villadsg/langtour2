@@ -37,28 +37,32 @@ const tours: Tour[] = [
         id: 'madrid-spanish-immersion',
         cityId: 'madrid',
         name: 'Madrid Spanish Immersion',
-        language: 'Spanish',
+        languageTaught: 'Spanish',
+        instructionLanguage: 'English',
         description: 'Immerse yourself in Spanish as you explore Madrid’s vibrant neighborhoods, local markets, and tapas bars. Practice conversational skills with native speakers and learn about Spanish culture firsthand.'
     },
     {
         id: 'madrid-art-culture',
         cityId: 'madrid',
         name: 'Art & Spanish in Madrid',
-        language: 'Spanish',
+        languageTaught: 'Spanish',
+        instructionLanguage: 'English',
         description: 'Combine art appreciation with language learning as you visit the Prado Museum and Reina Sofía. Learn vocabulary related to art and history while engaging with local guides.'
     },
     {
         id: 'copenhagen-danish-basics',
         cityId: 'copenhagen',
         name: 'Copenhagen Danish Basics',
-        language: 'Danish',
+        languageTaught: 'Danish',
+        instructionLanguage: 'English',
         description: 'Learn fundamental Danish phrases while exploring Copenhagen’s iconic landmarks like Nyhavn and the Little Mermaid. Focus on greetings, ordering food, and basic conversation.'
     },
     {
         id: 'copenhagen-hygge-language',
         cityId: 'copenhagen',
         name: 'Hygge & Language in Copenhagen',
-        language: 'Danish',
+        languageTaught: 'Danish',
+        instructionLanguage: 'English',
         description: 'Experience the Danish concept of Hygge while practicing language skills in cozy cafés and historic neighborhoods. Learn vocabulary around comfort, community, and everyday life.'
     }
 ];

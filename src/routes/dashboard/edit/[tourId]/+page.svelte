@@ -6,7 +6,7 @@
     import EditTourForm from '$lib/components/editTourForm.svelte';
     import type { TourStop } from '$lib/firebase/types';
 
-    const tourId = $page.params.tourId;
+    const tourId = $page.params.tourId as string;
 
     let isLoading = true;
     let isSubmitting = false;

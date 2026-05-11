@@ -66,7 +66,7 @@ test.describe('Language Tour Conversation Recorder', () => {
     const conversation: ConversationMessage[] = [];
     
     // Set up listener for messages
-    await page.exposeFunction('recordMessage', (role, text) => {
+    await page.exposeFunction('recordMessage', (role: string, text: string) => {
       console.log(`Recording message - Role: ${role}, Text: ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}`);
       
       // Special command to clear the conversation array

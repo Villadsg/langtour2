@@ -12,7 +12,7 @@
     let error = '';
 
     // Step tracking
-    let step: 'prompt' | 'paste' | 'review' | 'done' = 'prompt';
+    let step: 'type' | 'prompt' | 'paste' | 'review' | 'done' = 'type';
     let createdTourId: string | null = null;
     let copied = false;
 
@@ -67,13 +67,26 @@
     }
     const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-    const LLM_PROMPT = `Help me create a language-learning walking route. Ask one at a time, conversationally:
-1. City?
-2. Language to teach?
-3. Language the learner speaks?
-4. Stops (first one is the starting location). Only list stops I explicitly mention — never invent or pad.
+    function buildLlmPrompt(type: 'app' | 'person'): string {
+        const isApp = type === 'app';
+        const typeBlock = isApp
+            ? `This is an APP-GUIDED self-walking route. The learner walks alone (or with a friend) and the phone unlocks phrases at each stop based on GPS.
+- Stop selection: each stop must be a publicly visible, signed/findable place — named landmarks, squares, parks, recognizable shopfronts. NEVER suggest "the corner where X used to stand" or invisible/conceptual spots. The walker has only GPS and signage.
+- Aim for 6–10 stops, roughly 5–10 minutes walking apart.
+- Description should address a learner walking with a friend, phone in hand.`
+            : `This is an IN-PERSON guided route. A human guide walks with the group and narrates each stop.
+- Stop selection: stops can include subtle or conceptual spots ("this corner used to be the city wall") because the guide will point and explain.
+- Aim for 4–6 stops with deeper content per stop — the guide expands at each one.
+- Description should address a learner joining a group led by a guide.`;
 
-You may auto-fill: name, description, langDifficulty (A1–C2), placeType.
+        return `Help me create a language-learning walking route. Ask one at a time, conversationally:
+1. Language to teach?
+2. Language the learner speaks?
+3. Stops (first one is the starting location). Only list stops I explicitly mention — never invent or pad.
+
+${typeBlock}
+
+You may auto-fill: name, description, langDifficulty (A1–C2), placeType, and cityName (infer from the stops — do not ask).
 
 Then output ONLY this JSON (no markdown):
 {
@@ -89,10 +102,13 @@ Then output ONLY this JSON (no markdown):
 placeType: cafe, restaurant, museum, market, landmark, park, shop, neighborhood, station, square, or other.
 Languages: write the English name in title case (e.g. Japanese, Portuguese).
 
-Start: which city?`;
+Start: which language do you want to teach?`;
+    }
+
+    $: llmPrompt = buildLlmPrompt(tourType as 'app' | 'person');
 
     function handleCopy() {
-        navigator.clipboard.writeText(LLM_PROMPT);
+        navigator.clipboard.writeText(llmPrompt);
         copied = true;
         setTimeout(() => { copied = false; }, 2000);
     }
@@ -186,8 +202,7 @@ Start: which city?`;
             languageTaught = parsed.languageTaught;
             instructionLanguage = parsed.instructionLanguage;
             langDifficulty = parsed.langDifficulty || 'B1';
-            // tourType and price are app defaults, not AI-controlled
-            tourType = 'person';
+            // tourType is locked from the type-pick step; price defaults to 0 (editable elsewhere)
             price = 0;
 
             // Convert stops to ParsedStopData
@@ -322,8 +337,8 @@ Start: which city?`;
 
             <!-- Step indicator -->
             <div class="flex items-center gap-2 mt-4">
-                {#each ['Copy Prompt', 'Paste Result', 'Review & Create'] as label, i}
-                    {@const currentIndex = step === 'prompt' ? 0 : step === 'paste' ? 1 : 2}
+                {#each ['Pick Type', 'Copy Prompt', 'Paste Result', 'Review & Create'] as label, i}
+                    {@const currentIndex = step === 'type' ? 0 : step === 'prompt' ? 1 : step === 'paste' ? 2 : 3}
                     <div class="flex items-center gap-2">
                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium
                             {i <= currentIndex ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-400'}">
@@ -332,7 +347,7 @@ Start: which city?`;
                         <span class="text-sm {i === currentIndex ? 'font-medium text-slate-700' : 'text-slate-400'}">
                             {label}
                         </span>
-                        {#if i < 2}
+                        {#if i < 3}
                             <div class="w-8 h-px {i < currentIndex ? 'bg-slate-400' : 'bg-slate-200'}"></div>
                         {/if}
                     </div>
@@ -349,16 +364,62 @@ Start: which city?`;
             </div>
         {/if}
 
+        <!-- Step 0: Pick Tour Type -->
+        {#if step === 'type'}
+            <div class="bg-white border border-slate-200 rounded-lg p-6">
+                <h2 class="text-lg font-medium text-slate-700 mb-2">Step 1: Pick the route type</h2>
+                <p class="text-sm text-slate-600 mb-4">
+                    This affects the kind of stops and phrases the AI will produce, and how learners experience the route. You can't change this later — pick the one that matches what you want to build.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                        type="button"
+                        on:click={() => { tourType = 'app'; step = 'prompt'; }}
+                        class="text-left border border-slate-200 hover:border-slate-400 hover:bg-slate-50 rounded-lg p-5 transition-colors"
+                    >
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.866-4 9-4 9s-4-5.134-4-9a4 4 0 118 0z" />
+                                <circle cx="8" cy="11" r="1.5" fill="currentColor" />
+                            </svg>
+                            <h3 class="font-medium text-slate-800">App-guided</h3>
+                        </div>
+                        <p class="text-sm text-slate-600">Self-walking with a friend. Phone unlocks phrases at each stop using GPS. Stops must be visible/findable on foot.</p>
+                    </button>
+
+                    <button
+                        type="button"
+                        on:click={() => { tourType = 'person'; step = 'prompt'; }}
+                        class="text-left border border-slate-200 hover:border-slate-400 hover:bg-slate-50 rounded-lg p-5 transition-colors"
+                    >
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <h3 class="font-medium text-slate-800">In-person</h3>
+                        </div>
+                        <p class="text-sm text-slate-600">A guide walks with the group and narrates each stop. Phrases are questions to ask the guide. Stops can include subtle/conceptual spots.</p>
+                    </button>
+                </div>
+            </div>
+        {/if}
+
         <!-- Step 1: Copy Prompt -->
         {#if step === 'prompt'}
             <div class="bg-white border border-slate-200 rounded-lg p-6">
-                <h2 class="text-lg font-medium text-slate-700 mb-2">Step 1: Copy the prompt</h2>
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-lg font-medium text-slate-700">Step 2: Copy the prompt</h2>
+                    <span class="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 rounded-md">
+                        {tourType === 'app' ? 'App-guided' : 'In-person'}
+                    </span>
+                </div>
                 <p class="text-sm text-slate-600 mb-4">
                     Copy this prompt and paste it into any external chatbot (ChatGPT, Claude, Gemini, etc.). Chat with it to design your route, and it will output JSON at the end.
                 </p>
 
                 <div class="relative">
-                    <pre class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">{LLM_PROMPT}</pre>
+                    <pre class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">{llmPrompt}</pre>
                     <button
                         on:click={handleCopy}
                         class="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium py-1.5 px-3 rounded-md shadow-sm transition-colors"
@@ -378,6 +439,15 @@ Start: which city?`;
                 </div>
 
                 <div class="mt-4 flex gap-3">
+                    <button
+                        on:click={() => { step = 'type'; }}
+                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-3 rounded-lg transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Back
+                    </button>
                     <button
                         on:click={handleCopy}
                         class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"

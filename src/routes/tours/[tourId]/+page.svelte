@@ -6,6 +6,7 @@
     import FlyNotification from '$lib/components/FlyNotification.svelte';
     import { getTourData, getStops } from '$lib/tourValidation';
     import TourStopsMap from '$lib/components/TourStopsMap.svelte';
+    import { estimateWalkMinutes } from '$lib/stores/userLocation';
     import type { PublicProfile, AverageRatings } from '$lib/firebase/types';
 
     let tour: any = null;
@@ -41,7 +42,7 @@
 
     import { page } from '$app/stores';
 
-    const tourId = $page.params.tourId;
+    const tourId = $page.params.tourId as string;
     
     onMount(async () => {
         try {
@@ -403,6 +404,18 @@
                         <span class="text-slate-300">·</span>
                         <span><span class="font-medium text-slate-700">{stops.length}</span> stop{stops.length !== 1 ? 's' : ''}</span>
                     {/if}
+                    {#if tourData.tourType === 'app' && stops.length >= 2}
+                        {@const walkMin = estimateWalkMinutes(stops)}
+                        {#if walkMin > 0}
+                            <span class="text-slate-300">·</span>
+                            <span class="inline-flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="font-medium text-slate-700">~{walkMin} min</span> walk
+                            </span>
+                        {/if}
+                    {/if}
                 </div>
 
                 <p class="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">{tourData.description}</p>
@@ -509,7 +522,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        Open ClassRoute App
+                                        Start
                                     </button>
                                 </div>
                             </div>

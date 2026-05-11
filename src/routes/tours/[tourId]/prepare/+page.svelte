@@ -6,7 +6,7 @@
     import PrepStopSection from '$lib/components/PrepStopSection.svelte';
     import type { TourStop } from '$lib/firebase/types';
 
-    const tourId = $page.params.tourId;
+    const tourId = $page.params.tourId as string;
 
     let tour: any = null;
     let creatorId: string | null = null;
@@ -14,8 +14,10 @@
     let error = '';
 
     let stopsWithMaterial: TourStop[] = [];
+    let nextSchedule: any = null;
 
     $: isCreator = !!($currentUser && creatorId && $currentUser.id === creatorId);
+    $: isInPerson = tour && (tour.tourType ?? 'person') !== 'app';
     // Students see keyword-only view; creators can toggle on the teacher plan.
     let showTeacherPlan = false;
 
@@ -32,6 +34,18 @@
                         s.teachingMaterial.teacherPlan
                     )
                 );
+
+                if ((tour.tourType ?? 'person') !== 'app') {
+                    try {
+                        const schedRes = await ConvexService.getScheduledTours(tourId);
+                        const upcoming = (schedRes?.data || [])
+                            .filter((s: any) => new Date(s.scheduled_date) > new Date())
+                            .sort((a: any, b: any) =>
+                                new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime()
+                            );
+                        nextSchedule = upcoming[0] || null;
+                    } catch { /* ignore — meet-up card just won't show */ }
+                }
             } else {
                 error = 'Route not found';
             }
@@ -85,6 +99,29 @@
                     </span>
                     Show plan
                 </button>
+            </div>
+        {/if}
+
+        {#if isInPerson && nextSchedule}
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5 mb-6 no-print">
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-emerald-700 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <div class="flex-1">
+                        <h2 class="text-sm font-semibold text-emerald-900 uppercase tracking-wide mb-1">Where to meet your guide</h2>
+                        <p class="text-base font-medium text-slate-900">
+                            {nextSchedule.meeting_point || 'See route start'}
+                        </p>
+                        <p class="text-sm text-slate-600 mt-1">
+                            {new Date(nextSchedule.scheduled_date).toLocaleString(undefined, {
+                                weekday: 'short', month: 'short', day: 'numeric',
+                                hour: 'numeric', minute: '2-digit'
+                            })}
+                        </p>
+                    </div>
+                </div>
             </div>
         {/if}
 

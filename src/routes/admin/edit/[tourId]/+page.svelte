@@ -11,7 +11,7 @@
         imageUrl?: string;
     }
     
-    const tourId = $page.params.tourId;
+    const tourId = $page.params.tourId as string;
     
     let isLoading = true;
     let isSubmitting = false;
@@ -61,7 +61,8 @@
                 $id: doc.id,
                 name: tourData.name || '',
                 cityId: tourData.cityId || '',
-                language: tourData.language || '',
+                languageTaught: (tourData as any).languageTaught || (tourData as any).language || '',
+                instructionLanguage: (tourData as any).instructionLanguage || 'English',
                 description: tourData.description || '',
                 imageUrl: doc.image_url
             } as SupabaseTour;
@@ -122,7 +123,7 @@
             tour={{
                 name: tour.name,
                 cityId: tour.cityId,
-                language: tour.language,
+                language: tour.languageTaught,
                 description: tour.description,
                 imageUrl: tour.imageUrl || ''
             }} 
