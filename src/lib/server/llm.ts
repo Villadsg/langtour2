@@ -2,9 +2,15 @@ import { env } from '$env/dynamic/private';
 
 const DEFAULT_URL = 'http://localhost:8080/v1/chat/completions';
 
+export interface ChatMessage {
+	role: 'system' | 'user' | 'assistant';
+	content: string;
+}
+
 export interface CallLlmOptions {
-	prompt: string;
+	prompt?: string;
 	system?: string;
+	messages?: ChatMessage[];
 	temperature?: number;
 	timeoutMs?: number;
 	/** Append " /no_think" to the user prompt to suppress Qwen's reasoning preamble. Default: true. */
@@ -27,22 +33,33 @@ const DEFAULT_TIMEOUT_MS = 600000;
 export async function callLlm({
 	prompt,
 	system,
+	messages: providedMessages,
 	temperature,
 	timeoutMs,
 	noThink = true
 }: CallLlmOptions): Promise<CallLlmResult> {
 	const envTimeout = Number(env.LLM_TIMEOUT_MS);
 	const effectiveTimeout = timeoutMs ?? (Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : DEFAULT_TIMEOUT_MS);
-	if (!prompt || typeof prompt !== 'string') {
-		throw new LlmError(400, 'Missing "prompt"');
-	}
 
 	const url = env.LLM_API_URL || DEFAULT_URL;
 	const apiKey = env.LLM_API_KEY;
 
 	const messages: { role: string; content: string }[] = [];
-	if (system) messages.push({ role: 'system', content: system });
-	messages.push({ role: 'user', content: prompt });
+	if (Array.isArray(providedMessages)) {
+		if (system && !providedMessages.some((m) => m.role === 'system')) {
+			messages.push({ role: 'system', content: system });
+		}
+		messages.push(...providedMessages);
+		if (messages.length === 0) {
+			throw new LlmError(400, 'Missing "prompt" or "messages"');
+		}
+	} else {
+		if (!prompt || typeof prompt !== 'string') {
+			throw new LlmError(400, 'Missing "prompt" or "messages"');
+		}
+		if (system) messages.push({ role: 'system', content: system });
+		messages.push({ role: 'user', content: prompt });
+	}
 
 	const body: Record<string, unknown> = {
 		model: env.LLM_MODEL || 'local-llm',

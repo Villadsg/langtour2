@@ -12,12 +12,16 @@
     let error = '';
 
     // Step tracking
-    let step: 'type' | 'prompt' | 'paste' | 'review' | 'done' = 'type';
+    let step: 'type' | 'chat' | 'review' | 'done' = 'type';
     let createdTourId: string | null = null;
-    let copied = false;
 
-    // Paste step
-    let pastedJson = '';
+    // Chat step
+    interface ChatMessage { role: 'user' | 'assistant'; content: string; }
+    let chatMessages: ChatMessage[] = [];
+    let chatInput = '';
+    let chatLoading = false;
+    let chatError = '';
+    let chatScroll: HTMLElement | null = null;
     let parseError = '';
 
     // Parsed route data
@@ -67,7 +71,7 @@
     }
     const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-    function buildLlmPrompt(type: 'app' | 'person'): string {
+    function buildSystemPrompt(type: 'app' | 'person'): string {
         const isApp = type === 'app';
         const typeBlock = isApp
             ? `This is an APP-GUIDED self-walking route. The learner walks alone (or with a friend) and the phone unlocks phrases at each stop based on GPS.
@@ -79,16 +83,16 @@
 - Aim for 4–6 stops with deeper content per stop — the guide expands at each one.
 - Description should address a learner joining a group led by a guide.`;
 
-        return `Help me create a language-learning walking route. Ask one at a time, conversationally:
+        return `You help the user design a language-learning walking route. Ask one question at a time, conversationally:
 1. Language to teach?
 2. Language the learner speaks?
-3. Stops (first one is the starting location). Only list stops I explicitly mention — never invent or pad.
+3. Stops (first one is the starting location). Only list stops the user explicitly mentions — never invent or pad.
 
 ${typeBlock}
 
 You may auto-fill: name, description, langDifficulty (A1–C2), placeType, and cityName (infer from the stops — do not ask).
 
-Then output ONLY this JSON (no markdown):
+When you have all needed info, output ONLY this JSON (no markdown, no prose, no code fences) as your final message:
 {
   "name": "...",
   "cityName": "...",
@@ -102,15 +106,91 @@ Then output ONLY this JSON (no markdown):
 placeType: cafe, restaurant, museum, market, landmark, park, shop, neighborhood, station, square, or other.
 Languages: write the English name in title case (e.g. Japanese, Portuguese).
 
-Start: which language do you want to teach?`;
+Open with: "Which language do you want to teach?"`;
     }
 
-    $: llmPrompt = buildLlmPrompt(tourType as 'app' | 'person');
+    $: systemPrompt = buildSystemPrompt(tourType as 'app' | 'person');
 
-    function handleCopy() {
-        navigator.clipboard.writeText(llmPrompt);
-        copied = true;
-        setTimeout(() => { copied = false; }, 2000);
+    function extractJson(text: string): any | null {
+        let s = text.trim();
+        const fence = s.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+        if (fence) s = fence[1].trim();
+        try { return JSON.parse(s); } catch {}
+        const match = s.match(/\{[\s\S]*\}/);
+        if (!match) return null;
+        try { return JSON.parse(match[0]); } catch { return null; }
+    }
+
+    function looksLikeRouteJson(obj: any): boolean {
+        return obj && typeof obj === 'object'
+            && typeof obj.name === 'string'
+            && typeof obj.languageTaught === 'string'
+            && typeof obj.instructionLanguage === 'string'
+            && Array.isArray(obj.stops);
+    }
+
+    async function startChat() {
+        chatError = '';
+        parseError = '';
+        step = 'chat';
+        chatMessages = [{ role: 'user', content: 'Begin.' }];
+        await sendToLlm(chatMessages);
+    }
+
+    async function sendToLlm(history: ChatMessage[]) {
+        chatLoading = true;
+        chatError = '';
+        try {
+            const res = await fetch('/api/llm-generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system: systemPrompt,
+                    messages: history,
+                    temperature: 0.5
+                })
+            });
+            if (!res.ok) {
+                const txt = await res.text().catch(() => '');
+                throw new Error(txt || `HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            const content: string = (data?.content || '').trim();
+            chatMessages = [...chatMessages, { role: 'assistant', content }];
+            scrollChat();
+
+            const maybe = extractJson(content);
+            if (looksLikeRouteJson(maybe)) {
+                await importFromObject(maybe);
+            }
+        } catch (e: any) {
+            chatError = e?.message || 'Failed to reach the assistant';
+        } finally {
+            chatLoading = false;
+        }
+    }
+
+    async function handleSendChat() {
+        const text = chatInput.trim();
+        if (!text || chatLoading) return;
+        const next: ChatMessage[] = [...chatMessages, { role: 'user', content: text }];
+        chatMessages = next;
+        chatInput = '';
+        scrollChat();
+        await sendToLlm(next);
+    }
+
+    function chatKey(e: KeyboardEvent) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendChat();
+        }
+    }
+
+    function scrollChat() {
+        requestAnimationFrame(() => {
+            if (chatScroll) chatScroll.scrollTop = chatScroll.scrollHeight;
+        });
     }
 
     function handleSkipToManual() {
@@ -161,78 +241,45 @@ Start: which language do you want to teach?`;
         return match ? match.id : normalized.replace(/\s+/g, '-');
     }
 
-    async function handleImport() {
+    async function importFromObject(parsed: any) {
         parseError = '';
         error = '';
 
+        if (!parsed.stops || !Array.isArray(parsed.stops) || parsed.stops.length === 0) {
+            parseError = 'Missing or empty "stops" array';
+            return;
+        }
+
+        trailName = parsed.name;
+        trailDescription = parsed.description || '';
+        cityName = parsed.cityName || '';
+        cityId = resolveCityId(cityName);
+        languageTaught = parsed.languageTaught;
+        instructionLanguage = parsed.instructionLanguage;
+        langDifficulty = parsed.langDifficulty || 'B1';
+        price = 0;
+
+        stops = parsed.stops.map((s: any) => ({
+            placeName: s.placeName || 'Unknown Stop',
+            addressOrDescription: '',
+            placeType: s.placeType || 'other',
+            geocodeStatus: 'pending' as const
+        }));
+
+        isGeocoding = true;
+        step = 'review';
+
         try {
-            let jsonStr = pastedJson.trim();
-
-            // Strip markdown code fences
-            const codeBlockMatch = jsonStr.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
-            if (codeBlockMatch) {
-                jsonStr = codeBlockMatch[1].trim();
-            }
-
-            const parsed = JSON.parse(jsonStr);
-
-            // Validate required fields
-            if (!parsed.name || typeof parsed.name !== 'string') {
-                parseError = 'Missing required field: "name"';
-                return;
-            }
-            if (!parsed.languageTaught || typeof parsed.languageTaught !== 'string') {
-                parseError = 'Missing required field: "languageTaught"';
-                return;
-            }
-            if (!parsed.instructionLanguage || typeof parsed.instructionLanguage !== 'string') {
-                parseError = 'Missing required field: "instructionLanguage"';
-                return;
-            }
-            if (!parsed.stops || !Array.isArray(parsed.stops) || parsed.stops.length === 0) {
-                parseError = 'Missing or empty "stops" array';
-                return;
-            }
-
-            // Store parsed data
-            trailName = parsed.name;
-            trailDescription = parsed.description || '';
-            cityName = parsed.cityName || '';
-            cityId = resolveCityId(cityName);
-            languageTaught = parsed.languageTaught;
-            instructionLanguage = parsed.instructionLanguage;
-            langDifficulty = parsed.langDifficulty || 'B1';
-            // tourType is locked from the type-pick step; price defaults to 0 (editable elsewhere)
-            price = 0;
-
-            // Convert stops to ParsedStopData
-            stops = parsed.stops.map((s: any) => ({
-                placeName: s.placeName || 'Unknown Stop',
-                addressOrDescription: '',
-                placeType: s.placeType || 'other',
-                geocodeStatus: 'pending' as const
-            }));
-
-            // Run geocoding
-            isGeocoding = true;
-            step = 'review';
-
             stops = await batchGeocode(
                 stops,
                 cityName,
                 (progress) => { geocodeProgress = progress; }
             );
-
+        } catch (e: any) {
+            error = `Geocoding error: ${e.message}`;
+        } finally {
             isGeocoding = false;
             geocodeProgress = null;
-        } catch (e: any) {
-            if (step === 'review') {
-                // Geocoding failed but parsing succeeded
-                isGeocoding = false;
-                error = `Geocoding error: ${e.message}`;
-            } else {
-                parseError = `JSON parse error: ${e.message}`;
-            }
         }
     }
 
@@ -332,13 +379,13 @@ Start: which language do you want to teach?`;
 
         <!-- Header -->
         <div class="bg-white border border-slate-200 rounded-lg p-6 mb-8">
-            <h1 class="text-2xl font-medium text-slate-700">Create Route with External Chat</h1>
-            <p class="text-sm text-slate-500 mt-1">Copy the prompt into any external chatbot, paste back the JSON result</p>
+            <h1 class="text-2xl font-medium text-slate-700">Create Route with AI</h1>
+            <p class="text-sm text-slate-500 mt-1">Chat with the assistant to design your route — it will fill in the details automatically.</p>
 
             <!-- Step indicator -->
             <div class="flex items-center gap-2 mt-4">
-                {#each ['Pick Type', 'Copy Prompt', 'Paste Result', 'Review & Create'] as label, i}
-                    {@const currentIndex = step === 'type' ? 0 : step === 'prompt' ? 1 : step === 'paste' ? 2 : 3}
+                {#each ['Pick Type', 'Chat with AI', 'Review & Create'] as label, i}
+                    {@const currentIndex = step === 'type' ? 0 : step === 'chat' ? 1 : 2}
                     <div class="flex items-center gap-2">
                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium
                             {i <= currentIndex ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-400'}">
@@ -347,7 +394,7 @@ Start: which language do you want to teach?`;
                         <span class="text-sm {i === currentIndex ? 'font-medium text-slate-700' : 'text-slate-400'}">
                             {label}
                         </span>
-                        {#if i < 3}
+                        {#if i < 2}
                             <div class="w-8 h-px {i < currentIndex ? 'bg-slate-400' : 'bg-slate-200'}"></div>
                         {/if}
                     </div>
@@ -375,7 +422,7 @@ Start: which language do you want to teach?`;
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <button
                         type="button"
-                        on:click={() => { tourType = 'app'; step = 'prompt'; }}
+                        on:click={() => { tourType = 'app'; startChat(); }}
                         class="text-left border border-slate-200 hover:border-slate-400 hover:bg-slate-50 rounded-lg p-5 transition-colors"
                     >
                         <div class="flex items-center gap-2 mb-2">
@@ -390,7 +437,7 @@ Start: which language do you want to teach?`;
 
                     <button
                         type="button"
-                        on:click={() => { tourType = 'person'; step = 'prompt'; }}
+                        on:click={() => { tourType = 'person'; startChat(); }}
                         class="text-left border border-slate-200 hover:border-slate-400 hover:bg-slate-50 rounded-lg p-5 transition-colors"
                     >
                         <div class="flex items-center gap-2 mb-2">
@@ -405,43 +452,70 @@ Start: which language do you want to teach?`;
             </div>
         {/if}
 
-        <!-- Step 1: Copy Prompt -->
-        {#if step === 'prompt'}
+        <!-- Step 1: Chat with AI -->
+        {#if step === 'chat'}
             <div class="bg-white border border-slate-200 rounded-lg p-6">
                 <div class="flex items-center justify-between mb-2">
-                    <h2 class="text-lg font-medium text-slate-700">Step 2: Copy the prompt</h2>
+                    <h2 class="text-lg font-medium text-slate-700">Step 2: Chat with the assistant</h2>
                     <span class="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 rounded-md">
                         {tourType === 'app' ? 'App-guided' : 'In-person'}
                     </span>
                 </div>
                 <p class="text-sm text-slate-600 mb-4">
-                    Copy this prompt and paste it into any external chatbot (ChatGPT, Claude, Gemini, etc.). Chat with it to design your route, and it will output JSON at the end.
+                    Answer the assistant's questions. When it has everything it needs, it will produce your route automatically.
                 </p>
 
-                <div class="relative">
-                    <pre class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">{llmPrompt}</pre>
-                    <button
-                        on:click={handleCopy}
-                        class="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium py-1.5 px-3 rounded-md shadow-sm transition-colors"
-                    >
-                        {#if copied}
-                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
-                            Copied!
+                <div bind:this={chatScroll} class="bg-slate-50 border border-slate-200 rounded-lg p-4 h-96 overflow-y-auto space-y-3">
+                    {#each chatMessages.filter((m, idx) => !(idx === 0 && m.role === 'user' && m.content === 'Begin.')) as msg}
+                        {#if msg.role === 'user'}
+                            <div class="flex justify-end">
+                                <div class="max-w-[80%] bg-slate-600 text-white rounded-lg px-3 py-2 text-sm whitespace-pre-wrap">{msg.content}</div>
+                            </div>
                         {:else}
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-                            </svg>
-                            Copy
+                            <div class="flex justify-start">
+                                <div class="max-w-[80%] bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-sm whitespace-pre-wrap">{msg.content}</div>
+                            </div>
                         {/if}
+                    {/each}
+                    {#if chatLoading}
+                        <div class="flex justify-start">
+                            <div class="bg-white border border-slate-200 text-slate-400 rounded-lg px-3 py-2 text-sm inline-flex items-center gap-2">
+                                <div class="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-slate-400"></div>
+                                Thinking…
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+
+                {#if chatError}
+                    <div class="mt-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">{chatError}</div>
+                {/if}
+                {#if parseError}
+                    <div class="mt-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-lg text-sm">{parseError}</div>
+                {/if}
+
+                <div class="mt-3 flex gap-2">
+                    <textarea
+                        bind:value={chatInput}
+                        on:keydown={chatKey}
+                        disabled={chatLoading}
+                        placeholder="Type your reply…"
+                        rows="2"
+                        class="flex-1 bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent disabled:opacity-50"
+                    ></textarea>
+                    <button
+                        on:click={handleSendChat}
+                        disabled={chatLoading || !chatInput.trim()}
+                        class="self-end inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                    >
+                        Send
                     </button>
                 </div>
 
                 <div class="mt-4 flex gap-3">
                     <button
                         on:click={() => { step = 'type'; }}
-                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-3 rounded-lg transition-colors"
+                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2 px-3 rounded-lg transition-colors text-sm"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -449,26 +523,15 @@ Start: which language do you want to teach?`;
                         Back
                     </button>
                     <button
-                        on:click={handleCopy}
-                        class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                        on:click={startChat}
+                        disabled={chatLoading}
+                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-600 font-medium py-2 px-3 rounded-lg transition-colors text-sm"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-                        </svg>
-                        {copied ? 'Copied!' : 'Copy Prompt'}
-                    </button>
-                    <button
-                        on:click={() => { step = 'paste'; }}
-                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-5 rounded-lg transition-colors"
-                    >
-                        Next: Paste Result
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
+                        Restart chat
                     </button>
                     <button
                         on:click={handleSkipToManual}
-                        class="ml-auto inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium py-2.5 px-3 transition-colors"
+                        class="ml-auto inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium py-2 px-3 transition-colors"
                     >
                         Skip — fill manually
                     </button>
@@ -476,49 +539,6 @@ Start: which language do you want to teach?`;
             </div>
         {/if}
 
-        <!-- Step 2: Paste JSON -->
-        {#if step === 'paste'}
-            <div class="bg-white border border-slate-200 rounded-lg p-6">
-                <h2 class="text-lg font-medium text-slate-700 mb-2">Step 2: Paste the AI response</h2>
-                <p class="text-sm text-slate-600 mb-4">
-                    Copy the JSON that was generated and paste it below. The app will look up all the stop locations automatically.
-                </p>
-
-                <textarea
-                    bind:value={pastedJson}
-                    placeholder="Paste the JSON response here..."
-                    class="w-full h-64 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-                ></textarea>
-
-                {#if parseError}
-                    <div class="mt-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                        {parseError}
-                    </div>
-                {/if}
-
-                <div class="mt-4 flex gap-3">
-                    <button
-                        on:click={() => { step = 'prompt'; parseError = ''; }}
-                        class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-5 rounded-lg transition-colors"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Back
-                    </button>
-                    <button
-                        on:click={handleImport}
-                        disabled={!pastedJson.trim()}
-                        class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
-                    >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                        Import &amp; Preview
-                    </button>
-                </div>
-            </div>
-        {/if}
 
         <!-- Step 3: Review & Create -->
         {#if step === 'review'}
@@ -548,13 +568,13 @@ Start: which language do you want to teach?`;
                         <h2 class="text-lg font-medium text-slate-700">Review Route</h2>
                         <div class="flex gap-3">
                             <button
-                                on:click={() => { step = 'paste'; }}
+                                on:click={() => { step = 'chat'; }}
                                 class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                                 </svg>
-                                Re-paste
+                                Back to chat
                             </button>
                             <button
                                 on:click={handleCreate}
