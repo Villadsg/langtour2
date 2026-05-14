@@ -1275,6 +1275,7 @@ export const FirebaseService = {
 				username: data.username,
 				bio: data.bio,
 				languagesSpoken: data.languagesSpoken,
+				learningLanguage: data.learningLanguage,
 				avatarUrl: data.avatarUrl,
 				avatarStorageId: data.avatarStorageId,
 				memberSince: data.memberSince,

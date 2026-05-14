@@ -74,6 +74,7 @@ export interface PublicProfile {
 	username: string;
 	bio?: string;
 	languagesSpoken?: string[];
+	learningLanguage?: string;
 	avatarUrl?: string;
 	avatarStorageId?: string;
 	memberSince?: number;

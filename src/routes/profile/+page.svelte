@@ -8,6 +8,12 @@
   let userEmail = '';
   let bio = '';
   let languagesSpoken = '';
+  let learningLanguage = '';
+  const LEARNING_LANGUAGE_OPTIONS = [
+    '', 'Spanish', 'French', 'Italian', 'German', 'Portuguese',
+    'Danish', 'Dutch', 'Swedish', 'Norwegian', 'Japanese',
+    'Mandarin', 'Korean', 'Greek', 'Turkish', 'Polish'
+  ];
   let avatarUrl = '';
   let avatarStorageId = '';
   let memberSince: number | null = null;
@@ -31,6 +37,7 @@
       if (profile) {
         bio = profile.bio || '';
         languagesSpoken = (profile.languagesSpoken || []).join(', ');
+        learningLanguage = profile.learningLanguage || '';
         avatarUrl = profile.avatarUrl || '';
         avatarStorageId = profile.avatarStorageId || '';
         memberSince = profile.memberSince || null;
@@ -103,7 +110,8 @@
 
       await ConvexService.updatePublicProfile({
         bio: bio.trim(),
-        languagesSpoken: langs
+        languagesSpoken: langs,
+        learningLanguage: learningLanguage || undefined
       });
 
       success = true;
@@ -267,6 +275,24 @@
               class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-slate-300 focus:border-slate-300 sm:text-sm"
             />
             <p class="mt-1 text-xs text-slate-400">Separate languages with commas</p>
+          </div>
+        </div>
+
+        <div>
+          <label for="learning-language" class="block text-sm font-medium text-slate-700">
+            Learning
+          </label>
+          <div class="mt-1">
+            <select
+              id="learning-language"
+              bind:value={learningLanguage}
+              class="appearance-none block w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-slate-300 focus:border-slate-300 sm:text-sm bg-white"
+            >
+              {#each LEARNING_LANGUAGE_OPTIONS as lang}
+                <option value={lang}>{lang || '— Not set —'}</option>
+              {/each}
+            </select>
+            <p class="mt-1 text-xs text-slate-400">Used for one-tap phrase generation on the home page</p>
           </div>
         </div>
 

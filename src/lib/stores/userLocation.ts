@@ -9,6 +9,12 @@ export const userLocation = writable<UserCoords | null>(null);
 
 let requested = false;
 
+const HIGH_ACCURACY_OPTIONS: PositionOptions = {
+	enableHighAccuracy: true,
+	maximumAge: 60000,
+	timeout: 20000
+};
+
 export function requestUserLocation() {
 	if (requested) return;
 	requested = true;
@@ -17,9 +23,29 @@ export function requestUserLocation() {
 			(pos) => {
 				userLocation.set({ lat: pos.coords.latitude, lng: pos.coords.longitude });
 			},
-			() => { /* permission denied or error — leave as null */ }
+			() => { /* permission denied or error — leave as null */ },
+			HIGH_ACCURACY_OPTIONS
 		);
 	}
+}
+
+/** Force a fresh high-accuracy lookup, ignoring any previously cached result. */
+export function refreshUserLocation(): Promise<UserCoords | null> {
+	if (typeof navigator === 'undefined' || !navigator.geolocation) {
+		return Promise.resolve(null);
+	}
+	requested = true;
+	return new Promise((resolve) => {
+		navigator.geolocation.getCurrentPosition(
+			(pos) => {
+				const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+				userLocation.set(coords);
+				resolve(coords);
+			},
+			() => resolve(null),
+			{ ...HIGH_ACCURACY_OPTIONS, maximumAge: 0 }
+		);
+	});
 }
 
 export function watchUserLocation(): number | null {

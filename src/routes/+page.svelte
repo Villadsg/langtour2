@@ -5,7 +5,10 @@
 	import { ConvexService, currentUser } from '$lib/firebaseService';
 	import Section from '$lib/components/Section.svelte';
 	import TourMapView from '$lib/components/TourMapView.svelte';
+	import QuickPhrasesButton from '$lib/components/QuickPhrasesButton.svelte';
+	import QuickPhrasesResult from '$lib/components/QuickPhrasesResult.svelte';
 	import type { TourListTour } from '$lib/components/TourListItem.svelte';
+	import type { QuickPhrase } from '$lib/quickPhrasesHistory';
 
 	import { text } from '$lib/styles/DesignSystem.svelte';
 	import { getTourData, getStops } from '$lib/tourValidation';
@@ -82,6 +85,35 @@
 			.filter(t => currentUserId && t.creatorId === currentUserId)
 			.map(t => t.id)
 	);
+
+	let learningLanguage: string | null = null;
+	let lastFetchedUserId: string | null = null;
+
+	async function syncLearningLanguage(userId: string | null) {
+		if (!userId) {
+			learningLanguage = null;
+			lastFetchedUserId = null;
+			return;
+		}
+		if (userId === lastFetchedUserId) return;
+		lastFetchedUserId = userId;
+		try {
+			const profile = await ConvexService.getPublicProfile(userId);
+			learningLanguage = profile?.learningLanguage || null;
+		} catch {
+			learningLanguage = null;
+		}
+	}
+
+	$: syncLearningLanguage(currentUserId);
+
+	let quickResult: {
+		phrases: QuickPhrase[];
+		placeName: string;
+		address: string;
+		language: string;
+		generatedAt: number;
+	} | null = null;
 </script>
 
 <svelte:head>
@@ -141,6 +173,21 @@
 		text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 </style>
+
+<Section>
+	<div class="text-center max-w-2xl mx-auto py-6">
+		<h2 class="text-2xl font-medium text-slate-700 mb-1">Learn from where you are</h2>
+		<div class="w-10 h-0.5 bg-slate-300 rounded-full mb-3 mx-auto"></div>
+		<p class="text-slate-500 mb-6">
+			Tap below to get phrases tied to what's around you right now.
+		</p>
+		<QuickPhrasesButton
+			{learningLanguage}
+			on:result={(e) => (quickResult = e.detail)}
+		/>
+		<QuickPhrasesResult result={quickResult} />
+	</div>
+</Section>
 
 <div id="available-routes"></div>
 <Section variant="muted">

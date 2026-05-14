@@ -58,7 +58,7 @@
             languageTaught = tourData.languageTaught || '';
             instructionLanguage = tourData.instructionLanguage || 'English';
             cefrLevel = tourData.langDifficulty || '';
-            tourType = (tour.tourType === 'app' ? 'app' : 'person');
+            tourType = (tourData.tourType === 'app' ? 'app' : 'person');
 
             stopInfos = stops.map(s => ({
                 id: s.id,
@@ -102,9 +102,32 @@
 - Examples (Spanish): "¿Por qué construyeron esto aquí?" / "¿Puede repetirlo más despacio, por favor?" / "¿Cómo se llama este barrio?" / "¿Nos puede enseñar una palabra para esto?"
 - AVOID statements that don't invite a response from the guide.`;
 
-        const planBlock = isApp
-            ? `2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, creator-only notes covering the topic of each stop so the study sentences make sense in context.`
-            : `2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so the study sentences faithfully preview the talk.`;
+        const planLine = isApp
+            ? ''
+            : `\n2. "teacherPlan": 3-6 sentences in ${instructionLanguage}, guide-only, covering every keyword so the study sentences faithfully preview the talk.`;
+
+        const jsonShape = isApp
+            ? `{
+  "stops": [
+    {
+      "placeName": "...",
+      "keywords": [
+        { "word": "...", "translation": "...", "sentence": "...", "sentenceTranslation": "..." }
+      ]
+    }
+  ]
+}`
+            : `{
+  "stops": [
+    {
+      "placeName": "...",
+      "keywords": [
+        { "word": "...", "translation": "...", "sentence": "...", "sentenceTranslation": "..." }
+      ],
+      "teacherPlan": "..."
+    }
+  ]
+}`;
 
         return `Preparation material for a walking language tour in ${cityName}. Learner speaks ${instructionLanguage}, learning ${languageTaught}. ${levelHint}
 
@@ -119,21 +142,10 @@ For each stop, produce:
      translation (the keyword in ${instructionLanguage}),
      sentence (a SHORT, natural ${languageTaught} sentence following the AUDIENCE rules above — ${cefrLevel || 'beginner'}-appropriate, max ~10 words),
      sentenceTranslation (that sentence in ${instructionLanguage})
-   }. Together the sentences form a study set (~12-15 short sentences) that lets the learner ${isApp ? "actually use the language with their friend at this spot" : "engage with the guide at this stop without spoilers"}. Prefer everyday, transferable vocabulary over proper nouns or niche jargon, while staying natural to this stop. Each sentence must contain its keyword.
-${planBlock}
+   }. Together the sentences form a study set (~12-15 short sentences) that lets the learner ${isApp ? "actually use the language with their friend at this spot" : "engage with the guide at this stop without spoilers"}. Prefer everyday, transferable vocabulary over proper nouns or niche jargon, while staying natural to this stop. Each sentence must contain its keyword.${planLine}
 
 Respond with ONLY valid JSON, no other text:
-{
-  "stops": [
-    {
-      "placeName": "...",
-      "keywords": [
-        { "word": "...", "translation": "...", "sentence": "...", "sentenceTranslation": "..." }
-      ],
-      "teacherPlan": "..."
-    }
-  ]
-}
+${jsonShape}
 One entry per stop in the listed order.`;
     }
 
@@ -141,6 +153,36 @@ One entry per stop in the listed order.`;
         navigator.clipboard.writeText(generatedPrompt);
         copied = true;
         setTimeout(() => { copied = false; }, 2000);
+    }
+
+    let isGenerating = false;
+    let generationError = '';
+    async function handleGenerateWithServer() {
+        isGenerating = true;
+        generationError = '';
+        parseError = '';
+        try {
+            const res = await fetch('/api/llm-generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: generatedPrompt,
+                    system: 'You produce strictly valid JSON in the exact shape requested. No prose, no markdown.',
+                    temperature: 0.7
+                })
+            });
+            if (!res.ok) {
+                generationError = (await res.text()) || `Server returned ${res.status}`;
+                return;
+            }
+            const data = await res.json();
+            pastedJson = data.content || '';
+            handleParse();
+        } catch (e: any) {
+            generationError = e.message || 'Failed to reach LLM server';
+        } finally {
+            isGenerating = false;
+        }
     }
 
     function handleGoToPaste() {
@@ -342,7 +384,22 @@ One entry per stop in the listed order.`;
                     </button>
                 </div>
 
-                <div class="mt-4 flex gap-3">
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <button
+                        on:click={handleGenerateWithServer}
+                        disabled={isGenerating}
+                        class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
+                    >
+                        {#if isGenerating}
+                            <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                            Generating…
+                        {:else}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Generate with local server
+                        {/if}
+                    </button>
                     <button
                         on:click={handleCopy}
                         class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-5 rounded-lg transition-colors"
@@ -365,6 +422,11 @@ One entry per stop in the listed order.`;
                         Skip — fill manually
                     </button>
                 </div>
+                {#if generationError}
+                    <div class="mt-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                        {generationError}
+                    </div>
+                {/if}
             </div>
         {/if}
 
@@ -486,14 +548,16 @@ One entry per stop in the listed order.`;
                                 </button>
                             </div>
 
-                            <div class="border border-amber-200 bg-amber-50 rounded-lg p-3">
-                                <h4 class="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1">Guide plan (only you see this)</h4>
-                                <textarea bind:value={stopResults[i].teacherPlan}
-                                    rows="4"
-                                    placeholder="What will you talk about at this stop? 3-6 sentences."
-                                    class="w-full text-sm text-amber-900 bg-transparent border-0 focus:outline-none focus:ring-0 resize-y leading-relaxed"
-                                ></textarea>
-                            </div>
+                            {#if tourType === 'person'}
+                                <div class="border border-amber-200 bg-amber-50 rounded-lg p-3">
+                                    <h4 class="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1">Guide plan (only you see this)</h4>
+                                    <textarea bind:value={stopResults[i].teacherPlan}
+                                        rows="4"
+                                        placeholder="What will you talk about at this stop? 3-6 sentences."
+                                        class="w-full text-sm text-amber-900 bg-transparent border-0 focus:outline-none focus:ring-0 resize-y leading-relaxed"
+                                    ></textarea>
+                                </div>
+                            {/if}
                         </div>
                     </div>
                 {/each}
