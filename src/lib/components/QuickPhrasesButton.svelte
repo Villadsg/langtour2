@@ -106,6 +106,19 @@
 
 			const placeName = place?.placeName || 'your current location';
 			const address = place?.address || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+			const city = place?.city;
+			const country = place?.country;
+
+			const now = new Date();
+			const h = now.getHours();
+			const timeBucket =
+				h < 6 ? 'late night'
+					: h < 11 ? 'morning'
+					: h < 15 ? 'midday'
+					: h < 18 ? 'afternoon'
+					: h < 22 ? 'evening'
+					: 'late night';
+			const localTime = `${String(h).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
 			phase = 'generating';
 			const res = await fetch('/api/quick-phrases', {
@@ -116,6 +129,10 @@
 					cefrLevel,
 					placeName,
 					address,
+					city,
+					country,
+					timeBucket,
+					localTime,
 					pois,
 					instructionLanguage
 				})

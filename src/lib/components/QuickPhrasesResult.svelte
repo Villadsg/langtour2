@@ -18,7 +18,6 @@
 	let history: HistoryEntry[] = [];
 	let historyOpen = false;
 	let viewing: HistoryEntry | null = null;
-	let expandedIdx: number | null = null;
 
 	function refreshHistory() {
 		history = loadHistory();
@@ -30,7 +29,6 @@
 
 	$: if (result) {
 		refreshHistory();
-		expandedIdx = null;
 		viewing = null;
 	}
 
@@ -43,10 +41,6 @@
 				generatedAt: viewing.generatedAt
 			}
 		: result;
-
-	function toggleExpand(i: number) {
-		expandedIdx = expandedIdx === i ? null : i;
-	}
 
 	function formatTime(ts: number): string {
 		try {
@@ -78,28 +72,11 @@
 
 		<ul class="space-y-2">
 			{#each shown.phrases as p, i (i)}
-				<li>
-					<button
-						type="button"
-						on:click={() => toggleExpand(i)}
-						class="w-full text-left bg-white border border-slate-200 hover:border-emerald-300 rounded-lg px-4 py-3 transition-colors"
-					>
-						<div class="flex items-baseline justify-between gap-3">
-							<span class="text-lg font-medium text-slate-900">{p.word}</span>
-							<span class="text-sm text-slate-500">{p.translation}</span>
-						</div>
-						{#if expandedIdx === i && (p.sentence || p.context)}
-							<div class="mt-2 pt-2 border-t border-slate-100 text-sm space-y-1">
-								{#if p.sentence}
-									<p class="text-slate-800">{p.sentence}</p>
-									<p class="text-slate-500 italic">{p.sentenceTranslation}</p>
-								{/if}
-								{#if p.context}
-									<p class="text-xs text-slate-400">Context: {p.context}</p>
-								{/if}
-							</div>
-						{/if}
-					</button>
+				<li class="bg-white border border-slate-200 rounded-lg px-4 py-3">
+					<p class="text-slate-900">{p.sentence}</p>
+					{#if p.sentenceTranslation}
+						<p class="text-sm text-slate-500 italic">{p.sentenceTranslation}</p>
+					{/if}
 				</li>
 			{/each}
 		</ul>

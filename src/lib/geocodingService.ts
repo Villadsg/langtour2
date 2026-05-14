@@ -394,7 +394,7 @@ export async function geocodeAddress(
 export async function reverseGeocode(
 	lat: number,
 	lng: number
-): Promise<{ address: string; placeName: string } | null> {
+): Promise<{ address: string; placeName: string; city?: string; country?: string } | null> {
 	await waitForRateLimit();
 
 	try {
@@ -408,18 +408,24 @@ export async function reverseGeocode(
 		}
 
 		const data = await response.json();
+		const addr = data.address || {};
 
 		const placeName =
 			data.name ||
-			data.address?.amenity ||
-			data.address?.shop ||
-			data.address?.tourism ||
-			data.address?.road ||
+			addr.amenity ||
+			addr.shop ||
+			addr.tourism ||
+			addr.road ||
 			'Selected Location';
+
+		const city = addr.city || addr.town || addr.village || addr.suburb || undefined;
+		const country = addr.country || undefined;
 
 		return {
 			address: data.display_name || '',
-			placeName
+			placeName,
+			city,
+			country
 		};
 	} catch (error) {
 		console.error('Reverse geocoding error:', error);

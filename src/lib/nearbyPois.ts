@@ -27,11 +27,40 @@ function pickCategory(tags: Record<string, string>): string | null {
 	);
 }
 
+const JUNK_CATEGORIES = new Set<string>([
+	'bench',
+	'atm',
+	'vending_machine',
+	'post_box',
+	'waste_basket',
+	'waste_disposal',
+	'recycling',
+	'drinking_water',
+	'fountain',
+	'parking',
+	'parking_space',
+	'parking_entrance',
+	'bicycle_parking',
+	'motorcycle_parking',
+	'telephone',
+	'charging_station',
+	'bbq',
+	'hunting_stand',
+	'letter_box',
+	'post_office_letter_box',
+	'traffic_signals',
+	'street_lamp',
+	'bicycle_repair_station',
+	'clock',
+	'toilets',
+	'shelter'
+]);
+
 export async function fetchNearbyPois(
 	lat: number,
 	lng: number,
 	radiusM = 250,
-	limit = 15
+	limit = 8
 ): Promise<NearbyPoi[]> {
 	const query = `
 		[out:json][timeout:8];
@@ -68,6 +97,7 @@ export async function fetchNearbyPois(
 		if (!name) continue;
 		const category = pickCategory(tags);
 		if (!category) continue;
+		if (JUNK_CATEGORIES.has(category)) continue;
 		const elat = el.lat ?? el.center?.lat;
 		const elng = el.lon ?? el.center?.lon;
 		if (typeof elat !== 'number' || typeof elng !== 'number') continue;

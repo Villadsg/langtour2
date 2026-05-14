@@ -2,11 +2,8 @@ const KEY = 'quickPhrasesHistory';
 const MAX_ENTRIES = 10;
 
 export interface QuickPhrase {
-	word: string;
-	translation: string;
 	sentence: string;
 	sentenceTranslation: string;
-	context?: string;
 }
 
 export interface HistoryEntry {
@@ -22,13 +19,32 @@ function isBrowser(): boolean {
 	return typeof localStorage !== 'undefined';
 }
 
+function normalizePhrase(p: any): QuickPhrase | null {
+	if (!p || typeof p !== 'object') return null;
+	const sentence = typeof p.sentence === 'string' ? p.sentence : '';
+	if (!sentence) return null;
+	return {
+		sentence,
+		sentenceTranslation:
+			typeof p.sentenceTranslation === 'string' ? p.sentenceTranslation : ''
+	};
+}
+
 export function loadHistory(): HistoryEntry[] {
 	if (!isBrowser()) return [];
 	try {
 		const raw = localStorage.getItem(KEY);
 		if (!raw) return [];
 		const parsed = JSON.parse(raw);
-		return Array.isArray(parsed) ? parsed : [];
+		if (!Array.isArray(parsed)) return [];
+		return parsed.map((entry: any) => ({
+			...entry,
+			phrases: Array.isArray(entry?.phrases)
+				? entry.phrases
+						.map(normalizePhrase)
+						.filter((p: QuickPhrase | null): p is QuickPhrase => p !== null)
+				: []
+		}));
 	} catch {
 		return [];
 	}
