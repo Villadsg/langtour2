@@ -14,13 +14,14 @@
 		language: string;
 		generatedAt: number;
 	} | null = null;
+	export let showHistory: boolean = true;
 
 	let history: HistoryEntry[] = [];
 	let historyOpen = false;
 	let viewing: HistoryEntry | null = null;
 
 	function refreshHistory() {
-		history = loadHistory();
+		history = showHistory ? loadHistory() : [];
 	}
 
 	onMount(() => {
@@ -93,7 +94,7 @@
 	</div>
 {/if}
 
-{#if history.length > 0}
+{#if showHistory && history.length > 0}
 	<div class="mt-8 w-full max-w-2xl mx-auto text-left">
 		<button
 			type="button"

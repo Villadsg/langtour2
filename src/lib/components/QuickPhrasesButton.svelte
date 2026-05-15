@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onDestroy } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { userLocation, refreshUserLocation } from '$lib/stores/userLocation';
 	import { reverseGeocode } from '$lib/geocodingService';
 	import { fetchNearbyPois, type NearbyPoi } from '$lib/nearbyPois';
@@ -8,6 +9,7 @@
 	export let learningLanguage: string | null = null;
 	export let instructionLanguage: string = 'English';
 	export let cefrLevel: string = 'A2';
+	export let onDark: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		result: {
@@ -36,6 +38,8 @@
 		'Turkish',
 		'Polish'
 	];
+
+	const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 	const LANG_STORAGE_KEY = 'lastQuickPhrasesLanguage';
 
@@ -157,7 +161,7 @@
 				}
 			}
 
-			saveEntry({
+			const saved = saveEntry({
 				placeName,
 				address,
 				language: effectiveLanguage,
@@ -174,6 +178,7 @@
 			});
 
 			phase = 'idle';
+			await goto(`/phrases/${saved.id}`);
 		} catch (err: any) {
 			phase = 'error';
 			errorMsg = err?.message || 'Something went wrong.';
@@ -200,31 +205,61 @@
 					: 'Phrases from here';
 </script>
 
-<div class="flex flex-col items-center gap-3 w-full">
-	{#if needsPicker}
-		<label class="text-sm text-slate-600 flex items-center gap-2">
-			Learning:
-			<select
-				bind:value={pickedLanguage}
-				disabled={busy}
-				class="border border-slate-300 rounded-md px-2 py-1 bg-white text-slate-800"
-			>
-				<option value="" disabled>Choose a language</option>
-				{#each LANGUAGE_OPTIONS as lang}
-					<option value={lang}>{lang}</option>
-				{/each}
-			</select>
+<div class="flex flex-col gap-3 w-full {onDark ? 'items-stretch sm:items-start' : 'items-center'}">
+	<div class="flex flex-wrap items-center gap-x-4 gap-y-2 {onDark ? 'justify-start' : 'justify-center'}">
+		{#if needsPicker}
+			<label class="text-sm flex items-center gap-2 {onDark ? 'text-white/90' : 'text-slate-600'}">
+				Learning:
+				<span class="relative inline-flex items-center">
+					<select
+						bind:value={pickedLanguage}
+						disabled={busy}
+						class="appearance-none rounded-md pl-2 pr-8 py-1 {onDark
+							? 'bg-white/15 backdrop-blur-sm border border-white/50 text-white [&>option]:text-slate-800'
+							: 'border border-slate-300 bg-white text-slate-800'}"
+					>
+						<option value="" disabled>Choose a language</option>
+						{#each LANGUAGE_OPTIONS as lang}
+							<option value={lang}>{lang}</option>
+						{/each}
+					</select>
+					<svg class="pointer-events-none absolute right-2 h-4 w-4 {onDark ? 'text-white/80' : 'text-slate-500'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+					</svg>
+				</span>
+			</label>
+		{/if}
+		<label class="text-sm flex items-center gap-2 {onDark ? 'text-white/90' : 'text-slate-600'}">
+			Level:
+			<span class="relative inline-flex items-center">
+				<select
+					bind:value={cefrLevel}
+					disabled={busy}
+					class="appearance-none rounded-md pl-2 pr-8 py-1 {onDark
+						? 'bg-white/15 backdrop-blur-sm border border-white/50 text-white [&>option]:text-slate-800'
+						: 'border border-slate-300 bg-white text-slate-800'}"
+				>
+					{#each CEFR_LEVELS as lvl}
+						<option value={lvl}>{lvl}</option>
+					{/each}
+				</select>
+				<svg class="pointer-events-none absolute right-2 h-4 w-4 {onDark ? 'text-white/80' : 'text-slate-500'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+				</svg>
+			</span>
 		</label>
-	{/if}
+	</div>
 
 	<button
 		type="button"
 		on:click={handleClick}
 		disabled={busy || !effectiveLanguage}
-		class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-lg shadow-lg transition-colors text-lg"
+		class="w-full sm:w-auto inline-flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg shadow-lg transition-colors {onDark
+			? 'bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8'
+			: 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-8 text-lg'}"
 	>
 		{#if busy}
-			<span class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+			<span class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 {onDark ? 'border-slate-700' : 'border-white'}"></span>
 		{:else}
 			<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z"/>

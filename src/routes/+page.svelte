@@ -146,22 +146,36 @@
 			</div>
 			</div>
 		</h1>
-		<p class="text-lg md:text-xl text-white/95 mb-10 max-w-2xl leading-relaxed">
-			Language learning routes guided by local bilingual teachers.
-		</p>
-		<div class="flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center sm:justify-start">
-			<button
-				on:click={scrollToRoutes}
-				class="w-56 sm:w-auto text-center bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
-			>
-				Browse routes
-			</button>
-			<a
-				href="/signup"
-				class="w-56 sm:w-auto text-center bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
-			>
-				Become a guide
-			</a>
+		<div class="max-w-2xl mb-4">
+			<p class="text-lg md:text-xl text-white/95 mb-6 leading-relaxed">
+				Tap below to get phrases tied to what's around you right now.
+			</p>
+			<QuickPhrasesButton
+				onDark
+				{learningLanguage}
+				on:result={(e) => (quickResult = e.detail)}
+			/>
+			<QuickPhrasesResult result={quickResult} showHistory={false} />
+		</div>
+
+		<div class="mt-12 pt-8 border-t border-white/20 max-w-2xl">
+			<p class="text-lg md:text-xl text-white/95 mb-10 leading-relaxed">
+				Language learning routes guided by local bilingual teachers.
+			</p>
+			<div class="flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center sm:justify-start">
+				<button
+					on:click={scrollToRoutes}
+					class="w-56 sm:w-auto text-center bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
+				>
+					Browse routes
+				</button>
+				<a
+					href="/signup"
+					class="w-56 sm:w-auto text-center bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+				>
+					Become a guide
+				</a>
+			</div>
 		</div>
 	</div>
 </section>
@@ -169,11 +183,13 @@
 
 <style>
 	.hero-text :global(h1),
+	.hero-text :global(h2),
 	.hero-text :global(p) {
 		text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
 	}
 </style>
 
+{#if $currentUser}
 <Section>
 	<div class="text-center max-w-2xl mx-auto py-6">
 		<h2 class="text-2xl font-medium text-slate-700 mb-1">Learn from where you are</h2>
@@ -188,6 +204,7 @@
 		<QuickPhrasesResult result={quickResult} />
 	</div>
 </Section>
+{/if}
 
 <div id="available-routes"></div>
 <Section variant="muted">
