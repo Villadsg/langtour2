@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { createEventDispatcher, onDestroy } from 'svelte';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { userLocation, refreshUserLocation } from '$lib/stores/userLocation';
+	import { userLocation, refreshUserLocation, requestUserLocation } from '$lib/stores/userLocation';
 	import { reverseGeocode } from '$lib/geocodingService';
 	import { fetchNearbyPois, type NearbyPoi } from '$lib/nearbyPois';
 	import { saveEntry, type QuickPhrase } from '$lib/quickPhrasesHistory';
@@ -99,8 +99,10 @@
 
 		try {
 			phase = 'locating';
-			const fresh = await refreshUserLocation();
-			const coords = fresh ?? (await waitForCoords(15000));
+			// Use a prewarmed fix if we already have one (set on mount / button hover);
+			// otherwise force a fresh lookup, then fall back to waiting for the store.
+			const coords =
+				getCurrentCoords() ?? (await refreshUserLocation()) ?? (await waitForCoords(15000));
 
 			phase = 'fetching-context';
 			const [place, pois] = await Promise.all([
@@ -190,6 +192,16 @@
 		phase = 'idle';
 	}
 
+	// Prewarm geolocation as soon as the component mounts so the browser is
+	// resolving a fix while the user reads the page — hiding the (often slow)
+	// cold GPS lookup behind their dwell time. Idempotent: requestUserLocation
+	// only triggers one lookup thanks to its internal `requested` guard, so the
+	// extra on:pointerenter/on:focus calls below are free top-ups for the case
+	// where the mount-time fix hasn't resolved yet by click time.
+	onMount(() => {
+		requestUserLocation();
+	});
+
 	onDestroy(() => {
 		if (unsubscribe) unsubscribe();
 	});
@@ -253,6 +265,8 @@
 	<button
 		type="button"
 		on:click={handleClick}
+		on:pointerenter={requestUserLocation}
+		on:focus={requestUserLocation}
 		disabled={busy || !effectiveLanguage}
 		class="w-full sm:w-auto inline-flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg shadow-lg transition-colors {onDark
 			? 'bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8'

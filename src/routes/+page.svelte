@@ -128,8 +128,8 @@
 >
 	<div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/75" aria-hidden="true"></div>
 
-	<div class="relative container mx-auto px-6 py-24 text-left text-white hero-text max-w-3xl">
-		<h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 space-y-1">
+	<div class="relative container mx-auto px-6 py-24 text-left text-white hero-text max-w-5xl">
+		<h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-10 space-y-1">
 			<div>
 				Let
 				<span class="inline-grid align-baseline text-amber-300">
@@ -146,35 +146,39 @@
 			</div>
 			</div>
 		</h1>
-		<div class="max-w-2xl mb-4">
-			<p class="text-lg md:text-xl text-white/95 mb-6 leading-relaxed">
-				Tap below to get phrases tied to what's around you right now.
-			</p>
-			<QuickPhrasesButton
-				onDark
-				{learningLanguage}
-				on:result={(e) => (quickResult = e.detail)}
-			/>
-			<QuickPhrasesResult result={quickResult} showHistory={false} />
-		</div>
 
-		<div class="mt-12 pt-8 border-t border-white/20 max-w-2xl">
-			<p class="text-lg md:text-xl text-white/95 mb-10 leading-relaxed">
-				Language learning routes guided by local bilingual teachers.
-			</p>
-			<div class="flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center sm:justify-start">
-				<button
-					on:click={scrollToRoutes}
-					class="w-56 sm:w-auto text-center bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
-				>
-					Browse routes
-				</button>
-				<a
-					href="/signup"
-					class="w-56 sm:w-auto text-center bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
-				>
-					Become a guide
-				</a>
+		<div class="grid gap-6 md:grid-cols-2 items-stretch">
+			<div class="flex flex-col bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+				<p class="text-lg md:text-xl text-white/95 mb-6 leading-relaxed">
+					Phrases tied to what's around you, right now.
+				</p>
+				<div class="mt-auto">
+					<QuickPhrasesButton
+						onDark
+						{learningLanguage}
+						on:result={(e) => (quickResult = e.detail)}
+					/>
+				</div>
+			</div>
+
+			<div class="flex flex-col bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+				<p class="text-lg md:text-xl text-white/95 mb-6 leading-relaxed">
+					Language learning routes guided by local bilingual teachers.
+				</p>
+				<div class="mt-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
+					<button
+						on:click={scrollToRoutes}
+						class="w-full sm:w-auto text-center bg-white text-slate-800 hover:bg-slate-100 font-medium py-3 px-8 rounded-lg transition-colors shadow-lg"
+					>
+						Browse routes
+					</button>
+					<a
+						href="/signup"
+						class="w-full sm:w-auto text-center bg-white/15 backdrop-blur-sm border border-white/50 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+					>
+						Become a guide
+					</a>
+				</div>
 			</div>
 		</div>
 	</div>
