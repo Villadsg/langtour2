@@ -9,6 +9,14 @@ interface NearbyPoi {
 	distanceM: number;
 }
 
+interface Weather {
+	description: string;
+	temperatureC: number;
+	apparentC: number;
+	precipitationMm: number;
+	isDay: boolean;
+}
+
 interface RequestBody {
 	language: string;
 	cefrLevel?: string;
@@ -19,6 +27,7 @@ interface RequestBody {
 	timeBucket?: string;
 	localTime?: string;
 	pois?: NearbyPoi[];
+	weather?: Weather | null;
 	instructionLanguage?: string;
 	count?: number;
 }
@@ -41,6 +50,7 @@ function buildPrompt(b: {
 	timeBucket?: string;
 	localTime?: string;
 	pois: NearbyPoi[];
+	weather?: Weather | null;
 	instructionLanguage: string;
 	count: number;
 }): string {
@@ -49,6 +59,14 @@ function buildPrompt(b: {
 	if (b.country) settingBits.push(b.country);
 	if (b.localTime) settingBits.push(`local time ${b.localTime}`);
 	if (b.timeBucket) settingBits.push(b.timeBucket);
+	if (b.weather)
+		settingBits.push(
+			`${b.weather.description}, ${b.weather.temperatureC}°C` +
+				(Math.abs(b.weather.apparentC - b.weather.temperatureC) >= 3
+					? ` (feels like ${b.weather.apparentC}°C)`
+					: '') +
+				(b.weather.precipitationMm > 0 ? `, ${b.weather.precipitationMm}mm precipitation` : '')
+		);
 	const settingLine = settingBits.length ? `Setting: ${settingBits.join(', ')}.` : '';
 
 	const poiList = b.pois.length
@@ -60,7 +78,7 @@ ${settingLine}
 Nearby places:
 ${poiList}
 
-Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the learner could use near the location in the next 30 minutes. Pick sentences that match the time of day. Vary the situations; avoid duplicates.
+Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the learner could use near the location in the next 30 minutes. Pick sentences that match the time of day and weather. Vary the situations; avoid duplicates.
 
 Output strict JSON of the form:
 { "phrases": [ { "sentence": "...", "sentenceTranslation": "..." } ] }
@@ -115,6 +133,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		timeBucket: body.timeBucket,
 		localTime: body.localTime,
 		pois: Array.isArray(body.pois) ? body.pois.slice(0, 8) : [],
+		weather: body.weather || null,
 		instructionLanguage: body.instructionLanguage || 'English',
 		count: typeof body.count === 'number' ? Math.max(3, Math.min(20, body.count)) : 10
 	};

@@ -4,6 +4,7 @@
 	import { userLocation, refreshUserLocation, requestUserLocation } from '$lib/stores/userLocation';
 	import { reverseGeocode } from '$lib/geocodingService';
 	import { fetchNearbyPois, type NearbyPoi } from '$lib/nearbyPois';
+	import { fetchCurrentWeather } from '$lib/weather';
 	import { saveEntry, type QuickPhrase } from '$lib/quickPhrasesHistory';
 
 	export let learningLanguage: string | null = null;
@@ -105,9 +106,10 @@
 				getCurrentCoords() ?? (await refreshUserLocation()) ?? (await waitForCoords(15000));
 
 			phase = 'fetching-context';
-			const [place, pois] = await Promise.all([
+			const [place, pois, weather] = await Promise.all([
 				reverseGeocode(coords.lat, coords.lng),
-				fetchNearbyPois(coords.lat, coords.lng)
+				fetchNearbyPois(coords.lat, coords.lng),
+				fetchCurrentWeather(coords.lat, coords.lng)
 			]);
 
 			const placeName = place?.placeName || 'your current location';
@@ -140,6 +142,7 @@
 					timeBucket,
 					localTime,
 					pois,
+					weather,
 					instructionLanguage
 				})
 			});
