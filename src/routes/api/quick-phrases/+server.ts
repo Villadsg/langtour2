@@ -84,11 +84,10 @@ ${settingLine}
 ${taskLine}
 
 Output ONLY minified JSON — no markdown, no code fences, no newlines, no extra spaces — of exactly this shape:
-{"p":[{"s":"...","t":"...","w":[{"x":"...","g":"..."}]}]}
+{"p":[{"s":"...","t":"..."}]}
 
 - "s" is the phrase in ${b.language}.
-- "t" is "s" translated into ${b.instructionLanguage}.
-- "w" splits "s" into its tokens in original order. Each token is an object {"x":"surface","g":"gloss"}: "x" is the exact word form as it appears in "s" (keep punctuation attached to its adjacent word); "g" is that single word's short translation into ${b.instructionLanguage} (use "" for pure punctuation).`;
+- "t" is the whole of "s" translated into ${b.instructionLanguage}.`;
 }
 
 // Compact shape: {"p":[{"s","t","w":[{"x","g"}]}]}.
@@ -231,6 +230,22 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const prompt = buildPrompt(filled);
 
+	// Hand location to the LLM-server enrichment proxy out-of-band so it can
+	// inject recent local news without us mutating the strict-JSON prompt.
+	// Initial generation only — "more on this topic" must stay on its picked
+	// subject, not drift onto news. Percent-encoded: header values are ASCII
+	// only, but city/country routinely aren't (e.g. "Málaga").
+	const enrichLocation = !filled.focusSentence && (filled.city || filled.country);
+	const extraHeaders = enrichLocation
+		? {
+				'X-Enrich': 'news',
+				...(filled.city ? { 'X-Location-City': encodeURIComponent(filled.city) } : {}),
+				...(filled.country
+					? { 'X-Location-Country': encodeURIComponent(filled.country) }
+					: {})
+			}
+		: undefined;
+
 	if (dev) {
 		console.log('\n────── /api/quick-phrases ──────');
 		console.log('[system]');
@@ -240,9 +255,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.log('────────────────────────────────\n');
 	}
 
-	// Compact minified output runs ~120-180 tok/phrase; cap with headroom so a
-	// pathological run is bounded but a normal one is never truncated.
-	const maxTokens = Math.min(3000, 256 + filled.count * 200);
+	// Sentence + translation only (no per-word breakdown) runs ~40-70 tok/phrase;
+	// cap with headroom so a pathological run is bounded but a normal one is never
+	// truncated.
+	const maxTokens = Math.min(2000, 256 + filled.count * 100);
 	const encoder = new TextEncoder();
 
 	const stream = new ReadableStream({
@@ -259,7 +275,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			try {
 				for await (const delta of callLlmStream(
-					{ prompt, system: SYSTEM_PROMPT, temperature: 0.3, maxTokens },
+					{ prompt, system: SYSTEM_PROMPT, temperature: 0.3, maxTokens, extraHeaders },
 					meta
 				)) {
 					buf += delta;

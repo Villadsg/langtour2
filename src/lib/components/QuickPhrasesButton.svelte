@@ -9,10 +9,11 @@
 
 	export let learningLanguage: string | null = null;
 	export let instructionLanguage: string = 'English';
-	export let cefrLevel: string = 'A2';
+	export let cefrLevel: string = 'B2';
 	export let onDark: boolean = false;
 
 	const LANGUAGE_OPTIONS = [
+		'English',
 		'Spanish',
 		'French',
 		'Italian',
@@ -33,6 +34,7 @@
 	const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 	const LANG_STORAGE_KEY = 'lastQuickPhrasesLanguage';
+	const SPEAK_STORAGE_KEY = 'lastQuickPhrasesSpeakLanguage';
 
 	type Phase = 'idle' | 'locating' | 'fetching-context' | 'error';
 	let phase: Phase = 'idle';
@@ -41,7 +43,16 @@
 		learningLanguage ||
 		(typeof localStorage !== 'undefined' ? localStorage.getItem(LANG_STORAGE_KEY) || '' : '');
 
+	// The language the user already speaks — used for translations and word
+	// glosses. Defaults to the `instructionLanguage` prop but the picker lets a
+	// non-English speaker (e.g. a Spanish speaker learning English) override it.
+	let pickedSpeakLanguage: string =
+		(typeof localStorage !== 'undefined'
+			? localStorage.getItem(SPEAK_STORAGE_KEY) || ''
+			: '') || instructionLanguage;
+
 	$: effectiveLanguage = learningLanguage || pickedLanguage;
+	$: effectiveInstructionLanguage = pickedSpeakLanguage || instructionLanguage;
 	$: needsPicker = !learningLanguage;
 
 	function getCurrentCoords(): { lat: number; lng: number } | null {
@@ -120,9 +131,10 @@
 					: 'late night';
 			const localTime = `${String(h).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-			if (typeof localStorage !== 'undefined' && !learningLanguage) {
+			if (typeof localStorage !== 'undefined') {
 				try {
-					localStorage.setItem(LANG_STORAGE_KEY, effectiveLanguage);
+					if (!learningLanguage) localStorage.setItem(LANG_STORAGE_KEY, effectiveLanguage);
+					localStorage.setItem(SPEAK_STORAGE_KEY, effectiveInstructionLanguage);
 				} catch {
 					/* ignore */
 				}
@@ -130,7 +142,7 @@
 
 			const context: GenerationContext = {
 				cefrLevel,
-				instructionLanguage,
+				instructionLanguage: effectiveInstructionLanguage,
 				city,
 				country,
 				timeBucket,
@@ -161,7 +173,7 @@
 					timeBucket,
 					localTime,
 					weather,
-					instructionLanguage
+					instructionLanguage: effectiveInstructionLanguage
 				}
 			});
 
@@ -229,6 +241,25 @@
 				</span>
 			</label>
 		{/if}
+		<label class="text-sm flex items-center gap-2 {onDark ? 'text-white/90' : 'text-slate-600'}">
+			I speak:
+			<span class="relative inline-flex items-center">
+				<select
+					bind:value={pickedSpeakLanguage}
+					disabled={busy}
+					class="appearance-none rounded-md pl-2 pr-8 py-1 {onDark
+						? 'bg-white/15 backdrop-blur-sm border border-white/50 text-white [&>option]:text-slate-800'
+						: 'border border-slate-300 bg-white text-slate-800'}"
+				>
+					{#each LANGUAGE_OPTIONS as lang}
+						<option value={lang}>{lang}</option>
+					{/each}
+				</select>
+				<svg class="pointer-events-none absolute right-2 h-4 w-4 {onDark ? 'text-white/80' : 'text-slate-500'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+				</svg>
+			</span>
+		</label>
 		<label class="text-sm flex items-center gap-2 {onDark ? 'text-white/90' : 'text-slate-600'}">
 			Level:
 			<span class="relative inline-flex items-center">

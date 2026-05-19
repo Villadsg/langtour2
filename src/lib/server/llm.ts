@@ -17,6 +17,8 @@ export interface CallLlmOptions {
 	timeoutMs?: number;
 	/** Append " /no_think" to the user prompt to suppress Qwen's reasoning preamble. Default: true. */
 	noThink?: boolean;
+	/** Extra per-request HTTP headers forwarded to the OpenAI-compatible endpoint (e.g. an enrichment proxy). */
+	extraHeaders?: Record<string, string>;
 }
 
 export interface CallLlmUsage {
@@ -122,7 +124,8 @@ export async function callLlm({
 	temperature,
 	maxTokens,
 	timeoutMs,
-	noThink = true
+	noThink = true,
+	extraHeaders
 }: CallLlmOptions): Promise<CallLlmResult> {
 	const { url, apiKey, model, envTimeout } = resolveConfig();
 	const effectiveTimeout = timeoutMs ?? (Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : DEFAULT_TIMEOUT_MS);
@@ -149,7 +152,8 @@ export async function callLlm({
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {})
+				...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+				...extraHeaders
 			},
 			body: JSON.stringify(body),
 			signal: AbortSignal.timeout(effectiveTimeout)
@@ -207,7 +211,8 @@ export async function* callLlmStream(
 		temperature,
 		maxTokens,
 		timeoutMs,
-		noThink = true
+		noThink = true,
+		extraHeaders
 	}: CallLlmOptions,
 	meta?: Partial<CallLlmStreamMeta>
 ): AsyncGenerator<string, void, unknown> {
@@ -238,7 +243,8 @@ export async function* callLlmStream(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {})
+				...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+				...extraHeaders
 			},
 			body: JSON.stringify(body),
 			signal: AbortSignal.timeout(effectiveTimeout)
