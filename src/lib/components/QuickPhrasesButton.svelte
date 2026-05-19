@@ -1,26 +1,16 @@
 <script lang="ts">
-	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { userLocation, refreshUserLocation, requestUserLocation } from '$lib/stores/userLocation';
+	import { userLocation, locateOnce, requestUserLocation } from '$lib/stores/userLocation';
 	import { reverseGeocode } from '$lib/geocodingService';
-	import { fetchNearbyPois, type NearbyPoi } from '$lib/nearbyPois';
 	import { fetchCurrentWeather } from '$lib/weather';
-	import { saveEntry, type QuickPhrase } from '$lib/quickPhrasesHistory';
+	import type { GenerationContext } from '$lib/quickPhrasesHistory';
+	import { putPending } from '$lib/quickPhrasesPending';
 
 	export let learningLanguage: string | null = null;
 	export let instructionLanguage: string = 'English';
 	export let cefrLevel: string = 'A2';
 	export let onDark: boolean = false;
-
-	const dispatch = createEventDispatcher<{
-		result: {
-			phrases: QuickPhrase[];
-			placeName: string;
-			address: string;
-			language: string;
-			generatedAt: number;
-		};
-	}>();
 
 	const LANGUAGE_OPTIONS = [
 		'Spanish',
@@ -44,7 +34,7 @@
 
 	const LANG_STORAGE_KEY = 'lastQuickPhrasesLanguage';
 
-	type Phase = 'idle' | 'locating' | 'fetching-context' | 'generating' | 'error';
+	type Phase = 'idle' | 'locating' | 'fetching-context' | 'error';
 	let phase: Phase = 'idle';
 	let errorMsg = '';
 	let pickedLanguage: string =
@@ -53,32 +43,6 @@
 
 	$: effectiveLanguage = learningLanguage || pickedLanguage;
 	$: needsPicker = !learningLanguage;
-
-	let unsubscribe: (() => void) | null = null;
-
-	function waitForCoords(timeoutMs: number): Promise<{ lat: number; lng: number }> {
-		return new Promise((resolve, reject) => {
-			const existing = getCurrentCoords();
-			if (existing) {
-				resolve(existing);
-				return;
-			}
-			const timer = setTimeout(() => {
-				if (unsubscribe) unsubscribe();
-				unsubscribe = null;
-				reject(new Error('Location request timed out. Check that location permission is allowed.'));
-			}, timeoutMs);
-
-			unsubscribe = userLocation.subscribe((coords) => {
-				if (coords) {
-					clearTimeout(timer);
-					if (unsubscribe) unsubscribe();
-					unsubscribe = null;
-					resolve(coords);
-				}
-			});
-		});
-	}
 
 	function getCurrentCoords(): { lat: number; lng: number } | null {
 		let snapshot: { lat: number; lng: number } | null = null;
@@ -99,18 +63,46 @@
 		}
 
 		try {
+			const tClickStart = performance.now();
 			phase = 'locating';
-			// Use a prewarmed fix if we already have one (set on mount / button hover);
-			// otherwise force a fresh lookup, then fall back to waiting for the store.
-			const coords =
-				getCurrentCoords() ?? (await refreshUserLocation()) ?? (await waitForCoords(15000));
+			// Use a prewarmed fix if we already have one (set on mount / button hover).
+			let coords = getCurrentCoords();
+			if (!coords) {
+				// No prewarmed fix — do one fresh lookup. locateOnce reports *why*
+				// it failed; on a denied permission the browser fires the error
+				// callback almost immediately, so this returns fast instead of
+				// hanging on a timeout. If only dismissed (not hard-blocked) the
+				// native prompt re-appears here.
+				const result = await locateOnce();
+				if (!result.ok) {
+					throw new Error(
+						result.reason === 'denied'
+							? 'Location is blocked for this site. Tap the location/lock icon in your browser’s address bar, allow Location for this site, then try again.'
+							: result.reason === 'unsupported'
+								? 'Your browser does not support geolocation.'
+								: result.reason === 'timeout'
+									? 'Couldn’t get a location fix in time. Move somewhere with a clearer signal and try again.'
+									: 'Your location is currently unavailable. Check that location services are on, then try again.'
+					);
+				}
+				coords = result.coords;
+			}
+
+			const locateMs = Math.round(performance.now() - tClickStart);
 
 			phase = 'fetching-context';
-			const [place, pois, weather] = await Promise.all([
-				reverseGeocode(coords.lat, coords.lng),
-				fetchNearbyPois(coords.lat, coords.lng),
-				fetchCurrentWeather(coords.lat, coords.lng)
+			const timed = <T>(p: Promise<T>): Promise<{ v: T; ms: number }> => {
+				const s = performance.now();
+				return p.then((v) => ({ v, ms: Math.round(performance.now() - s) }));
+			};
+			const tContextStart = performance.now();
+			const [placeR, weatherR] = await Promise.all([
+				timed(reverseGeocode(coords.lat, coords.lng)),
+				timed(fetchCurrentWeather(coords.lat, coords.lng))
 			]);
+			const place = placeR.v;
+			const weather = weatherR.v;
+			const contextMs = Math.round(performance.now() - tContextStart);
 
 			const placeName = place?.placeName || 'your current location';
 			const address = place?.address || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
@@ -128,36 +120,6 @@
 					: 'late night';
 			const localTime = `${String(h).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-			phase = 'generating';
-			const res = await fetch('/api/quick-phrases', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					language: effectiveLanguage,
-					cefrLevel,
-					placeName,
-					address,
-					city,
-					country,
-					timeBucket,
-					localTime,
-					pois,
-					weather,
-					instructionLanguage
-				})
-			});
-
-			if (!res.ok) {
-				const text = await res.text().catch(() => '');
-				throw new Error(
-					res.status >= 500
-						? 'The phrase generator is temporarily unavailable. Try again in a moment.'
-						: text || `Request failed (${res.status})`
-				);
-			}
-
-			const data = (await res.json()) as { phrases: QuickPhrase[]; generatedAt: number };
-
 			if (typeof localStorage !== 'undefined' && !learningLanguage) {
 				try {
 					localStorage.setItem(LANG_STORAGE_KEY, effectiveLanguage);
@@ -166,24 +128,52 @@
 				}
 			}
 
-			const saved = saveEntry({
+			const context: GenerationContext = {
+				cefrLevel,
+				instructionLanguage,
+				city,
+				country,
+				timeBucket,
+				localTime,
+				weather
+			};
+
+			const id =
+				typeof crypto !== 'undefined' && crypto.randomUUID
+					? crypto.randomUUID()
+					: `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+			// Hand the gathered context to the detail page; it runs the
+			// streaming LLM request and persists on completion.
+			putPending({
+				id,
 				placeName,
 				address,
 				language: effectiveLanguage,
-				generatedAt: data.generatedAt,
-				phrases: data.phrases
+				context,
+				body: {
+					language: effectiveLanguage,
+					cefrLevel,
+					placeName,
+					address,
+					city,
+					country,
+					timeBucket,
+					localTime,
+					weather,
+					instructionLanguage
+				}
 			});
 
-			dispatch('result', {
-				phrases: data.phrases,
-				placeName,
-				address,
-				language: effectiveLanguage,
-				generatedAt: data.generatedAt
-			});
+			if (import.meta.env.DEV) {
+				console.log(
+					`[quick-phrases timing] locate ${locateMs}ms + context ${contextMs}ms` +
+						` (geocode ${placeR.ms} / weather ${weatherR.ms}) — streaming on /phrases/${id}`
+				);
+			}
 
 			phase = 'idle';
-			await goto(`/phrases/${saved.id}`);
+			await goto(`/phrases/${id}`);
 		} catch (err: any) {
 			phase = 'error';
 			errorMsg = err?.message || 'Something went wrong.';
@@ -205,19 +195,14 @@
 		requestUserLocation();
 	});
 
-	onDestroy(() => {
-		if (unsubscribe) unsubscribe();
-	});
 
-	$: busy = phase === 'locating' || phase === 'fetching-context' || phase === 'generating';
+	$: busy = phase === 'locating' || phase === 'fetching-context';
 	$: buttonLabel =
 		phase === 'locating'
 			? 'Finding you…'
 			: phase === 'fetching-context'
 				? 'Looking around…'
-				: phase === 'generating'
-					? 'Generating phrases…'
-					: 'Phrases from here';
+				: 'Phrases from here';
 </script>
 
 <div class="flex flex-col gap-3 w-full {onDark ? 'items-stretch sm:items-start' : 'items-center'}">

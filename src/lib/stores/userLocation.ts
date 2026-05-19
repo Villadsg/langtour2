@@ -9,6 +9,20 @@ export const userLocation = writable<UserCoords | null>(null);
 
 let requested = false;
 
+/**
+ * Dev-only simulated location. Set `VITE_SIMULATED_LOCATION="lat,lng"` in
+ * `.env.local` to bypass the browser geolocation API entirely. Guarded by
+ * `import.meta.env.DEV` so it can never reach a production build.
+ */
+const DEV_COORDS: UserCoords | null = (() => {
+	const raw = import.meta.env.VITE_SIMULATED_LOCATION;
+	if (import.meta.env.DEV && raw) {
+		const [lat, lng] = String(raw).split(',').map(Number);
+		if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+	}
+	return null;
+})();
+
 const HIGH_ACCURACY_OPTIONS: PositionOptions = {
 	enableHighAccuracy: true,
 	maximumAge: 60000,
@@ -18,6 +32,10 @@ const HIGH_ACCURACY_OPTIONS: PositionOptions = {
 export function requestUserLocation() {
 	if (requested) return;
 	requested = true;
+	if (DEV_COORDS) {
+		userLocation.set(DEV_COORDS);
+		return;
+	}
 	if (typeof navigator !== 'undefined' && navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(
 			(pos) => {
@@ -29,10 +47,23 @@ export function requestUserLocation() {
 	}
 }
 
-/** Force a fresh high-accuracy lookup, ignoring any previously cached result. */
-export function refreshUserLocation(): Promise<UserCoords | null> {
+export type LocateResult =
+	| { ok: true; coords: UserCoords }
+	| { ok: false; reason: 'denied' | 'unavailable' | 'timeout' | 'unsupported' };
+
+/**
+ * Force a fresh high-accuracy lookup, ignoring any previously cached result,
+ * and report *why* it failed. On a denied permission the browser invokes the
+ * error callback almost immediately (code 1), so callers get a fast, definitive
+ * answer instead of waiting out a timeout.
+ */
+export function locateOnce(): Promise<LocateResult> {
+	if (DEV_COORDS) {
+		userLocation.set(DEV_COORDS);
+		return Promise.resolve({ ok: true, coords: DEV_COORDS });
+	}
 	if (typeof navigator === 'undefined' || !navigator.geolocation) {
-		return Promise.resolve(null);
+		return Promise.resolve({ ok: false, reason: 'unsupported' });
 	}
 	requested = true;
 	return new Promise((resolve) => {
@@ -40,15 +71,32 @@ export function refreshUserLocation(): Promise<UserCoords | null> {
 			(pos) => {
 				const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 				userLocation.set(coords);
-				resolve(coords);
+				resolve({ ok: true, coords });
 			},
-			() => resolve(null),
+			(err) => {
+				const reason =
+					err.code === err.PERMISSION_DENIED
+						? 'denied'
+						: err.code === err.TIMEOUT
+							? 'timeout'
+							: 'unavailable';
+				resolve({ ok: false, reason });
+			},
 			{ ...HIGH_ACCURACY_OPTIONS, maximumAge: 0 }
 		);
 	});
 }
 
+/** Force a fresh high-accuracy lookup, ignoring any previously cached result. */
+export function refreshUserLocation(): Promise<UserCoords | null> {
+	return locateOnce().then((r) => (r.ok ? r.coords : null));
+}
+
 export function watchUserLocation(): number | null {
+	if (DEV_COORDS) {
+		userLocation.set(DEV_COORDS);
+		return null;
+	}
 	if (typeof navigator === 'undefined' || !navigator.geolocation) return null;
 	return navigator.geolocation.watchPosition(
 		(pos) => userLocation.set({ lat: pos.coords.latitude, lng: pos.coords.longitude }),

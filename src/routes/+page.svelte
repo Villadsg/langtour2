@@ -8,7 +8,6 @@
 	import QuickPhrasesButton from '$lib/components/QuickPhrasesButton.svelte';
 	import QuickPhrasesResult from '$lib/components/QuickPhrasesResult.svelte';
 	import type { TourListTour } from '$lib/components/TourListItem.svelte';
-	import type { QuickPhrase } from '$lib/quickPhrasesHistory';
 
 	import { text } from '$lib/styles/DesignSystem.svelte';
 	import { getTourData, getStops } from '$lib/tourValidation';
@@ -106,14 +105,6 @@
 	}
 
 	$: syncLearningLanguage(currentUserId);
-
-	let quickResult: {
-		phrases: QuickPhrase[];
-		placeName: string;
-		address: string;
-		language: string;
-		generatedAt: number;
-	} | null = null;
 </script>
 
 <svelte:head>
@@ -153,11 +144,7 @@
 					Phrases tied to what's around you, right now.
 				</p>
 				<div class="mt-auto">
-					<QuickPhrasesButton
-						onDark
-						{learningLanguage}
-						on:result={(e) => (quickResult = e.detail)}
-					/>
+					<QuickPhrasesButton onDark {learningLanguage} />
 				</div>
 			</div>
 
@@ -201,11 +188,8 @@
 		<p class="text-slate-500 mb-6">
 			Tap below to get phrases tied to what's around you right now.
 		</p>
-		<QuickPhrasesButton
-			{learningLanguage}
-			on:result={(e) => (quickResult = e.detail)}
-		/>
-		<QuickPhrasesResult result={quickResult} />
+		<QuickPhrasesButton {learningLanguage} />
+		<QuickPhrasesResult />
 	</div>
 </Section>
 {/if}

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import PhraseList from '$lib/components/PhraseList.svelte';
 	import {
 		loadHistory,
 		clearHistory,
 		type HistoryEntry,
-		type QuickPhrase
+		type QuickPhrase,
+		type GenerationContext
 	} from '$lib/quickPhrasesHistory';
 
 	export let result: {
@@ -13,6 +15,7 @@
 		address: string;
 		language: string;
 		generatedAt: number;
+		context?: GenerationContext;
 	} | null = null;
 	export let showHistory: boolean = true;
 
@@ -39,7 +42,8 @@
 				placeName: viewing.placeName,
 				address: viewing.address,
 				language: viewing.language,
-				generatedAt: viewing.generatedAt
+				generatedAt: viewing.generatedAt,
+				context: viewing.context
 			}
 		: result;
 
@@ -71,16 +75,13 @@
 			{/if}
 		</div>
 
-		<ul class="space-y-2">
-			{#each shown.phrases as p, i (i)}
-				<li class="bg-white border border-slate-200 rounded-lg px-4 py-3">
-					<p class="text-slate-900">{p.sentence}</p>
-					{#if p.sentenceTranslation}
-						<p class="text-sm text-slate-500 italic">{p.sentenceTranslation}</p>
-					{/if}
-				</li>
-			{/each}
-		</ul>
+		<PhraseList
+			phrases={shown.phrases}
+			placeName={shown.placeName}
+			address={shown.address}
+			language={shown.language}
+			context={shown.context}
+		/>
 
 		{#if viewing}
 			<button
