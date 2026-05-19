@@ -84,10 +84,11 @@ ${settingLine}
 ${taskLine}
 
 Output ONLY minified JSON — no markdown, no code fences, no newlines, no extra spaces — of exactly this shape:
-{"p":[{"s":"...","t":"..."}]}
+{"p":[{"s":"...","t":"...","w":[{"x":"...","g":"..."}]}]}
 
 - "s" is the phrase in ${b.language}.
-- "t" is the whole of "s" translated into ${b.instructionLanguage}.`;
+- "t" is "s" translated into ${b.instructionLanguage}.
+- "w" splits "s" into its tokens in original order. Each token is an object {"x":"surface","g":"gloss"}: "x" is the exact word form as it appears in "s" (keep punctuation attached to its adjacent word); "g" is that single word's short translation into ${b.instructionLanguage} (use "" for pure punctuation).`;
 }
 
 // Compact shape: {"p":[{"s","t","w":[{"x","g"}]}]}.
@@ -255,10 +256,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.log('────────────────────────────────\n');
 	}
 
-	// Sentence + translation only (no per-word breakdown) runs ~40-70 tok/phrase;
-	// cap with headroom so a pathological run is bounded but a normal one is never
-	// truncated.
-	const maxTokens = Math.min(2000, 256 + filled.count * 100);
+	// Compact minified output runs ~120-180 tok/phrase; cap with headroom so a
+	// pathological run is bounded but a normal one is never truncated.
+	const maxTokens = Math.min(3000, 256 + filled.count * 200);
 	const encoder = new TextEncoder();
 
 	const stream = new ReadableStream({
