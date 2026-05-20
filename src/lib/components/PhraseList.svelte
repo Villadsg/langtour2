@@ -14,6 +14,10 @@
 	let focusLabel: string | null = null;
 	let loading = false;
 	let errorMsg = '';
+	// Counts consecutive "more on this topic" drills since the last reset.
+	// Sent to the server so each drill on the same chain escalates variety /
+	// daringness, fighting the "every regeneration looks the same" problem.
+	let drillDepth = 0;
 
 	// Reset whenever the source set changes (new generation, switching history
 	// entries). Keyed on the array reference: regenerate() only reassigns
@@ -24,6 +28,7 @@
 		shownPhrases = phrases;
 		focusLabel = null;
 		errorMsg = '';
+		drillDepth = 0;
 	}
 
 	async function regenerate(phrase: QuickPhrase) {
@@ -33,6 +38,8 @@
 		const tStart = performance.now();
 		const prevShown = shownPhrases;
 		const prevFocus = focusLabel;
+		const prevDepth = drillDepth;
+		const nextDepth = drillDepth + 1;
 		const streamed: QuickPhrase[] = [];
 		let streamError: string | null = null;
 		let finalized = false;
@@ -53,7 +60,8 @@
 					localTime: context?.localTime,
 					weather: context?.weather,
 					focusSentence: phrase.sentence,
-					focusTranslation: phrase.sentenceTranslation
+					focusTranslation: phrase.sentenceTranslation,
+					depth: nextDepth
 				})
 			});
 			if (!res.ok) {
@@ -88,9 +96,10 @@
 			if (!finalized || !shownPhrases.length) {
 				throw new Error('No phrases came back. Try another one.');
 			}
+			drillDepth = nextDepth;
 			if (import.meta.env.DEV) {
 				console.log(
-					`[quick-phrases timing] topic regenerate ${Math.round(
+					`[quick-phrases timing] topic regenerate depth=${nextDepth} ${Math.round(
 						performance.now() - tStart
 					)}ms total | first phrase ${firstAt ? Math.round(firstAt - tStart) : '?'}ms`
 				);
@@ -99,6 +108,7 @@
 			errorMsg = err?.message || 'Something went wrong.';
 			shownPhrases = prevShown;
 			focusLabel = prevFocus;
+			drillDepth = prevDepth;
 		} finally {
 			loading = false;
 		}
@@ -108,6 +118,7 @@
 		shownPhrases = rootPhrases;
 		focusLabel = null;
 		errorMsg = '';
+		drillDepth = 0;
 	}
 
 	function onRowKey(e: KeyboardEvent, phrase: QuickPhrase) {

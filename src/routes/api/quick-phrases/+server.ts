@@ -25,6 +25,7 @@ interface RequestBody {
 	count?: number;
 	focusSentence?: string;
 	focusTranslation?: string;
+	depth?: number;
 }
 
 interface PhraseWord {
@@ -55,6 +56,7 @@ function buildPrompt(b: {
 	count: number;
 	focusSentence?: string;
 	focusTranslation?: string;
+	depth: number;
 }): string {
 	const settingBits: string[] = [];
 	if (b.city) settingBits.push(b.city);
@@ -72,10 +74,20 @@ function buildPrompt(b: {
 	const settingLine = settingBits.length ? `Setting: ${settingBits.join(', ')}.` : '';
 
 	const focus = b.focusSentence?.trim();
+	// Each consecutive drill on the same topic asks for a bolder, less obvious
+	// set than the previous one — fights "every regeneration looks the same"
+	// without losing the topic anchor. Levels are clamped at 3+.
+	const daringLine = focus && b.depth >= 1
+		? b.depth === 1
+			? ' Push past the obvious phrasings: use less common vocabulary and richer expressions than a beginner would default to, while staying natural.'
+			: b.depth === 2
+				? ' Be noticeably bolder than typical textbook phrasings: idiomatic turns, surprising angles on the same subject, more expressive register.'
+				: ' Go adventurous: idioms, colloquialisms, vivid imagery, unexpected sub-scenarios within the same subject — still grammatical and still usable in this situation.'
+		: '';
 	const taskLine = focus
 		? `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that stay on the exact same topic and situation as this phrase the learner just picked: "${focus}"${
 				b.focusTranslation?.trim() ? ` (meaning: "${b.focusTranslation.trim()}")` : ''
-			}. Keep that subject; vary the wording, vocabulary and sub-scenarios but do not drift to other situations. Stay consistent with the time of day and weather. Avoid duplicates and do not repeat the picked phrase verbatim.`
+			}. Keep that subject; vary the wording, vocabulary and sub-scenarios but do not drift to other situations. Stay consistent with the time of day and weather. Avoid duplicates and do not repeat the picked phrase verbatim.${daringLine}`
 		: `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the learner could use near the location in the next 30 minutes. Pick sentences that match the time of day and weather. Vary the situations; avoid duplicates.`;
 
 	return `The learner is at "${b.placeName}" (${b.address}).
@@ -226,7 +238,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		count: typeof body.count === 'number' ? Math.max(3, Math.min(20, body.count)) : 4,
 		focusSentence: typeof body.focusSentence === 'string' ? body.focusSentence : undefined,
 		focusTranslation:
-			typeof body.focusTranslation === 'string' ? body.focusTranslation : undefined
+			typeof body.focusTranslation === 'string' ? body.focusTranslation : undefined,
+		depth:
+			typeof body.depth === 'number' && body.depth > 0 ? Math.min(5, Math.floor(body.depth)) : 0
 	};
 
 	const prompt = buildPrompt(filled);
@@ -275,7 +289,15 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			try {
 				for await (const delta of callLlmStream(
-					{ prompt, system: SYSTEM_PROMPT, temperature: 0.3, maxTokens, extraHeaders },
+					{
+					prompt,
+					system: SYSTEM_PROMPT,
+					// Drills get a bit more entropy on top of the bolder prompt
+					// so the daring instructions actually surface in sampling.
+					temperature: Math.min(0.9, 0.3 + filled.depth * 0.15),
+					maxTokens,
+					extraHeaders
+				},
 					meta
 				)) {
 					buf += delta;

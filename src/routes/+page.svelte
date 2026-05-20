@@ -120,22 +120,20 @@
 	<div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/75" aria-hidden="true"></div>
 
 	<div class="relative container mx-auto px-6 py-24 text-left text-white hero-text max-w-5xl">
-		<h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-10 space-y-1">
-			<div>
-				Let
-				<span class="inline-grid align-baseline text-amber-300">
-					{#key hero.city}
-						<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.city}</span>
-					{/key}
-				</span>
-			</div>
-			<div>teach you
-			<div class="inline-grid text-amber-300">
+		<h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-10">
+			Let
+			<span class="inline-grid align-baseline text-amber-300" translate="no">
+				{#key hero.city}
+					<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.city}</span>
+				{/key}
+			</span>
+			<br>
+			teach you
+			<span class="inline-grid align-baseline text-amber-300" translate="no">
 				{#key hero.language}
 					<span style="grid-area: 1 / 1" in:fade={{ duration: 600 }} out:fade={{ duration: 600 }}>{hero.language}</span>
 				{/key}
-			</div>
-			</div>
+			</span>
 		</h1>
 
 		<div class="grid gap-6 md:grid-cols-2 items-stretch">
