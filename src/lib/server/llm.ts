@@ -159,12 +159,12 @@ export async function callLlm({
 			signal: AbortSignal.timeout(effectiveTimeout)
 		});
 	} catch (err: any) {
-		throw new LlmError(503, `LLM server unreachable at ${url}: ${err.message || err}`);
+		throw new LlmError(503, 'The language model is offline right now. Please try again in a moment.');
 	}
 
 	if (!res.ok) {
 		const bodyText = await res.text().catch(() => '');
-		throw new LlmError(res.status, `LLM server error: ${bodyText.slice(0, 500)}`);
+		throw new LlmError(res.status, formatUpstreamError(res.status, bodyText));
 	}
 
 	const data = await res.json().catch(() => null);
@@ -250,12 +250,12 @@ export async function* callLlmStream(
 			signal: AbortSignal.timeout(effectiveTimeout)
 		});
 	} catch (err: any) {
-		throw new LlmError(503, `LLM server unreachable at ${url}: ${err.message || err}`);
+		throw new LlmError(503, 'The language model is offline right now. Please try again in a moment.');
 	}
 
 	if (!res.ok || !res.body) {
 		const bodyText = await res.text().catch(() => '');
-		throw new LlmError(res.status || 502, `LLM server error: ${bodyText.slice(0, 500)}`);
+		throw new LlmError(res.status || 502, formatUpstreamError(res.status, bodyText));
 	}
 
 	const reader = res.body.getReader();
@@ -312,6 +312,24 @@ export async function* callLlmStream(
 			meta.strippedChars = strippedChars;
 		}
 	}
+}
+
+function formatUpstreamError(status: number, bodyText: string): string {
+	const looksHtml = /<!doctype html|<html[\s>]/i.test(bodyText);
+	// Cloudflare tunnel down / origin offline → 502/503/504 with an HTML error page.
+	if (looksHtml || status === 502 || status === 503 || status === 504) {
+		return 'The language model is offline right now. Please try again in a moment.';
+	}
+	if (status === 401 || status === 403) {
+		return 'The language model rejected the request (authentication issue).';
+	}
+	if (status === 429) {
+		return 'The language model is rate-limiting requests. Please wait a moment and try again.';
+	}
+	const snippet = bodyText.trim().slice(0, 200);
+	return snippet
+		? `Language model error (${status}): ${snippet}`
+		: `Language model error (${status}).`;
 }
 
 function stripThinking(text: string): string {

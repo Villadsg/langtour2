@@ -14,10 +14,19 @@
 	let focusLabel: string | null = null;
 	let loading = false;
 	let errorMsg = '';
-	// Counts consecutive "more on this topic" drills since the last reset.
-	// Sent to the server so each drill on the same chain escalates variety /
-	// daringness, fighting the "every regeneration looks the same" problem.
-	let drillDepth = 0;
+	// Picks so far (oldest → newest). Each pick is evidence about what the
+	// learner is actually doing; the server uses the chain to narrow its
+	// hypothesis on the next round.
+	let chain: { sentence: string; translation: string }[] = [];
+
+	interface Situation {
+		reading: string;
+		readingTranslation: string;
+		suggestions: string[];
+		suggestionsTranslation: string[];
+	}
+	let situation: Situation | null = null;
+	let situationLoading = false;
 
 	// Reset whenever the source set changes (new generation, switching history
 	// entries). Keyed on the array reference: regenerate() only reassigns
@@ -28,7 +37,8 @@
 		shownPhrases = phrases;
 		focusLabel = null;
 		errorMsg = '';
-		drillDepth = 0;
+		chain = [];
+		situation = null;
 	}
 
 	async function regenerate(phrase: QuickPhrase) {
@@ -38,8 +48,11 @@
 		const tStart = performance.now();
 		const prevShown = shownPhrases;
 		const prevFocus = focusLabel;
-		const prevDepth = drillDepth;
-		const nextDepth = drillDepth + 1;
+		const prevChain = chain;
+		const nextChain = [
+			...chain,
+			{ sentence: phrase.sentence, translation: phrase.sentenceTranslation }
+		];
 		const streamed: QuickPhrase[] = [];
 		let streamError: string | null = null;
 		let finalized = false;
@@ -59,9 +72,7 @@
 					timeBucket: context?.timeBucket,
 					localTime: context?.localTime,
 					weather: context?.weather,
-					focusSentence: phrase.sentence,
-					focusTranslation: phrase.sentenceTranslation,
-					depth: nextDepth
+					chain: nextChain
 				})
 			});
 			if (!res.ok) {
@@ -96,10 +107,10 @@
 			if (!finalized || !shownPhrases.length) {
 				throw new Error('No phrases came back. Try another one.');
 			}
-			drillDepth = nextDepth;
+			chain = nextChain;
 			if (import.meta.env.DEV) {
 				console.log(
-					`[quick-phrases timing] topic regenerate depth=${nextDepth} ${Math.round(
+					`[quick-phrases timing] topic regenerate chain=${nextChain.length} ${Math.round(
 						performance.now() - tStart
 					)}ms total | first phrase ${firstAt ? Math.round(firstAt - tStart) : '?'}ms`
 				);
@@ -108,7 +119,7 @@
 			errorMsg = err?.message || 'Something went wrong.';
 			shownPhrases = prevShown;
 			focusLabel = prevFocus;
-			drillDepth = prevDepth;
+			chain = prevChain;
 		} finally {
 			loading = false;
 		}
@@ -118,7 +129,48 @@
 		shownPhrases = rootPhrases;
 		focusLabel = null;
 		errorMsg = '';
-		drillDepth = 0;
+		chain = [];
+		situation = null;
+	}
+
+	async function readSituation() {
+		if (situationLoading || chain.length < 2) return;
+		situationLoading = true;
+		errorMsg = '';
+		try {
+			const res = await fetch('/api/compose-situation', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					language,
+					placeName,
+					address,
+					cefrLevel: context?.cefrLevel,
+					instructionLanguage: context?.instructionLanguage,
+					city: context?.city,
+					country: context?.country,
+					timeBucket: context?.timeBucket,
+					localTime: context?.localTime,
+					weather: context?.weather,
+					chain
+				})
+			});
+			if (!res.ok) {
+				const text = await res.text().catch(() => '');
+				throw new Error(
+					res.status >= 500
+						? 'The situation reader is temporarily unavailable. Try again in a moment.'
+						: text || `Request failed (${res.status})`
+				);
+			}
+			const data = await res.json();
+			if (!data?.situation) throw new Error('No situation came back.');
+			situation = data.situation as Situation;
+		} catch (err: any) {
+			errorMsg = err?.message || 'Something went wrong.';
+		} finally {
+			situationLoading = false;
+		}
 	}
 
 	function onRowKey(e: KeyboardEvent, phrase: QuickPhrase) {
@@ -142,6 +194,13 @@
 			← Back to all phrases
 		</button>
 	</div>
+{:else}
+	<p class="mb-3 text-sm text-emerald-700 flex items-center gap-1">
+		<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M15 10l5 5-5 5M4 4h7a5 5 0 015 5v6" />
+		</svg>
+		Tap any phrase
+	</p>
 {/if}
 
 <ul class="space-y-2" class:opacity-60={loading} class:pointer-events-none={loading}>
@@ -154,9 +213,21 @@
 				title="Tap for 4 more on this topic"
 				on:click={() => regenerate(p)}
 				on:keydown={(e) => onRowKey(e, p)}
-				class="cursor-pointer bg-white border border-slate-200 rounded-lg px-4 py-3 transition-colors hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+				class="group cursor-pointer bg-white border border-slate-200 rounded-lg px-4 py-3 transition-colors hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-300 flex items-center gap-3"
 			>
-				<PhraseLine phrase={p} />
+				<div class="flex-1 min-w-0">
+					<PhraseLine phrase={p} />
+				</div>
+				<svg
+					class="h-5 w-5 flex-shrink-0 text-slate-300 group-hover:text-emerald-500 transition-colors"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+				</svg>
 			</div>
 		</li>
 	{/each}
@@ -181,5 +252,58 @@
 			class="text-amber-700 hover:text-amber-900"
 			aria-label="Dismiss">×</button
 		>
+	</div>
+{/if}
+
+{#if chain.length >= 2 && !situation}
+	<button
+		type="button"
+		on:click={readSituation}
+		disabled={situationLoading}
+		class="mt-4 w-full rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-medium px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
+	>
+		{#if situationLoading}
+			<span class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+			Reading your situation…
+		{:else}
+			Read my situation ({chain.length} picks)
+		{/if}
+	</button>
+{/if}
+
+{#if situation}
+	<div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 space-y-3">
+		<div>
+			<p class="text-base font-medium text-slate-900 leading-relaxed">{situation.reading}</p>
+			{#if situation.readingTranslation}
+				<p class="mt-1 text-sm text-slate-600 italic">{situation.readingTranslation}</p>
+			{/if}
+		</div>
+		{#if situation.suggestions.length}
+			<div>
+				<p class="text-xs font-semibold uppercase tracking-wide text-emerald-700 mb-1.5">
+					To enjoy more
+				</p>
+				<ul class="space-y-2">
+					{#each situation.suggestions as s, i (i)}
+						<li class="text-sm">
+							<p class="text-slate-900">{s}</p>
+							{#if situation.suggestionsTranslation[i]}
+								<p class="text-slate-500 italic text-xs">
+									{situation.suggestionsTranslation[i]}
+								</p>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+		<button
+			type="button"
+			on:click={() => (situation = null)}
+			class="text-xs text-emerald-700 hover:text-emerald-900 font-medium"
+		>
+			Dismiss
+		</button>
 	</div>
 {/if}

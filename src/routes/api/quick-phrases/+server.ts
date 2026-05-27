@@ -23,9 +23,7 @@ interface RequestBody {
 	weather?: Weather | null;
 	instructionLanguage?: string;
 	count?: number;
-	focusSentence?: string;
-	focusTranslation?: string;
-	depth?: number;
+	chain?: { sentence: string; translation: string }[];
 }
 
 interface PhraseWord {
@@ -39,9 +37,6 @@ interface Phrase {
 	words: PhraseWord[];
 }
 
-const SYSTEM_PROMPT =
-	'You produce practical phrases tied to a learner\'s immediate physical surroundings. Always reply with valid JSON only';
-
 function buildPrompt(b: {
 	language: string;
 	cefrLevel: string;
@@ -54,9 +49,7 @@ function buildPrompt(b: {
 	weather?: Weather | null;
 	instructionLanguage: string;
 	count: number;
-	focusSentence?: string;
-	focusTranslation?: string;
-	depth: number;
+	chain: { sentence: string; translation: string }[];
 }): string {
 	const settingBits: string[] = [];
 	if (b.city) settingBits.push(b.city);
@@ -73,29 +66,23 @@ function buildPrompt(b: {
 		);
 	const settingLine = settingBits.length ? `Setting: ${settingBits.join(', ')}.` : '';
 
-	const focus = b.focusSentence?.trim();
-	// Each consecutive drill on the same topic asks for a bolder, less obvious
-	// set than the previous one — fights "every regeneration looks the same"
-	// without losing the topic anchor. Levels are clamped at 3+.
-	const daringLine = focus && b.depth >= 1
-		? b.depth === 1
-			? ' Push past the obvious phrasings: use less common vocabulary and richer expressions than a beginner would default to, while staying natural.'
-			: b.depth === 2
-				? ' Be noticeably bolder than typical textbook phrasings: idiomatic turns, surprising angles on the same subject, more expressive register.'
-				: ' Go adventurous: idioms, colloquialisms, vivid imagery, unexpected sub-scenarios within the same subject — still grammatical and still usable in this situation.'
-		: '';
-	const taskLine = focus
-		? `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that stay on the exact same topic and situation as this phrase the learner just picked: "${focus}"${
-				b.focusTranslation?.trim() ? ` (meaning: "${b.focusTranslation.trim()}")` : ''
-			}. Keep that subject; vary the wording, vocabulary and sub-scenarios but do not drift to other situations. Stay consistent with the time of day and weather. Avoid duplicates and do not repeat the picked phrase verbatim.${daringLine}`
-		: `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the learner could use near the location in the next 30 minutes. Pick sentences that match the time of day and weather. Vary the situations; avoid duplicates.`;
+	// Hypothesis-mode: each generated phrase is something the user might
+	// plausibly say/think under a different guess about what they're doing.
+	// Picks are evidence; the chain narrows our guess over time. Local context
+	// (weather, news, future enrichment APIs) supplies the prior.
+	const taskLine = b.chain.length
+		? `We are guessing what the user is doing. Their picks so far (oldest → newest):
+${b.chain.map((c, i) => `  ${i + 1}. "${c.sentence}" — ${c.translation}`).join('\n')}
 
-	return `The learner is at "${b.placeName}" (${b.address}).
+Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel}. Each phrase is something the user might say or think *now* under a different hypothesis about their situation. Make the ${b.count} hypotheses meaningfully distinct and consistent with the picks above.`
+		: `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the user could use near the location. Each phrase should reflect a different plausible guess about what they're doing right now, given the setting.`;
+
+	return `The user is at "${b.placeName}" (${b.address}).
 ${settingLine}
 
 ${taskLine}
 
-Output ONLY minified JSON — no markdown, no code fences, no newlines, no extra spaces — of exactly this shape:
+Output ONLY minified JSON of exactly this shape:
 {"p":[{"s":"...","t":"...","w":[{"x":"...","g":"..."}]}]}
 
 - "s" is the phrase in ${b.language}.
@@ -236,21 +223,24 @@ export const POST: RequestHandler = async ({ request }) => {
 		weather: body.weather || null,
 		instructionLanguage: body.instructionLanguage || 'English',
 		count: typeof body.count === 'number' ? Math.max(3, Math.min(20, body.count)) : 4,
-		focusSentence: typeof body.focusSentence === 'string' ? body.focusSentence : undefined,
-		focusTranslation:
-			typeof body.focusTranslation === 'string' ? body.focusTranslation : undefined,
-		depth:
-			typeof body.depth === 'number' && body.depth > 0 ? Math.min(5, Math.floor(body.depth)) : 0
+		chain: Array.isArray(body.chain)
+			? body.chain
+					.filter(
+						(c): c is { sentence: string; translation: string } =>
+							!!c && typeof c.sentence === 'string' && typeof c.translation === 'string'
+					)
+					.slice(-10)
+			: []
 	};
 
 	const prompt = buildPrompt(filled);
 
 	// Hand location to the LLM-server enrichment proxy out-of-band so it can
 	// inject recent local news without us mutating the strict-JSON prompt.
-	// Initial generation only — "more on this topic" must stay on its picked
-	// subject, not drift onto news. Percent-encoded: header values are ASCII
-	// only, but city/country routinely aren't (e.g. "Málaga").
-	const enrichLocation = !filled.focusSentence && (filled.city || filled.country);
+	// Every round benefits: the prior over "what is the user doing" is
+	// shaped by local context, not just the initial generation. Percent-encoded:
+	// header values are ASCII only, but city/country routinely aren't.
+	const enrichLocation = filled.city || filled.country;
 	const extraHeaders = enrichLocation
 		? {
 				'X-Enrich': 'news',
@@ -263,9 +253,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	if (dev) {
 		console.log('\n────── /api/quick-phrases ──────');
-		console.log('[system]');
-		console.log(SYSTEM_PROMPT);
-		console.log('\n[user]');
 		console.log(prompt);
 		console.log('────────────────────────────────\n');
 	}
@@ -291,10 +278,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				for await (const delta of callLlmStream(
 					{
 					prompt,
-					system: SYSTEM_PROMPT,
-					// Drills get a bit more entropy on top of the bolder prompt
-					// so the daring instructions actually surface in sampling.
-					temperature: Math.min(0.9, 0.3 + filled.depth * 0.15),
+					temperature: 0.7,
 					maxTokens,
 					extraHeaders
 				},
@@ -328,7 +312,7 @@ export const POST: RequestHandler = async ({ request }) => {
 								(pt !== undefined ? ` | prompt ${pt} tok` : '') +
 								(ct !== undefined ? ` | completion ${ct} tok` : '') +
 								(tps !== undefined ? ` | ${tps} tok/s` : '') +
-								(filled.focusSentence ? ' | mode=topic' : ' | mode=initial')
+								(filled.chain.length ? ` | chain=${filled.chain.length}` : ' | mode=initial')
 						);
 					}
 				}
