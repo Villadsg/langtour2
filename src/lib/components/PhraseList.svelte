@@ -20,8 +20,6 @@
 	let chain: { sentence: string; translation: string }[] = [];
 
 	interface Situation {
-		reading: string;
-		readingTranslation: string;
 		suggestions: string[];
 		suggestionsTranslation: string[];
 	}
@@ -273,16 +271,10 @@
 
 {#if situation}
 	<div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 space-y-3">
-		<div>
-			<p class="text-base font-medium text-slate-900 leading-relaxed">{situation.reading}</p>
-			{#if situation.readingTranslation}
-				<p class="mt-1 text-sm text-slate-600 italic">{situation.readingTranslation}</p>
-			{/if}
-		</div>
 		{#if situation.suggestions.length}
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-wide text-emerald-700 mb-1.5">
-					To enjoy more
+					Things you might enjoy
 				</p>
 				<ul class="space-y-2">
 					{#each situation.suggestions as s, i (i)}

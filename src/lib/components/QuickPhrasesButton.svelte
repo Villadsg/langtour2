@@ -226,7 +226,7 @@
 					<select
 						bind:value={pickedLanguage}
 						disabled={busy}
-						class="appearance-none rounded-md pl-2 pr-8 py-1 {onDark
+						class="appearance-none bg-none rounded-md pl-2 pr-8 py-1 {onDark
 							? 'bg-white/15 backdrop-blur-sm border border-white/50 text-white [&>option]:text-slate-800'
 							: 'border border-slate-300 bg-white text-slate-800'}"
 					>
@@ -247,7 +247,7 @@
 				<select
 					bind:value={pickedSpeakLanguage}
 					disabled={busy}
-					class="appearance-none rounded-md pl-2 pr-8 py-1 {onDark
+					class="appearance-none bg-none rounded-md pl-2 pr-8 py-1 {onDark
 						? 'bg-white/15 backdrop-blur-sm border border-white/50 text-white [&>option]:text-slate-800'
 						: 'border border-slate-300 bg-white text-slate-800'}"
 				>
@@ -266,7 +266,7 @@
 				<select
 					bind:value={cefrLevel}
 					disabled={busy}
-					class="appearance-none rounded-md pl-2 pr-8 py-1 {onDark
+					class="appearance-none bg-none rounded-md pl-2 pr-8 py-1 {onDark
 						? 'bg-white/15 backdrop-blur-sm border border-white/50 text-white [&>option]:text-slate-800'
 						: 'border border-slate-300 bg-white text-slate-800'}"
 				>

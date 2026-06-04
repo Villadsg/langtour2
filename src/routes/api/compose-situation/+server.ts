@@ -26,8 +26,6 @@ interface RequestBody {
 }
 
 interface Situation {
-	reading: string;
-	readingTranslation: string;
 	suggestions: string[];
 	suggestionsTranslation: string[];
 }
@@ -64,20 +62,18 @@ function buildPrompt(b: {
 		.map((c, i) => `  ${i + 1}. "${c.sentence}" — ${c.translation}`)
 		.join('\n');
 
-	return `The user is at "${b.placeName}" (${b.address}).
+	const taskLine = `The user is at "${b.placeName}" (${b.address}).
 ${settingLine}
 
-Picks (evidence about their situation, in order):
+They picked these phrases, which hint at what they're into (in order):
 ${chainLines}
 
-In ${b.language} at CEFR ${b.cefrLevel}, write:
-  1. A short paragraph (~3-4 sentences) describing what the user is most likely doing right now and the mood/intent behind it. Be specific.
-  2. 2-3 concrete suggestions for enjoying the moment more, grounded in the local context (weather, time of day, nearby events). Each suggestion should be something they could realistically act on in the next hour.
+Infer their interests from these picks, then suggest 2-3 concrete things they could do near here in the next hour, grounded in the local setting (weather, time of day, anything notable happening nearby). Write each suggestion in ${b.language} at CEFR ${b.cefrLevel}, with a ${b.instructionLanguage} translation.`;
 
-Provide ${b.instructionLanguage} translations of both.
+	const outputLine = `Reply with ONE minified JSON object, nothing else — no search results, notes, or prose. Put the ${b.language} suggestions in "suggestions" and their ${b.instructionLanguage} translations in "suggestionsTranslation" (same order):
+{"suggestions":["<suggestion>"],"suggestionsTranslation":["<translation>"]}`;
 
-Output ONLY minified JSON of exactly this shape:
-{"reading":"...","readingTranslation":"...","suggestions":["...","..."],"suggestionsTranslation":["...","..."]}`;
+	return `${taskLine}\n\n${outputLine}`;
 }
 
 function tryParse(content: string): Situation | null {
@@ -94,17 +90,14 @@ function tryParse(content: string): Situation | null {
 			return null;
 		}
 	}
-	const reading = typeof parsed?.reading === 'string' ? parsed.reading : '';
-	const readingTranslation =
-		typeof parsed?.readingTranslation === 'string' ? parsed.readingTranslation : '';
 	const suggestions = Array.isArray(parsed?.suggestions)
 		? parsed.suggestions.filter((s: unknown): s is string => typeof s === 'string')
 		: [];
 	const suggestionsTranslation = Array.isArray(parsed?.suggestionsTranslation)
 		? parsed.suggestionsTranslation.filter((s: unknown): s is string => typeof s === 'string')
 		: [];
-	if (!reading || !suggestions.length) return null;
-	return { reading, readingTranslation, suggestions, suggestionsTranslation };
+	if (!suggestions.length) return null;
+	return { suggestions, suggestionsTranslation };
 }
 
 export const POST: RequestHandler = async ({ request }) => {

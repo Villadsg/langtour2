@@ -73,7 +73,7 @@ function buildPrompt(b: {
 	const placeForSearch = [b.placeName, b.city, b.country].filter(Boolean).join(', ');
 	const searchLine =
 		b.city || b.country
-			? `First, search the web for recent news and current or upcoming events near ${placeForSearch} — festivals, exhibitions, markets, sports, closures or works, anything notable happening now. Weave in only what is genuinely recent and relevant so the phrases reflect what is actually going on there; if nothing useful turns up, rely on the setting above.`
+			? `Search the web for anything notable happening near ${placeForSearch} right now. Weave in only what is genuinely recent and relevant so the phrases reflect what is actually going on there; if nothing useful turns up, rely on the setting above.`
 			: '';
 
 	// Hypothesis-mode: each generated phrase is something the user might
@@ -92,8 +92,7 @@ Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel}. Each 
 	// Search/task come first; the strict-JSON contract stays last and loud so the
 	// search step can't tempt the model into prose or commentary in the output.
 	const outputLine = `Reply with ONE minified JSON object, nothing else — no search results, notes, or prose. Put all ${b.count} phrases in the array "p". Each phrase has just two fields: "s" (the ${b.language} phrase) and "t" (its ${b.instructionLanguage} translation):
-{"p":[{"s":"<${b.language} phrase>","t":"<${b.instructionLanguage} translation>"}]}
-Example: {"p":[{"s":"¿Dónde está la salida?","t":"Where is the exit?"},{"s":"¿Me puede ayudar?","t":"Can you help me?"}]}`;
+{"p":[{"s":"<${b.language} phrase>","t":"<${b.instructionLanguage} translation>"}]}`;
 
 	return [locationLine, searchLine, taskLine, outputLine].filter(Boolean).join('\n\n');
 }
