@@ -216,7 +216,7 @@
 				class="group cursor-pointer bg-white border border-slate-200 rounded-lg px-4 py-3 transition-colors hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-300 flex items-center gap-3"
 			>
 				<div class="flex-1 min-w-0">
-					<PhraseLine phrase={p} />
+					<PhraseLine phrase={p} {language} instructionLanguage={context?.instructionLanguage} />
 				</div>
 				<svg
 					class="h-5 w-5 flex-shrink-0 text-slate-300 group-hover:text-emerald-500 transition-colors"

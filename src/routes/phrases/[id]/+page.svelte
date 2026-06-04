@@ -185,7 +185,11 @@
 				<ul class="space-y-2">
 					{#each streamPhrases as p, i (i)}
 						<li class="bg-white border border-slate-200 rounded-lg px-4 py-3">
-							<PhraseLine phrase={p} />
+							<PhraseLine
+								phrase={p}
+								language={head?.language ?? ''}
+								instructionLanguage={streamContext?.instructionLanguage}
+							/>
 						</li>
 					{/each}
 				</ul>
