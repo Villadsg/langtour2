@@ -66,15 +66,16 @@ function buildPrompt(b: {
 		);
 	const settingLine = settingBits.length ? `Setting: ${settingBits.join(', ')}.` : '';
 
-	// Agentic enrichment: the LLM server can search the web (SearXNG), so ask it
-	// to ground the phrases in what's actually happening nearby right now. Only
-	// worth it with a real place to search; "weave in if relevant, else ignore"
-	// keeps a thin or irrelevant result from derailing the generation.
-	const placeForSearch = [b.placeName, b.city, b.country].filter(Boolean).join(', ');
-	const searchLine =
-		b.city || b.country
-			? `Search the web for anything notable happening near ${placeForSearch} right now. Weave in only what is genuinely recent and relevant so the phrases reflect what is actually going on there; if nothing useful turns up, rely on the setting above.`
-			: '';
+	// Agentic enrichment: the LLM server can search the web (SearXNG), so when we
+	// have a real city/country we lead with a grounding search over this exact
+	// place (name + full address); otherwise we just state where the user is. The
+	// setting line follows directly so the model has the local context up front.
+	const placeRef = `"${b.placeName}" (${b.address})`;
+	const canSearch = Boolean(b.city || b.country);
+	const contextLine = canSearch
+		? `Search the web for anything notable happening near ${placeRef}.`
+		: `The user is at ${placeRef}.`;
+	const contextBlock = [contextLine, settingLine].filter(Boolean).join('\n');
 
 	// Hypothesis-mode: each generated phrase is something the user might
 	// plausibly say/think under a different guess about what they're doing.
@@ -85,16 +86,14 @@ function buildPrompt(b: {
 ${b.chain.map((c, i) => `  ${i + 1}. "${c.sentence}" — ${c.translation}`).join('\n')}
 
 Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel}. Each phrase is something the user might say or think *now* under a different hypothesis about their situation. Make the ${b.count} hypotheses meaningfully distinct and consistent with the picks above.`
-		: `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the user could use near the location. Each phrase should reflect a different plausible guess about what they're doing right now, given the setting.`;
+		: `Generate ${b.count} phrases in ${b.language} at CEFR level ${b.cefrLevel} that the user could use near the location${canSearch ? ' based on the search results' : ''}. Each phrase should reflect a guess about what the user could do.`;
 
-	const locationLine = `The user is at "${b.placeName}" (${b.address}).${settingLine ? `\n${settingLine}` : ''}`;
-
-	// Search/task come first; the strict-JSON contract stays last and loud so the
+	// Context/task come first; the strict-JSON contract stays last and loud so the
 	// search step can't tempt the model into prose or commentary in the output.
-	const outputLine = `Reply with ONE minified JSON object, nothing else — no search results, notes, or prose. Put all ${b.count} phrases in the array "p". Each phrase has just two fields: "s" (the ${b.language} phrase) and "t" (its ${b.instructionLanguage} translation):
+	const outputLine = `Reply with ONE minified JSON object, nothing else. Put all ${b.count} phrases in the array "p". Each phrase has just two fields: "s" (the ${b.language} phrase) and "t" (its ${b.instructionLanguage} translation):
 {"p":[{"s":"<${b.language} phrase>","t":"<${b.instructionLanguage} translation>"}]}`;
 
-	return [locationLine, searchLine, taskLine, outputLine].filter(Boolean).join('\n\n');
+	return [contextBlock, taskLine, outputLine].filter(Boolean).join('\n\n');
 }
 
 // Splits a sentence into display tokens on whitespace, punctuation kept

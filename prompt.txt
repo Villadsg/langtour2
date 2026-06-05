@@ -1,0 +1,7 @@
+Search the web for anything notable happening in Madrid
+Setting: Madrid, Spain, local time 11:31, midday, overcast, 20°C.
+
+Generate 4 phrases in Spanish at CEFR level B2 about the searches.
+
+Reply with ONE minified JSON object, nothing else. Put all 4 phrases in the array "p". Each phrase has just two fields: "s" (the Spanish phrase) and "t" (its English translation):
+{"p":[{"s":"<Spanish phrase>","t":"<English translation>"}]}

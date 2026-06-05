@@ -11,6 +11,8 @@ export interface CallLlmOptions {
 	prompt?: string;
 	system?: string;
 	messages?: ChatMessage[];
+	/** Override the model for this request (e.g. a non-search model for cheap, search-free calls). Defaults to env LLM_MODEL. */
+	model?: string;
 	temperature?: number;
 	/** Hard cap on generated tokens (OpenAI `max_tokens`). Omit for no cap. */
 	maxTokens?: number;
@@ -121,13 +123,15 @@ export async function callLlm({
 	prompt,
 	system,
 	messages: providedMessages,
+	model: modelOverride,
 	temperature,
 	maxTokens,
 	timeoutMs,
 	noThink = true,
 	extraHeaders
 }: CallLlmOptions): Promise<CallLlmResult> {
-	const { url, apiKey, model, envTimeout } = resolveConfig();
+	const { url, apiKey, model: defaultModel, envTimeout } = resolveConfig();
+	const model = modelOverride || defaultModel;
 	const effectiveTimeout = timeoutMs ?? (Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : DEFAULT_TIMEOUT_MS);
 
 	const messages = buildMessages(prompt, system, providedMessages);
@@ -208,6 +212,7 @@ export async function* callLlmStream(
 		prompt,
 		system,
 		messages: providedMessages,
+		model: modelOverride,
 		temperature,
 		maxTokens,
 		timeoutMs,
@@ -216,7 +221,8 @@ export async function* callLlmStream(
 	}: CallLlmOptions,
 	meta?: Partial<CallLlmStreamMeta>
 ): AsyncGenerator<string, void, unknown> {
-	const { url, apiKey, model, envTimeout } = resolveConfig();
+	const { url, apiKey, model: defaultModel, envTimeout } = resolveConfig();
+	const model = modelOverride || defaultModel;
 	const effectiveTimeout =
 		timeoutMs ?? (Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : DEFAULT_TIMEOUT_MS);
 

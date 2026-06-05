@@ -1,0 +1,7 @@
+Search the web for anything notable happening near "Explanada de Puente del Rey" (Explanada de Puente del Rey, Casa de Campo, Moncloa-Aravaca, Madrid, Community of Madrid, 28008, Spain).
+Setting: Madrid, Spain, local time 11:31, midday, overcast, 20°C.
+
+Generate 4 phrases in Spanish at CEFR level B2 that the user could use near the location based on the search results. Each phrase should reflect a guess about what the user could do.
+
+Reply with ONE minified JSON object, nothing else — no search results, notes, or prose. Put all 4 phrases in the array "p". Each phrase has just two fields: "s" (the Spanish phrase) and "t" (its English translation):
+{"p":[{"s":"<Spanish phrase>","t":"<English translation>"}]}

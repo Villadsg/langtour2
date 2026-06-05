@@ -1,7 +1,12 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { dev } from '$app/environment';
+import { env } from '$env/dynamic/private';
 import { callLlm, LlmError } from '$lib/server/llm';
+
+// A bare word translation never needs the web; force the non-search model so the
+// local-search model's always-on search can't inject noise into a one-word gloss.
+const NOSEARCH_MODEL = env.LLM_MODEL_NOSEARCH || 'local-llm';
 
 interface RequestBody {
 	word: string;
@@ -41,7 +46,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		: `Give the ${instructionLanguage} meaning of the ${body.language} word "${word}". Reply with only the translation — a few words at most, no quotes, no explanation.`;
 
 	try {
-		const result = await callLlm({ prompt, temperature: 0.2, maxTokens: 32 });
+		const result = await callLlm({ prompt, model: NOSEARCH_MODEL, temperature: 0.2, maxTokens: 32 });
 		const gloss = cleanGloss(result.content);
 		if (dev) {
 			console.log(`[word-gloss] "${word}" → "${gloss}" | llm ${result.ms}ms`);
